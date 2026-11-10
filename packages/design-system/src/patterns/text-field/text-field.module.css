@@ -1,0 +1,62 @@
+/* 한 줄 입력과 도움말·오류를 연결하는 UI의 모양과 상태별 스타일을 정합니다. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.label {
+  color: var(--mp-color-text-primary);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-label-s-weight);
+  line-height: 1.4;
+}
+.required {
+  margin-left: 4px;
+  color: var(--mp-color-text-accent);
+}
+.hint {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.error {
+  color: var(--mp-color-text-danger);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-12);
+  padding: var(--mp-space-16);
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-primary);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 1.5;
+  transition: border-color 150ms;
+}
+.input::placeholder {
+  color: var(--mp-color-text-secondary);
+}
+.input:focus-visible {
+  outline: 2px solid var(--mp-color-border-accent);
+  outline-offset: 2px;
+  border-color: var(--mp-color-border-accent);
+}
+.input[aria-invalid='true'] {
+  border-color: var(--mp-color-status-danger);
+}
+.input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
+}

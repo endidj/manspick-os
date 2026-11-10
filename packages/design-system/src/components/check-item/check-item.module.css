@@ -1,0 +1,55 @@
+/* 준비 항목의 완료 상태를 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.checkItem:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-12);
+  width: 100%;
+  min-height: 72px;
+  padding: var(--mp-space-16);
+  text-align: left;
+  background: var(--mp-color-bg-glass);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-16);
+  color: var(--mp-color-text-secondary);
+  cursor: pointer;
+}
+.checkCircle {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1.5px solid var(--mp-color-border-strong);
+  border-radius: var(--mp-radius-full);
+  display: grid;
+  place-items: center;
+}
+.checkCircle[data-completed] {
+  border-color: var(--mp-color-status-success);
+  background: var(--mp-color-status-success);
+  color: var(--mp-color-bg-base);
+}
+.checkCopy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  flex-direction: column;
+}
+.checkLabel {
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-label-m-weight);
+  color: var(--mp-color-text-primary);
+  line-height: 1.4;
+}
+.checkLabel[data-completed] {
+  color: var(--mp-color-text-secondary);
+  text-decoration: line-through;
+}
+.description {
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+  color: var(--mp-color-text-secondary);
+}

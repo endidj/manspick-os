@@ -1,0 +1,20 @@
+/* 설정 이력의 긴 값이 대화상자 밖으로 넘치지 않게 배치합니다. */
+.entry {
+  display: grid;
+  gap: var(--mp-space-8);
+  padding-bottom: var(--mp-space-16);
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  font-size: var(--mp-type-body-m-size);
+}
+.entry span {
+  color: var(--mp-color-text-secondary);
+}
+.entry pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: var(--mp-type-caption-size);
+}
+.entry summary {
+  cursor: pointer;
+}

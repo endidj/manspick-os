@@ -1,0 +1,27 @@
+// 회사별 API Worker 설정 예시입니다. 복사본에서 도메인과 리소스 식별자를 실제 값으로 바꿉니다.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "manspick-api-example",
+  "main": "../apps/server/src/worker.ts",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "STAFF_APP_ORIGIN": "https://admin.example.com",
+    "CUSTOMER_APP_ORIGIN": "https://customer.example.com",
+    "STAFF_EMAIL_DOMAIN": "example.com",
+    "STAFF_EMAIL_FROM": "login@example.com",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "manspick-db-example",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "manspick-media-example" }],
+  "send_email": [{ "name": "EMAIL" }],
+  "observability": { "enabled": true, "logs": { "invocation_logs": false } },
+}

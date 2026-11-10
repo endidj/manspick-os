@@ -1,0 +1,74 @@
+/* 관리자 상품 화면에서 추출한 토글의 크기와 켜짐·꺼짐·포커스 상태를 정의합니다. */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mp-space-8);
+  max-width: 100%;
+  font-family: var(--mp-type-caption-family);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+  color: var(--mp-color-text-secondary);
+  cursor: pointer;
+}
+.input[type='checkbox'] {
+  appearance: none;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--mp-switch-width);
+  height: var(--mp-switch-height);
+  min-height: var(--mp-switch-height);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mp-switch-border);
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-switch-off-bg);
+  cursor: inherit;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.input::after {
+  content: '';
+  position: absolute;
+  width: var(--mp-switch-thumb-size);
+  height: var(--mp-switch-thumb-size);
+  left: 1px;
+  top: 1px;
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-switch-thumb-bg);
+  transition: transform 150ms;
+}
+.input:checked {
+  background: var(--mp-switch-on-bg);
+  border-color: var(--mp-switch-on-bg);
+}
+.input:checked::after {
+  transform: translateX(calc(var(--mp-switch-width) - var(--mp-switch-height)));
+}
+.input:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: var(--mp-space-4);
+}
+.switch:has(.input:disabled) {
+  cursor: not-allowed;
+}
+.input:disabled {
+  opacity: 0.5;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .input::after {
+    transition: none;
+  }
+}

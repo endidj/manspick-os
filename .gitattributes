@@ -1,0 +1,3 @@
+# 체크아웃할 때 해시로 검증하는 원본 자산의 바이트를 보존합니다.
+packages/design-system/src/assets/icons/**/*.svg -text
+packages/design-system/src/assets/fonts/pretendard/pretendardvariable-dynamic-subset.css -text

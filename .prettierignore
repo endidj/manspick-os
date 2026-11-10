@@ -1,0 +1,12 @@
+node_modules
+.next
+.open-next
+.cloudflare
+.wrangler
+.local
+.yarn
+yarn.lock
+docs/sources
+# 다운로드한 공식 폰트 CSS 원문과 해시를 보존합니다.
+packages/design-system/src/assets/fonts/pretendard/pretendardvariable-dynamic-subset.css
+**/next-env.d.ts

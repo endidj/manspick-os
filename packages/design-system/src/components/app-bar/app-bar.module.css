@@ -1,0 +1,40 @@
+/* 화면 상단의 브랜드와 동작을 배치하는 UI의 모양과 상태별 스타일을 정합니다. */
+/* 앱의 배치 스타일이 CSS 로드 순서와 무관하게 기본값을 덮을 수 있게 합니다. */
+:where(.appBar) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mp-space-16);
+  min-height: 56px;
+  padding: 0 var(--mp-space-24);
+  background: var(--mp-color-bg-base);
+}
+.appBarIdentity,
+.appBarActions,
+.appBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.appBrand {
+  font-family: var(--mp-font-display);
+  font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-h1-weight);
+  color: var(--mp-color-text-primary);
+  letter-spacing: -0.04em;
+}
+.appBrandMark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--mp-radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+}
+.appBarActions {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+}

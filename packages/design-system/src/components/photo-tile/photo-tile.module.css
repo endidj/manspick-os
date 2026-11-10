@@ -1,0 +1,86 @@
+/* 사진의 선택·업로드·오류 상태를 보여주는 UI의 모양과 상태별 스타일을 정합니다. */
+.photoSurface:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.photoTile {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4/5;
+  border: 1px solid transparent;
+  border-radius: var(--mp-radius-12);
+  background: linear-gradient(140deg, var(--mp-color-bg-elevated), var(--mp-color-bg-surface));
+  color: var(--mp-color-border-strong);
+}
+.photoTile[data-selected] {
+  border: 3px solid var(--mp-color-action-primary);
+}
+.photoSurface {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  overflow: hidden;
+  position: relative;
+}
+button.photoSurface {
+  cursor: pointer;
+}
+.photoSurface > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photoSelection {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--mp-color-text-primary);
+  border-radius: var(--mp-radius-full);
+  display: grid;
+  place-items: center;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-on-accent);
+  background: transparent;
+}
+.photoSelection[data-selected] {
+  border-color: var(--mp-color-action-primary-hover);
+  background: var(--mp-color-action-primary-hover);
+}
+.photoFooter {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--mp-space-12) var(--mp-space-8) var(--mp-space-8);
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-caption-size);
+  background: linear-gradient(transparent, var(--mp-color-overlay-photo));
+}
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: var(--mp-color-overlay-photo-control);
+  border-radius: inherit;
+  color: var(--mp-color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--mp-space-8);
+  font-size: var(--mp-type-label-s-size);
+}
+.retry {
+  border: 1px solid var(--mp-color-border-strong);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-primary);
+  padding: var(--mp-space-8) var(--mp-space-12);
+  border-radius: var(--mp-radius-8);
+}

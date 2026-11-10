@@ -1,0 +1,100 @@
+/* 크기와 상태를 갖춘 공통 버튼을 그리는 UI의 모양과 상태별 스타일을 정합니다. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mp-space-8);
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--mp-radius-16);
+  padding: 0 var(--mp-space-24);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-label-m-size);
+  font-weight: var(--mp-type-label-m-weight);
+  line-height: 1.4;
+  background: var(--mp-button-primary-bg);
+  color: var(--mp-color-text-on-accent);
+  cursor: pointer;
+  transition:
+    background 150ms,
+    color 150ms,
+    border-color 150ms;
+}
+.button[data-size='lg'] {
+  min-height: 56px;
+}
+.button[data-size='md'] {
+  min-height: 48px;
+  padding-inline: var(--mp-space-20);
+  border-radius: var(--mp-radius-12);
+}
+.button[data-size='sm'] {
+  min-height: 36px;
+  padding-inline: var(--mp-space-12);
+  border-radius: var(--mp-radius-8);
+  font-size: var(--mp-type-label-s-size);
+}
+.button[data-full-width] {
+  width: 100%;
+}
+.button:hover:not(:disabled) {
+  background: var(--mp-button-primary-hover-bg);
+}
+.button[data-variant='secondary'] {
+  background: var(--mp-color-bg-glass);
+  border-color: var(--mp-color-border-strong);
+  color: var(--mp-color-text-primary);
+}
+.button[data-variant='secondary']:hover:not(:disabled) {
+  background: var(--mp-color-bg-elevated);
+}
+.button[data-variant='ghost'] {
+  background: transparent;
+  color: var(--mp-color-text-secondary);
+}
+.button[data-variant='ghost']:hover:not(:disabled) {
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-primary);
+}
+.button[data-variant='kakao'] {
+  background: var(--mp-color-brand-kakao);
+  color: var(--mp-color-bg-base);
+}
+.button[data-variant='kakao']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mp-color-brand-kakao), black 8%);
+}
+.button[data-variant='danger'] {
+  background: color-mix(in srgb, var(--mp-color-status-danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-danger) 35%, transparent);
+  color: var(--mp-color-text-danger);
+}
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.button:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--mp-radius-full);
+  animation: spin 800ms linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+  .button {
+    transition: none;
+  }
+}

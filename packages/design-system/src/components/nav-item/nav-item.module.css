@@ -1,0 +1,31 @@
+/* 메뉴의 현재 위치와 부가 정보를 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.navItem:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-12);
+  min-height: 40px;
+  padding: var(--mp-space-8) var(--mp-space-12);
+  border-radius: var(--mp-radius-8);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+  text-decoration: none;
+}
+.navItem[data-active] {
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-primary);
+}
+.navItem[data-active] > :first-child {
+  color: var(--mp-color-text-accent);
+}
+.navItem:hover {
+  background: var(--mp-color-bg-glass);
+}
+.navBadge {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mp-type-overline-size);
+}

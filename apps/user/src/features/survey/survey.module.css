@@ -1,0 +1,235 @@
+/* 설문 원본의 네 페이지 입력 간격·선택 칩·사진 업로드·완료 화면을 배치합니다. */
+.pageProgress {
+  display: flex;
+  gap: 6px;
+}
+.pageProgress span {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  text-align: center;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.pageProgress i {
+  height: 3px;
+  background: var(--mp-color-bg-elevated);
+  border-radius: var(--mp-radius-full);
+}
+.pageProgress [data-active] {
+  color: var(--mp-color-text-accent);
+}
+.pageProgress [data-active] i {
+  background: var(--mp-color-action-primary);
+}
+.fields {
+  display: grid;
+  gap: 28px;
+}
+.fieldTitle {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: var(--mp-type-body-m-size) !important;
+  font-weight: var(--mp-type-body-m-strong-weight);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.required {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-accent);
+  font-weight: var(--mp-type-caption-weight);
+}
+.starRating > div {
+  justify-content: flex-start;
+  gap: 4px;
+}
+.starRating > div > label > span {
+  padding: 4px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  color: var(--mp-color-text-tertiary);
+}
+.starRating [data-filled] {
+  color: var(--mp-color-brand-kakao);
+}
+.sizes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.uploadGrid a {
+  overflow: hidden;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-12);
+}
+.uploadGrid img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+.uploadTile {
+  min-width: 0;
+  min-height: 130px;
+  padding: 12px;
+  border-radius: var(--mp-radius-12);
+}
+.uploadTile span {
+  font-size: var(--mp-type-caption-size);
+}
+.uploadTile small {
+  display: none;
+}
+.purposePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.purposeChoice {
+  display: inline-flex;
+  gap: 0;
+  padding: 8px 12px;
+  border-radius: var(--mp-radius-full);
+}
+.purposeChoice input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.purposeChoice > span > span {
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+}
+.purposeChoice:has(input:focus-visible) {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 3px;
+}
+.inquiryChip {
+  padding: 8px 12px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  cursor: pointer;
+}
+.strength > div > label {
+  flex: 1;
+  padding-inline: 5px;
+  min-width: 0;
+}
+.consentCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-color-bg-surface);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.consentCard input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--mp-color-action-primary);
+}
+.consentCard span {
+  flex: 1;
+}
+.consentCard small {
+  display: block;
+  margin-top: 4px;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+}
+.consentCard button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mp-color-text-secondary);
+}
+.safety {
+  gap: 12px;
+}
+.safety p {
+  font-size: var(--mp-type-caption-size);
+}
+.safety .consentCard {
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--mp-color-border-subtle);
+  border-radius: 0;
+}
+.saveStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--mp-type-overline-size) !important;
+}
+.complete {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  padding: 32px 0 8px;
+  text-align: center;
+}
+.complete p {
+  font-size: var(--mp-type-label-s-size);
+}
+.completeMark {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  color: var(--mp-color-status-success);
+  background: color-mix(in srgb, var(--mp-color-status-success) 12%, transparent);
+}
+.completeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--mp-type-label-s-size) !important;
+}
+.completeRow svg {
+  color: var(--mp-color-status-success);
+  flex-shrink: 0;
+}
+.consentChoice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+/* 작고 둥근 선택 칩과 별점은 고객 설문 원본의 밀도를 따릅니다. */
+.fields > fieldset > div > label {
+  min-height: 32px;
+  padding: 6px 12px;
+}
+.starRating > div > label {
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.starRating > div > label:has(input:checked) {
+  background: none;
+  border-color: transparent;
+}
+.starRating > div > label > span {
+  display: grid;
+  place-items: center;
+}

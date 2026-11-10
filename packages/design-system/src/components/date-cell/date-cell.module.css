@@ -1,0 +1,43 @@
+/* 날짜 한 칸의 선택 상태를 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.dateCell:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.dateCell[data-selected] {
+  background: var(--mp-date-cell-selected-bg);
+  border-color: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+}
+.dateCell:disabled {
+  cursor: not-allowed;
+}
+.dateCell {
+  position: relative;
+  width: 44px;
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: var(--mp-radius-12);
+  background: transparent;
+  color: var(--mp-color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mp-space-8);
+  font-size: var(--mp-type-body-m-size);
+  cursor: pointer;
+}
+.dateCell:disabled {
+  color: var(--mp-color-text-tertiary);
+  opacity: 0.45;
+}
+.dateMarker {
+  position: absolute;
+  bottom: 7px;
+  width: 4px;
+  height: 4px;
+  background: var(--mp-color-text-accent);
+  border-radius: var(--mp-radius-full);
+}
+.dateCell[data-selected] .dateMarker {
+  background: var(--mp-color-text-on-accent);
+}

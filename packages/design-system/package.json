@@ -1,0 +1,53 @@
+{
+  "name": "@manspick/design-system",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": "./src/components/index.ts",
+    "./components": "./src/components/index.ts",
+    "./components/*": "./src/components/*/index.ts",
+    "./patterns": "./src/patterns/index.ts",
+    "./patterns/*": "./src/patterns/*/index.ts",
+    "./icons": "./src/icons/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./assets": "./src/assets/index.ts",
+    "./styles": "./src/styles/base.css",
+    "./styles/tokens.css": "./src/styles/tokens.css",
+    "./styles/fonts.css": "./src/styles/fonts.css"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "storybook": "node ../../scripts/storybook.mjs dev",
+    "build-storybook": "node ../../scripts/storybook.mjs build",
+    "test-storybook": "node ../../scripts/storybook.mjs test",
+    "test-storybook:watch": "node ../../scripts/storybook.mjs watch",
+    "typecheck:storybook": "tsc --noEmit -p .storybook/tsconfig.json",
+    "storybook:browser": "node ../../scripts/storybook.mjs install-browser"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.6.5",
+    "@storybook/addon-docs": "10.6.5",
+    "@storybook/addon-vitest": "10.6.5",
+    "@storybook/react-vite": "10.6.5",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitest/browser": "5.0.5",
+    "@vitest/browser-playwright": "5.0.5",
+    "playwright": "1.64.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "storybook": "10.6.5",
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

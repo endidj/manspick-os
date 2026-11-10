@@ -1,0 +1,36 @@
+/* 진행 제목과 전체 단계 대비 위치를 보여주는 UI의 모양과 상태별 스타일을 정합니다. */
+.stepHeader {
+  width: 100%;
+  padding: var(--mp-space-16) 0;
+}
+.stepHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mp-space-16);
+  margin-bottom: var(--mp-space-12);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+}
+.stepHeading > :last-child {
+  font-family: var(--mp-font-display);
+  font-variant-numeric: tabular-nums;
+}
+.progressTrack {
+  height: 4px;
+  border-radius: var(--mp-radius-full);
+  overflow: hidden;
+  background: var(--mp-color-bg-elevated);
+}
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  background: var(--mp-color-action-primary);
+  border-radius: inherit;
+  transition: width 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .progressTrack > span {
+    transition: none;
+  }
+}

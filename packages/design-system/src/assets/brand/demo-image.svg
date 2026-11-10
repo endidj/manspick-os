@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="720" viewBox="0 0 540 720">
+  <title>Demo image</title>
+  <rect width="540" height="720" fill="#202630"/>
+  <path fill="#343e4e" d="M0 475 540 170v550H0Z"/>
+  <circle cx="375" cy="211" r="96" fill="#535f74"/>
+  <rect x="32" y="648" width="126" height="40" rx="20" fill="#202630"/>
+  <text x="95" y="674" fill="#e1e6ee" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" letter-spacing="2">DEMO IMAGE</text>
+</svg>

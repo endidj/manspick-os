@@ -1,0 +1,41 @@
+/* 작은 화면과 움직임 줄이기 설정의 마지막 덮어쓰기를 유지합니다. */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 25px;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .grid-two {
+    grid-template-columns: 1fr;
+  }
+  .steps {
+    gap: 8px;
+  }
+  .steps li {
+    gap: 4px;
+  }
+  .steps li strong {
+    font-size: 10px;
+  }
+  .photo-grid {
+    gap: 8px;
+  }
+  .button {
+    padding: 10px 14px;
+  }
+  .section-title {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

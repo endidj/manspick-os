@@ -1,0 +1,230 @@
+/* 보정가 원본의 왼쪽 260px 작업 목록과 오른쪽 사진·요청·업로드를 배치합니다. */
+.screen {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.filters button {
+  padding: 6px 10px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 999px;
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+}
+.filters button[data-active='true'] {
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+  border-color: var(--mp-color-border-accent);
+}
+.jobs {
+  display: grid;
+  gap: 10px;
+}
+.job {
+  display: grid;
+  gap: 8px;
+  padding: 16px 14px;
+  min-height: 94px;
+  text-align: left;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 12px;
+  background: var(--mp-color-bg-surface);
+  color: var(--mp-color-text-primary);
+}
+.job[data-active='true'] {
+  border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.job strong {
+  font-size: var(--mp-type-body-m-size);
+}
+.job span,
+.job small {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-secondary);
+}
+.job small {
+  color: var(--mp-color-status-warning);
+}
+.panel {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+}
+.panel h2 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.panel h2 svg {
+  color: var(--mp-color-text-accent);
+}
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.sectionHeading > span {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-tertiary);
+}
+.photos {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.photos > a {
+  min-width: 0;
+}
+.photos > a > span {
+  display: block;
+  margin-top: 8px;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.request {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--mp-color-bg-elevated);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 1.7;
+}
+.request > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.preference {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+}
+.preference strong {
+  font-weight: var(--mp-type-body-m-weight);
+  color: var(--mp-color-text-primary);
+}
+.strength {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: -8px;
+}
+.strength span {
+  height: 6px;
+  background: var(--mp-color-border-strong);
+  border-radius: 4px;
+}
+.strength span[data-active='true'] {
+  background: var(--mp-color-action-primary);
+}
+.uploadRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.uploadRow > div:first-child {
+  flex: 1;
+  min-width: 180px;
+}
+.uploadRow > div:first-child label {
+  min-height: 48px;
+  padding: 10px 12px;
+}
+.uploadRow > div:first-child label svg,
+.uploadRow > div:first-child p {
+  display: none;
+}
+.uploadRow > button {
+  min-height: 44px;
+  min-width: 150px;
+  font-size: var(--mp-type-body-m-size);
+}
+.uploadTools {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.uploadTools label {
+  display: grid;
+  gap: 6px;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+.uploadTools select {
+  font-size: var(--mp-type-caption-size);
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--mp-color-bg-elevated);
+}
+.uploadState {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--mp-type-caption-size);
+  padding-top: 8px;
+  border-top: 1px solid var(--mp-color-border-subtle);
+}
+.uploadState span {
+  overflow-wrap: anywhere;
+}
+.muted {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-tertiary);
+  line-height: 1.7;
+}
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .photos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .jobs {
+    display: flex;
+    overflow-x: auto;
+  }
+  .job {
+    min-width: 200px;
+  }
+  .photos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .panel {
+    padding: 16px;
+  }
+}

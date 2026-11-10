@@ -1,0 +1,11 @@
+/* 선택한 노출 조건이 없을 때 다이얼로그를 여는 업무 버튼의 모양만 정의합니다. */
+.emptyRule[data-size] {
+  min-height: 30px;
+  padding: var(--mp-space-4) 10px;
+  background: var(--mp-color-bg-accent-tint);
+  border: 1px solid var(--mp-color-border-accent);
+  color: var(--mp-color-text-accent);
+  border-radius: var(--mp-radius-full);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-body-m-weight);
+}

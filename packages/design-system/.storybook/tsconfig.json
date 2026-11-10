@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "react", "react-dom", "vite/client"]
+  },
+  "include": ["./**/*.ts", "../src/**/*.d.ts", "../src/**/*.stories.ts", "../src/**/*.stories.tsx"],
+  "exclude": ["../node_modules"]
+}

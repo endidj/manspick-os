@@ -1,0 +1,59 @@
+/* 관리자 선택 입력에서 추출한 높이와 라벨·오류·포커스 상태를 정의합니다. */
+.field {
+  position: relative;
+  display: grid;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.label,
+.hint,
+.error {
+  font-family: var(--mp-type-caption-family);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+}
+.label,
+.hint {
+  color: var(--mp-color-text-secondary);
+}
+.required {
+  margin-left: var(--mp-space-4);
+  color: var(--mp-color-text-accent);
+}
+.error {
+  color: var(--mp-color-text-danger);
+}
+.select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--mp-space-40);
+  padding: var(--mp-space-8) var(--mp-space-12);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-8);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-primary);
+  font-family: var(--mp-type-body-m-family);
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-body-m-weight);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.select:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 2px;
+}
+.select[aria-invalid='true'] {
+  border-color: var(--mp-color-status-danger);
+}
+.select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

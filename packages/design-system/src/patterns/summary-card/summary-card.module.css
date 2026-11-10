@@ -1,0 +1,44 @@
+/* 선택한 내용과 수정 동작을 요약하는 UI의 모양과 상태별 스타일을 정합니다. */
+.hint {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--mp-space-16);
+  padding: var(--mp-space-20);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-surface);
+}
+.summaryCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.summaryLabel {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 18px;
+}
+.summaryValue {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-label-m-weight);
+  line-height: 26px;
+  overflow-wrap: anywhere;
+}
+.summaryAction {
+  flex-shrink: 0;
+  color: var(--mp-color-text-accent);
+  font-size: var(--mp-type-label-s-size);
+}
+.summaryAction a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

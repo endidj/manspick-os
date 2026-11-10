@@ -1,0 +1,55 @@
+/* 알림과 조회 전용 설정의 표면·행·오류 안내를 배치합니다. */
+.stack {
+  display: grid;
+  gap: var(--mp-space-20);
+  min-width: 0;
+}
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mp-space-16);
+  padding: var(--mp-space-20) 0;
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+}
+.notification:last-child {
+  border-bottom: 0;
+}
+.notification > span:first-child {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--mp-color-text-accent);
+}
+.notificationContent {
+  display: grid;
+  gap: var(--mp-space-8);
+  flex: 1;
+  min-width: 0;
+}
+.notificationContent strong {
+  font-size: var(--mp-type-body-m-size);
+}
+.notificationContent p {
+  font-size: var(--mp-type-label-s-size);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.notificationContent > span {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-overline-size);
+}
+@media (max-width: 500px) {
+  .notification {
+    gap: var(--mp-space-8);
+    flex-wrap: wrap;
+  }
+  .notificationContent {
+    flex-basis: calc(100% - 28px);
+  }
+  .notification > span:last-child {
+    margin-left: 26px;
+  }
+}

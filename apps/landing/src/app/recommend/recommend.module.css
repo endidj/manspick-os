@@ -1,0 +1,29 @@
+/* 추천 흐름을 원본 390px 앱처럼 좁고 읽기 편한 너비에 배치합니다. */
+.shell {
+  width: min(480px, 100%);
+  min-height: 100svh;
+  margin-inline: auto;
+  border-inline: 1px solid var(--mp-color-border-subtle);
+  background: var(--mp-color-bg-base);
+}
+.homeLink {
+  color: var(--mp-color-text-secondary);
+  font-size: 11px;
+}
+.homeLink:hover {
+  color: var(--mp-color-text-primary);
+}
+.main {
+  padding: 28px 24px 48px;
+}
+@media (max-width: 480px) {
+  .shell {
+    border-inline: 0;
+  }
+  .main {
+    padding-inline: 20px;
+  }
+  .appBar {
+    padding-inline: 20px;
+  }
+}

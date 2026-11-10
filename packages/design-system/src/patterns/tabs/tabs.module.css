@@ -1,0 +1,62 @@
+/* 키보드로 이동할 수 있는 탭과 내용을 연결하는 UI의 모양과 상태별 스타일을 정합니다. */
+.tabs {
+  min-width: 0;
+}
+.tabList {
+  display: flex;
+  gap: var(--mp-space-8);
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  overflow-x: auto;
+}
+.tab {
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: var(--mp-space-12) var(--mp-space-16);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--mp-color-text-secondary);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 20px;
+  cursor: pointer;
+}
+.tab[aria-selected='true'] {
+  color: var(--mp-color-text-primary);
+  border-bottom-color: var(--mp-color-border-accent);
+  font-weight: var(--mp-type-label-m-weight);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: -4px;
+}
+.tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.tabPanel {
+  padding-top: var(--mp-space-24);
+}
+.tabPanel:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.tabs[data-variant='flush'] .tabList {
+  gap: var(--mp-space-24);
+}
+.tabs[data-variant='flush'] .tab {
+  min-height: 0;
+  padding: var(--mp-space-4) 0 14px;
+  font-weight: var(--mp-type-label-s-weight);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.tabs[data-variant='flush'] .tab[aria-selected='true'] {
+  color: var(--mp-color-text-primary);
+}
+.tabs[data-variant='flush'] .tabPanel:not([hidden]) {
+  display: grid;
+  gap: var(--mp-space-20);
+  padding-top: var(--mp-space-20);
+  min-width: 0;
+}

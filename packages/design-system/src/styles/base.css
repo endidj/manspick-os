@@ -1,0 +1,7 @@
+/* 앱이 한 번 가져올 공통 스타일을 기존 적용 순서대로 연결합니다. */
+@import './tokens.css';
+@import './fonts.css';
+@import './foundation.css';
+@import './app-components.css';
+@import './app-layout.css';
+@import './responsive.css';

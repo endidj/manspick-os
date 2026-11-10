@@ -1,0 +1,269 @@
+[
+  {
+    "name": "solar/camera-bold",
+    "bytes": 1079,
+    "sha256": "a28d8ca4bbf6625bd42c787d05ebf54ca3d0c4767fa8af16ec99cb464a973d19"
+  },
+  {
+    "name": "solar/magic-stick-3-bold",
+    "bytes": 1648,
+    "sha256": "ac105c0062cd6490943fd7f2d58f492e81ac34b2f5d64cf3261234feac60e0ce"
+  },
+  {
+    "name": "solar/hamburger-menu-linear",
+    "bytes": 336,
+    "sha256": "15537d5349b708474f2d6082b4cd5bb8f172837e81cd949bfd098df2a1cb90d3"
+  },
+  {
+    "name": "solar/question-circle-bold",
+    "bytes": 910,
+    "sha256": "061da830018d4f52cdd3cf3b073c311591268465b587e93f7273545a4569fa85"
+  },
+  {
+    "name": "solar/gallery-wide-bold",
+    "bytes": 1851,
+    "sha256": "ad5dc92f6e7c79616fd88e72ee1e4b2987cd136da059be54b4f7db33160ab972"
+  },
+  {
+    "name": "solar/bolt-bold",
+    "bytes": 670,
+    "sha256": "eb7351a5877a8a2facbc9b1fb5ab0329c9e34cc8850029e3c617a299aa8e4d2c"
+  },
+  {
+    "name": "solar/chat-square-like-bold",
+    "bytes": 927,
+    "sha256": "a15676ca17695c20b447de8e334b37b466cda61aa56f8942d73a3a0a2f4d8867"
+  },
+  {
+    "name": "solar/users-group-rounded-bold",
+    "bytes": 680,
+    "sha256": "3b8b2e6203ea1373137e43e0750c06cfc39994d08df9acf74d94dddccd13f4a9"
+  },
+  {
+    "name": "solar/route-bold",
+    "bytes": 863,
+    "sha256": "38dc0a8ad5f1568edf4e2fbbde37e3f35ea20cfe944f666a535b8a4e9a1781c2"
+  },
+  {
+    "name": "solar/tag-price-bold",
+    "bytes": 1468,
+    "sha256": "c278a75ef67817719bbd464784f8b0934651bcd15ea1df9f6834f770d94e3dfc"
+  },
+  {
+    "name": "ri/kakao-talk-fill",
+    "bytes": 199,
+    "sha256": "9e8cf342347bae12426ed6818c244ba7f0f80056d72c373cc2b6e1b4d01f1def",
+    "source": "Local demo glyph"
+  },
+  {
+    "name": "solar/arrow-right-linear",
+    "bytes": 222,
+    "sha256": "3227a8b59d695072581de425a35ab902dd7d962580f8656d688c92278e0946dd"
+  },
+  {
+    "name": "solar/star-bold",
+    "bytes": 897,
+    "sha256": "173152d6435c9add1b3d7e6ef349f6926ad79155699c44f7c0b33a05d784ac14"
+  },
+  {
+    "name": "solar/arrow-down-linear",
+    "bytes": 222,
+    "sha256": "684f81cb8afc2ee927aee925e90ac42a246afb8687bbf1e94dd3947613c3c6b3"
+  },
+  {
+    "name": "solar/checklist-minimalistic-bold",
+    "bytes": 1161,
+    "sha256": "bed7793c4e55a6828a8e6ae88aefd84f0b516ba9a208d6ef30e94e05ed06bbaf"
+  },
+  {
+    "name": "solar/hanger-bold",
+    "bytes": 1165,
+    "sha256": "70e1a6ea58899da6a6c69a2b4332c8b12f682d835c676f46dde891fb57a7044f"
+  },
+  {
+    "name": "solar/user-hand-up-bold",
+    "bytes": 929,
+    "sha256": "f7af55afe8dfeb4b5ad46bf1beb8e5f50b98d7a13ae2404b3e0999db4e63b28c"
+  },
+  {
+    "name": "solar/heart-bold",
+    "bytes": 293,
+    "sha256": "ff2e5364c3f592db3de2073dccb986d620706b3314e75198c8ef882480cad38b"
+  },
+  {
+    "name": "solar/chat-round-line-bold",
+    "bytes": 700,
+    "sha256": "9108251fe6d2427ce0294c7fd9075450eda6f86c127bac6c90f1a2a2cc077355"
+  },
+  {
+    "name": "solar/user-bold",
+    "bytes": 335,
+    "sha256": "a5864ea847b70ad4ca3acb123222e4bb2b81861b26abc288f7f59e59f7048445"
+  },
+  {
+    "name": "solar/scale-bold",
+    "bytes": 886,
+    "sha256": "0f484ddd4dea19a9d392004da21edd004898b61b84ba5fd1da874b130c15eec2"
+  },
+  {
+    "name": "solar/double-alt-arrow-right-bold",
+    "bytes": 636,
+    "sha256": "b6cc2b6a456eed6a95d6cb88398f7c08ad40fcf209af0950305b7e7e8eca15e1"
+  },
+  {
+    "name": "solar/smartphone-bold",
+    "bytes": 844,
+    "sha256": "98b0918d13acb4521f04a18d9d752e83ed5a296e7b521568dc06e3b0200e584f"
+  },
+  {
+    "name": "solar/check-circle-bold",
+    "bytes": 498,
+    "sha256": "760a5f7bdd65fe346e5b77806d288fdf11213bf10e5fa628c3d26acc7f9356c1"
+  },
+  {
+    "name": "solar/close-circle-bold",
+    "bytes": 621,
+    "sha256": "1587ee011958b6114bfe81c0d79c7e8e18efe9bd51f56d7d6b86871d3d901370"
+  },
+  {
+    "name": "solar/chat-round-call-bold",
+    "bytes": 825,
+    "sha256": "a2d282cc59c6743bbb778721eea07887f05e73972304a3d774c8b95582984aeb"
+  },
+  {
+    "name": "solar/hanger-2-bold",
+    "bytes": 1558,
+    "sha256": "15b6c995dc69861cfa4b720d4c4fc804c9f593bfdca571cbccef1e8d8ace43ad"
+  },
+  {
+    "name": "solar/fire-bold",
+    "bytes": 678,
+    "sha256": "bbc145fb28dbafcc30a1a88ec136cdd4067aa0c8823cbc1f0453e2836512c290"
+  },
+  {
+    "name": "solar/crown-bold",
+    "bytes": 1173,
+    "sha256": "0481c50109307d2463a07eda9c0d9b5bd794c4a7be44fa75909d31f3ad1f6549"
+  },
+  {
+    "name": "solar/shield-check-bold",
+    "bytes": 747,
+    "sha256": "381023ad33b72ac63edd4c7c54be6a914cd89d40052355071a2e417d7b949bb1"
+  },
+  {
+    "name": "solar/refresh-bold",
+    "bytes": 968,
+    "sha256": "82bf448ac83797f3c089c5ef66ac030a1a2889d849613f49246abb80f187cf54"
+  },
+  {
+    "name": "solar/user-check-bold",
+    "bytes": 1101,
+    "sha256": "764f753c7cb93935e273f1a860b701812fc400f0efeddeebfb134fa51728be60"
+  },
+  {
+    "name": "solar/alt-arrow-down-linear",
+    "bytes": 212,
+    "sha256": "616321bcd0c743a34f1cf1a11a5c124bb0c2bd0b57beb3e0799340bd500e067c"
+  },
+  {
+    "name": "solar/document-text-bold",
+    "bytes": 793,
+    "sha256": "c268495ef82140792aacfd0c50e441a6824d8cc38322ec1b772254de9c143772"
+  },
+  {
+    "name": "solar/close-circle-linear",
+    "bytes": 464,
+    "sha256": "ec3bf522cbac3011f0ad7bd95d5382ef276294ac3797c1f718184cf1963d68a6"
+  },
+  {
+    "name": "solar/book-bold",
+    "bytes": 1169,
+    "sha256": "6b2ca7853a0b791dba398b1b8581fe8c053567838fc6895bb6891815686f3cb9"
+  },
+  {
+    "name": "solar/user-id-bold",
+    "bytes": 976,
+    "sha256": "51c02c3b89b3b96086ebb1ddbf98e3e469a402828f3fbab1c633d8b08b118295"
+  },
+  {
+    "name": "solar/download-bold",
+    "bytes": 973,
+    "sha256": "eaf82a9f380b890f61f88a95e2fd5b865d96bbb36e28c5c5b3ec47aa4632b723"
+  },
+  {
+    "name": "solar/calendar-bold",
+    "bytes": 1336,
+    "sha256": "0585585d5862946d49e40b7ef8fc61f7b0c28382b0c8f06ff40c6e27906e3b6b"
+  },
+  {
+    "name": "mdi/instagram",
+    "bytes": 275,
+    "sha256": "c0c9a3f3d50c3049dc65d6ce031cbab130c0daaa7a5947015c3f9b757b2440b3",
+    "source": "Local demo glyph"
+  },
+  {
+    "name": "solar/map-point-bold",
+    "bytes": 399,
+    "sha256": "530cdc34a1357c4688b163875b2f160058bf684861c7e83178674bfdaa6c7280"
+  },
+  {
+    "name": "solar/arrow-up-linear",
+    "bytes": 221,
+    "sha256": "c075e4e53ec4fe4870c6db7c444450718629b0ad9b4e9f7ab53712969b0df1ba"
+  },
+  {
+    "name": "solar/arrow-left-linear",
+    "bytes": 221,
+    "sha256": "591a7db9e79746ab87c7ef1f50b69bcdb5563b5e726c9dee3e3f652cabbe3024"
+  },
+  {
+    "name": "solar/suitcase-bold",
+    "bytes": 1491,
+    "sha256": "49f442273fe002a3a76bde902ad910e6d530ad8c57a3bc32a0ccc9099d1dfb82"
+  },
+  {
+    "name": "solar/gift-bold",
+    "bytes": 1365,
+    "sha256": "7dc1db15d3257bdc6447b2b835374b34f05220f97a7b9d15982351df04ac4c1f"
+  },
+  {
+    "name": "solar/camera-minimalistic-bold",
+    "bytes": 1130,
+    "sha256": "a9fffd852240edf3f9c662b055a10575ac925f54c5890a2da78c3775fd9e47b0"
+  },
+  {
+    "name": "solar/wallet-bold",
+    "bytes": 1472,
+    "sha256": "4f91c4b8b79a2b13b29be249eaf5d59e8ff928a4bcdcfeb2907120c883ee25eb"
+  },
+  {
+    "name": "solar/bag-bold",
+    "bytes": 770,
+    "sha256": "1f0254708d90d440153030f337e8eadd35300cb13f18a07aa98d38c660f730f5"
+  },
+  {
+    "name": "solar/t-shirt-bold",
+    "bytes": 1076,
+    "sha256": "657291fc782742e0188d6caecda30dfa2afe596cb9d2385d8838a23223326ffd"
+  },
+  {
+    "name": "solar/check-read-bold",
+    "bytes": 871,
+    "sha256": "cb2c6d9218a59e8d6eab4e7d0ce61f4f34aff7cdee60ba828a4718df7abb708d"
+  },
+  {
+    "name": "solar/restart-bold",
+    "bytes": 665,
+    "sha256": "0d76754216bea6393cb43191837c08c926609c1f63bc79ec56ebe4311f21e2cf"
+  },
+  {
+    "name": "solar/gallery-bold",
+    "bytes": 1417,
+    "sha256": "929abe187fd18c930335781f2390c12a327473a329282979a91e3e29e40f7f4f"
+  },
+  {
+    "name": "solar/atom-bold",
+    "bytes": 1491,
+    "sha256": "d680fd1726ae13f821078595279b7f6a8d0a36ded87b4f83c1b914ae3bec3268"
+  }
+]

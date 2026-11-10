@@ -1,0 +1,27 @@
+/* 내용 구역의 제목과 설명을 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-12);
+}
+.eyebrow {
+  color: var(--mp-color-text-accent);
+  font-family: var(--mp-font-display);
+  font-size: var(--mp-type-overline-size);
+  font-weight: var(--mp-type-label-m-weight);
+  line-height: 16px;
+}
+.sectionTitle {
+  margin: 0;
+  color: var(--mp-color-text-primary);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-h1-size);
+  font-weight: var(--mp-type-h1-weight);
+  line-height: 34px;
+}
+.description {
+  margin: 0;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 22px;
+}

@@ -1,0 +1,12 @@
+/* Storybook 문서와 예제 영역의 바깥 여백을 정합니다. */
+.sb-show-main.sb-main-padded {
+  padding: 24px;
+}
+
+.sbdocs-wrapper {
+  font-family: var(--font);
+}
+
+.sbdocs-content {
+  max-width: 1200px;
+}

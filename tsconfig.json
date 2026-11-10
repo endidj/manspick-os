@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["packages/**/*.ts", "packages/**/*.tsx", "infra/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "apps", "packages/design-system"]
+}

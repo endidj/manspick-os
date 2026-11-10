@@ -1,0 +1,289 @@
+/* 보드 원본의 지표 4개와 7열, 검색 칩과 촘촘한 고객 카드를 배치합니다. */
+.screen {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.screen > header {
+  min-height: 78px;
+}
+.screen > header > div:last-child > button {
+  min-width: 168px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.metric {
+  display: grid;
+  gap: 6px;
+  min-height: 117px;
+  padding: 18px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  background: var(--mp-color-bg-surface);
+  text-align: left;
+  color: var(--mp-color-text-primary);
+}
+.metric > span {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.metric i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mp-color-text-accent);
+}
+.metric[data-tone='amber'] i {
+  background: var(--mp-color-status-warning);
+}
+.metric[data-tone='purple'] i {
+  background: var(--mp-color-status-info-purple);
+}
+.metric[data-tone='red'] i {
+  background: var(--mp-color-status-danger);
+}
+.metric strong {
+  font-size: calc(var(--mp-type-h1-size) + 2px);
+  line-height: 30px;
+  font-weight: var(--mp-type-h1-weight);
+}
+.metric > .metricHint {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.toolbar > div:first-child {
+  width: 280px;
+}
+.toolbar select {
+  width: auto;
+  flex: none;
+}
+.toolbar label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+.search {
+  height: 40px;
+  min-height: 40px;
+  padding: 10px 14px;
+  font-size: var(--mp-type-label-s-size);
+  border-radius: 10px;
+}
+.pill {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 999px;
+  background: var(--mp-color-bg-elevated);
+  cursor: pointer;
+}
+.pill[data-active='true'] {
+  color: var(--mp-color-text-accent);
+  border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.requestPill {
+  color: var(--mp-color-status-danger);
+  border-color: var(--mp-color-status-danger);
+}
+.reset {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-secondary);
+  background: none;
+  border: 0;
+  padding: 4px;
+}
+.registerLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  background: var(--mp-color-action-primary);
+  border-radius: 16px;
+  color: var(--mp-color-text-on-accent);
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(176px, 1fr));
+  align-items: start;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+}
+.column {
+  min-width: 0;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  background: var(--mp-color-bg-surface);
+}
+.columnHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px;
+  min-height: 54px;
+}
+.stage {
+  font-size: var(--mp-type-caption-size);
+  padding: 5px 9px;
+}
+.columnHeader > span:last-child {
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+}
+.cards {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+.card {
+  border-radius: 16px;
+  padding: 14px;
+  gap: 10px;
+  background: var(--mp-color-bg-surface);
+}
+.card > div:first-child {
+  gap: 4px;
+  align-items: center;
+}
+.card > div:first-child strong {
+  font-size: var(--mp-type-label-s-size);
+}
+.card > div:first-child > span {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-accent);
+}
+.card > div:nth-child(2) {
+  font-size: var(--mp-type-caption-size);
+  line-height: 20px;
+}
+.card > div:nth-child(3) {
+  gap: 6px;
+  font-size: var(--mp-type-overline-size);
+  flex-wrap: wrap;
+}
+.card > div:nth-child(3) svg {
+  width: 11px;
+  height: 11px;
+}
+.card > div:last-child {
+  font-size: var(--mp-type-overline-size);
+  line-height: 15px;
+  padding: 8px;
+  margin-top: 0;
+}
+.attention {
+  border-color: var(--mp-color-status-danger);
+}
+.emptyColumn {
+  padding: 16px 4px;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+  text-align: center;
+}
+.tableWrap {
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  overflow: auto;
+  min-width: 0;
+}
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--mp-type-label-s-size);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mp-type-label-s-size);
+  text-align: left;
+  white-space: nowrap;
+}
+.table th {
+  padding: 14px 16px;
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-tertiary);
+  font-weight: var(--mp-type-body-m-weight);
+  font-size: var(--mp-type-caption-size);
+}
+.table td {
+  padding: 16px;
+  border-top: 1px solid var(--mp-color-border-subtle);
+}
+.customerLink {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.phone {
+  margin-top: 4px;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+@media (max-width: 760px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .metric {
+    padding: 14px;
+  }
+  .toolbar > div:first-child {
+    width: 100%;
+  }
+  .kanban {
+    grid-template-columns: repeat(7, 230px);
+  }
+}
+.form {
+  display: grid;
+  gap: 16px;
+}
+.form > label {
+  display: grid;
+  gap: 8px;
+  font-size: var(--mp-type-label-s-size);
+}
+.form select,
+.form input[type='number'] {
+  min-height: 42px;
+  background: var(--mp-color-bg-elevated);
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.form > .consent {
+  display: flex;
+  align-items: center;
+  line-height: 1.6;
+}
+.consent input {
+  width: 18px;
+  height: 18px;
+}

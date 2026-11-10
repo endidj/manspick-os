@@ -1,0 +1,60 @@
+/* 파일 선택과 끌어놓기를 받아 앱에 전달하는 UI의 모양과 상태별 스타일을 정합니다. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.hint {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.error {
+  color: var(--mp-color-text-danger);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.dropzone:focus-within {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mp-space-8);
+  min-height: 156px;
+  padding: var(--mp-space-24);
+  border: 1px dashed var(--mp-color-border-strong);
+  border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-primary);
+  text-align: center;
+  cursor: pointer;
+}
+.dropzone[data-dragging] {
+  border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.dropzone[data-disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.dropzoneTitle {
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-label-m-weight);
+}
