@@ -1,0 +1,81 @@
+/* 여러 선택지 중 하나를 고르게 하는 UI의 모양과 상태별 스타일을 정합니다. */
+.label {
+  color: var(--mp-color-text-primary);
+  font-family: var(--mp-font-body);
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-label-s-weight);
+  line-height: 1.4;
+}
+.required {
+  margin-left: 4px;
+  color: var(--mp-color-text-accent);
+}
+.hint {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.error {
+  color: var(--mp-color-text-danger);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+}
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.fieldset legend {
+  float: none;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--mp-space-12);
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mp-space-8);
+}
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--mp-space-8) var(--mp-space-16);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 1.4;
+  cursor: pointer;
+}
+.pill:has(input:checked) {
+  background: var(--mp-color-bg-accent-tint);
+  border-color: var(--mp-color-border-accent);
+  color: var(--mp-color-text-primary);
+}
+.pill:has(input:focus-visible) {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.pill:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.groupHint {
+  margin-top: var(--mp-space-8);
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

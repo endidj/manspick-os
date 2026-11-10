@@ -1,0 +1,21 @@
+/* 항목 이름과 값을 나란히 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.infoRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mp-space-20);
+  margin: 0;
+  padding: var(--mp-space-12) 0;
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 20px;
+}
+.infoRow dt {
+  color: var(--mp-color-text-secondary);
+}
+.infoRow dd {
+  margin: 0;
+  color: var(--mp-color-text-primary);
+  text-align: right;
+  overflow-wrap: anywhere;
+}

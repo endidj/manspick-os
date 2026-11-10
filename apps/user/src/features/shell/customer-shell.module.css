@@ -1,0 +1,212 @@
+/* 고객 앱의 공통 폭·여백·카드와 폼 배치를 정의합니다. */
+.shell {
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--mp-color-bg-base);
+}
+.appBar {
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+}
+.main {
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.stepHeader {
+  padding: 16px 24px;
+}
+.helpLink {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+  cursor: pointer;
+}
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--mp-color-border-subtle);
+  background: var(--mp-color-bg-surface);
+}
+.footer p {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+  line-height: 1.6;
+  text-align: center;
+}
+.sceneFooter {
+  margin-inline: -24px;
+  margin-bottom: -24px;
+}
+.footer button {
+  width: 100%;
+}
+.footerActions {
+  display: flex;
+  gap: 10px;
+}
+.footerActions > :first-child {
+  flex: 0 0 100px;
+}
+.footerActions > :last-child {
+  flex: 1;
+}
+.main h1 {
+  font-size: var(--mp-type-h1-size);
+  line-height: var(--mp-type-h1-line-height);
+  letter-spacing: -0.035em;
+}
+.main h1 {
+  font-weight: var(--mp-type-h1-weight);
+}
+.main p {
+  color: var(--mp-color-text-secondary);
+}
+.main a {
+  text-underline-offset: 3px;
+}
+.card h2 {
+  font-size: var(--mp-type-body-l-size);
+}
+.card h3 {
+  font-size: var(--mp-type-label-m-size);
+}
+.main h2 {
+  font-size: var(--mp-type-h2-size);
+  line-height: var(--mp-type-h2-line-height);
+  letter-spacing: -0.025em;
+}
+.main h3 {
+  font-size: var(--mp-type-h3-size);
+  line-height: var(--mp-type-h3-line-height);
+}
+.main p {
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.stack {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.card {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  border-radius: var(--mp-radius-16);
+  border: 1px solid var(--mp-color-border-subtle);
+  background: var(--mp-color-bg-surface);
+  min-width: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.between {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.gridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.muted {
+  color: var(--mp-color-text-secondary);
+}
+.small {
+  font-size: var(--mp-type-caption-size) !important;
+  color: var(--mp-color-text-secondary);
+}
+.main .overline {
+  color: var(--mp-color-text-accent);
+  font-size: var(--mp-type-overline-size) !important;
+  font-weight: var(--mp-type-body-m-strong-weight);
+  letter-spacing: 0.12em;
+  line-height: var(--mp-type-overline-line-height);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.actions > * {
+  flex: 1;
+}
+.fieldSet {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.fieldSet:disabled {
+  opacity: 0.65;
+}
+.checkLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.65;
+}
+.checkLine input {
+  flex-shrink: 0;
+  margin-top: 4px;
+  accent-color: var(--mp-color-action-primary);
+  width: 16px;
+  height: 16px;
+}
+.preWrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.textLink {
+  color: var(--mp-color-text-accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: var(--mp-type-caption-size);
+}
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.photoGrid img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 360px) {
+  .main {
+    padding: 20px 16px;
+  }
+  .appBar {
+    padding-inline: 16px;
+  }
+  .stepHeader,
+  .footer {
+    padding-inline: 16px;
+  }
+  .sceneFooter {
+    margin-inline: -16px;
+    margin-bottom: -20px;
+  }
+  .card {
+    padding: 16px;
+  }
+}

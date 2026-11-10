@@ -1,0 +1,265 @@
+/* 배정 원본의 300px 최근 목록, 결과 표와 디렉터별 주간 시간표를 배치합니다. */
+.screen {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.listTitle {
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-label-s-weight);
+  margin-bottom: 14px;
+  color: var(--mp-color-text-secondary);
+}
+.assignments {
+  display: grid;
+  gap: 12px;
+}
+.assignments > button {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  text-align: left;
+  background: var(--mp-color-bg-surface);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  color: var(--mp-color-text-primary);
+  min-height: 106px;
+}
+.assignments > button[data-active='true'] {
+  border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.assignments > button > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.assignments strong {
+  font-size: var(--mp-type-label-s-size);
+}
+.assignments > button > span {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+.result,
+.week {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  min-width: 0;
+  border-radius: 16px;
+}
+.weekHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.weekHeading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--mp-type-body-l-size);
+}
+.weekHeading svg,
+.weekHeading > span {
+  color: var(--mp-color-text-accent);
+}
+.weekHeading > span {
+  font-size: var(--mp-type-caption-size);
+}
+.weekHeading > div {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.weekHeading button {
+  padding: 4px;
+  min-height: 26px;
+  font-size: var(--mp-type-caption-size);
+}
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-label-s-size);
+}
+.steps span {
+  padding: 6px 10px;
+  border: 1px solid var(--mp-color-border-accent);
+  color: var(--mp-color-text-accent);
+  background: var(--mp-color-bg-accent-tint);
+  border-radius: 999px;
+  font-size: var(--mp-type-caption-size);
+}
+.tableWrap {
+  overflow: auto;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 12px;
+}
+.tableWrap table {
+  border-collapse: collapse;
+  width: 100%;
+  white-space: nowrap;
+  text-align: left;
+  font-size: var(--mp-type-caption-size);
+}
+.tableWrap th,
+.tableWrap td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  font-weight: var(--mp-type-body-m-weight);
+}
+.tableWrap thead {
+  color: var(--mp-color-text-tertiary);
+  background: var(--mp-color-bg-elevated);
+}
+.tableWrap tr[data-selected] {
+  background: var(--mp-color-bg-accent-tint);
+}
+.resultActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.resultActions p {
+  flex: 1;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+  line-height: 1.6;
+}
+.resultActions button {
+  min-height: 44px;
+  font-size: var(--mp-type-label-s-size);
+}
+.primaryLink {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  background: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.matrixWrap {
+  overflow: auto;
+  min-width: 0;
+}
+.matrix {
+  display: grid;
+  gap: 6px;
+  min-width: 720px;
+  align-items: center;
+}
+.dayLabel {
+  text-align: center;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-tertiary);
+  padding: 0 0 2px;
+}
+.directorRow {
+  display: contents;
+}
+.director {
+  display: grid;
+  gap: 4px;
+  font-size: var(--mp-type-caption-size);
+}
+.director strong {
+  font-weight: var(--mp-type-body-m-weight);
+}
+.director span {
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.daySlots {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 2px;
+}
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  min-height: 26px;
+  border-radius: 6px;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-secondary);
+}
+.slot[data-state='available'],
+.legend i[data-state='available'] {
+  background: var(--mp-color-bg-accent-tint);
+}
+.slot[data-state='reserved'],
+.legend i[data-state='reserved'] {
+  background: color-mix(in srgb, var(--mp-color-text-accent), transparent 75%);
+  color: var(--mp-color-text-primary);
+}
+.slot[data-state='unavailable'],
+.legend i[data-state='unavailable'] {
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-tertiary);
+}
+.slot[data-state='held'],
+.legend i[data-state='held'] {
+  background: color-mix(in srgb, var(--mp-color-status-success), transparent 82%);
+  color: var(--mp-color-status-success);
+  outline: 1px solid var(--mp-color-status-success);
+}
+@media (max-width: 1150px) {
+  .layout {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .weekHeading {
+    flex-wrap: wrap;
+  }
+  .resultActions {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .assignments {
+    display: flex;
+    overflow: auto;
+  }
+  .assignments > button {
+    min-width: 250px;
+  }
+  .result,
+  .week {
+    padding: 16px;
+  }
+}

@@ -1,0 +1,46 @@
+/* 앱에서 정한 업무 단계의 이름과 색상을 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.stageBadge {
+  --stage-fg: var(--mp-color-text-secondary);
+  --stage-bg: var(--mp-color-bg-elevated);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--mp-radius-full);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 1.4;
+  white-space: nowrap;
+  background: var(--stage-bg);
+  color: var(--stage-fg);
+}
+.stageBadge[data-tone='purple'] {
+  --stage-fg: var(--mp-color-status-purple-label);
+  --stage-bg: color-mix(in srgb, var(--mp-color-status-info-purple) 15%, transparent);
+}
+.stageBadge[data-tone='blue'] {
+  --stage-fg: var(--mp-color-text-accent);
+  --stage-bg: var(--mp-color-bg-accent-tint);
+}
+.stageBadge[data-tone='cyan'] {
+  --stage-fg: var(--mp-color-text-accent);
+  --stage-bg: color-mix(in srgb, var(--mp-color-text-accent) 12%, transparent);
+}
+.stageBadge[data-tone='amber'] {
+  --stage-fg: var(--mp-color-status-warning);
+  --stage-bg: color-mix(in srgb, var(--mp-color-status-warning) 12%, transparent);
+}
+.stageBadge[data-tone='green'] {
+  --stage-fg: var(--mp-color-status-success);
+  --stage-bg: color-mix(in srgb, var(--mp-color-status-success) 12%, transparent);
+}
+.stageBadge[data-tone='pink'] {
+  --stage-fg: var(--mp-color-status-pink);
+  --stage-bg: color-mix(in srgb, var(--mp-color-status-pink) 12%, transparent);
+}
+.stageDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--mp-radius-full);
+  background: currentColor;
+}

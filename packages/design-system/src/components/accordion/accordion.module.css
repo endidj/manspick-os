@@ -1,0 +1,39 @@
+/* 자주 묻는 질문을 접고 펼치는 UI의 모양과 상태별 스타일을 정합니다. */
+.accordion {
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-surface);
+}
+.accordion summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mp-space-16);
+  padding: var(--mp-space-24);
+  font-size: var(--mp-type-label-m-size);
+  font-weight: var(--mp-type-label-m-weight);
+  list-style: none;
+  cursor: pointer;
+}
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+.accordion summary:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+  border-radius: inherit;
+}
+.accordion summary > :last-child {
+  transform: rotate(90deg);
+  flex: none;
+  color: var(--mp-color-text-secondary);
+}
+.accordion[open] summary > :last-child {
+  transform: rotate(-90deg);
+}
+.accordionBody {
+  padding: 0 var(--mp-space-24) var(--mp-space-24);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 1.7;
+  color: var(--mp-color-text-secondary);
+}

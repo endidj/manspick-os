@@ -1,0 +1,42 @@
+{
+  "name": "manspick-os",
+  "private": true,
+  "packageManager": "yarn@4.18.1",
+  "engines": {
+    "node": "^24.22.0 || ^26.12.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "wrangler dev --config infra/wrangler.jsonc --port 8787 --persist-to .local/state",
+    "db:init": "node scripts/init-db.mjs",
+    "typecheck": "node scripts/check.mjs",
+    "lint": "eslint apps packages tests scripts --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test tests/*.test.ts tests/package-lint.test.mjs",
+    "test:admin": "node --test tests/*.browser.test.mjs",
+    "test:local": "node --test tests/local.integration.test.mjs",
+    "build": "node scripts/build.mjs",
+    "storybook": "node scripts/storybook.mjs dev",
+    "storybook:build": "node scripts/storybook.mjs build",
+    "storybook:test": "node scripts/storybook.mjs test",
+    "storybook:watch": "node scripts/storybook.mjs watch",
+    "storybook:browser": "node scripts/storybook.mjs install-browser"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261102.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.3",
+    "prettier": "3.9.10",
+    "typescript": "~5.9.3",
+    "wrangler": "4.156.1"
+  },
+  "type": "module"
+}

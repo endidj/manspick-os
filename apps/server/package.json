@@ -1,0 +1,16 @@
+{
+  "name": "@manspick/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@manspick/contracts": "workspace:*",
+    "@manspick/domain": "workspace:*",
+    "hono": "4.13.16"
+  },
+  "scripts": {
+    "dev": "node ../../node_modules/wrangler/bin/wrangler.js dev --cwd ../.. --config infra/wrangler.jsonc --port 8787 --persist-to .local/state",
+    "build": "node ../../scripts/build-server.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

@@ -1,0 +1,20 @@
+// 관리자 테스트 앱에서만 호출하는 API Worker와 별도의 저장소를 설정합니다.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "manspick-api-test",
+  "main": "api-test.ts",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "manspick-admin-test-db",
+      "database_id": "9e2eed59-4a76-4ed3-bd36-8243e6803496",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "manspick-admin-test-media" }],
+  "observability": { "enabled": false },
+}

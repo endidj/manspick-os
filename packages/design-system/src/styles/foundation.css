@@ -1,0 +1,108 @@
+/* 브라우저 기본 모양을 정리하고 글자와 입력 요소의 기본값을 정합니다. */
+* {
+  box-sizing: border-box;
+}
+html {
+  color-scheme: dark;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+a {
+  touch-action: manipulation;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1,
+h2,
+h3 {
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+}
+h1 {
+  font-size: var(--mp-type-h1-size);
+}
+h2 {
+  font-size: var(--mp-type-h2-size);
+}
+h3 {
+  font-size: var(--mp-type-h3-size);
+}
+p {
+  color: var(--muted);
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+::selection {
+  background: var(--accent);
+  color: var(--mp-color-text-on-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  color: var(--text);
+  background: var(--mp-color-bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 46px;
+}
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  width: 18px;
+  min-height: auto;
+  height: 18px;
+  accent-color: var(--accent);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--mp-color-text-tertiary);
+}

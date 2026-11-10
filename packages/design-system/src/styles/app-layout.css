@@ -1,0 +1,197 @@
+/* 기존 앱의 배치·사진 목록·폼에 쓰이는 전역 클래스를 유지합니다. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.between {
+  justify-content: space-between;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: var(--mp-type-caption-size);
+}
+.strong {
+  font-weight: var(--mp-type-label-m-weight);
+  color: var(--text);
+}
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+.text-link {
+  color: var(--mp-color-text-accent);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.demo-strip {
+  padding: 8px 20px;
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+  text-align: center;
+  font-size: var(--mp-type-overline-size);
+  letter-spacing: 0.01em;
+}
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 20px;
+  z-index: 100;
+  background: var(--accent);
+  padding: 12px;
+  border-radius: 8px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+.file-button {
+  position: relative;
+}
+.file-button:focus-within {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.file-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  padding: 0;
+}
+.file-button:has(input:disabled) {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.photo-tile {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  aspect-ratio: 3/4;
+  display: grid;
+  place-items: center;
+}
+.photo-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-tile.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.photo-tile .photo-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 10px 8px;
+  background: linear-gradient(transparent, var(--mp-color-overlay-photo));
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-primary);
+}
+.photo-tile .photo-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+}
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--elevated);
+  border-radius: 8px;
+}
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.form-actions > :is(button, .button) {
+  flex: 1;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  overflow: auto;
+  margin-bottom: 24px;
+}
+.tabs button {
+  background: none;
+  color: var(--muted);
+  padding: 14px 18px;
+  white-space: nowrap;
+  border: 0;
+  border-bottom: 2px solid transparent;
+}
+.tabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.check-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+}
+.check-line input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.key-value {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: var(--mp-type-label-s-size);
+}
+.key-value > span:first-child {
+  color: var(--muted);
+}

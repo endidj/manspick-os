@@ -1,0 +1,75 @@
+/* 가격과 제공 항목을 보여주는 UI의 모양과 상태별 스타일을 정합니다. */
+.priceCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--mp-space-32);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-24);
+  background: var(--mp-color-bg-surface);
+}
+.priceCard[data-recommended] {
+  border-color: var(--mp-color-action-primary);
+  background:
+    linear-gradient(var(--mp-color-bg-accent-tint), transparent), var(--mp-color-bg-surface);
+}
+.priceCard h3 {
+  margin: 0 0 var(--mp-space-8);
+  font-size: var(--mp-type-h2-size);
+}
+.priceRecommendation {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px var(--mp-space-16);
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-button-primary-bg);
+  color: var(--mp-color-text-on-accent);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-label-m-weight);
+  white-space: nowrap;
+}
+.price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--mp-space-8);
+  margin: var(--mp-space-24) 0;
+}
+.price strong {
+  font-family: var(--mp-font-display);
+  font-size: 40px;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+.price > span {
+  font-size: var(--mp-type-label-s-size);
+  color: var(--mp-color-text-secondary);
+}
+.priceFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-12);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--mp-space-32);
+}
+.priceFeatures li {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-8);
+  font-size: var(--mp-type-body-m-size);
+}
+.priceFeatures li > :first-child {
+  color: var(--mp-color-text-accent);
+  flex: none;
+}
+.priceAction {
+  margin-top: auto;
+}
+.description {
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.5;
+  color: var(--mp-color-text-secondary);
+}

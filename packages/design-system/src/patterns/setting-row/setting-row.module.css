@@ -1,0 +1,64 @@
+/* 설정 행의 이름과 값·편집 동작을 배치하고 작은 화면에서 자연스럽게 줄바꿈합니다. */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mp-space-16);
+  padding-block: var(--mp-space-16);
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  min-width: 0;
+  font-family: var(--mp-type-body-m-family);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.content {
+  min-width: 0;
+}
+.label {
+  color: var(--mp-color-text-primary);
+  font-weight: var(--mp-type-body-m-strong-weight);
+  overflow-wrap: anywhere;
+}
+.description {
+  margin-top: var(--mp-space-4);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+  overflow-wrap: anywhere;
+}
+.trailing {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--mp-space-12);
+  min-width: 0;
+}
+.value {
+  color: var(--mp-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.actions {
+  flex: none;
+}
+.row[data-density='compact'] {
+  padding-block: var(--mp-space-8);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-label-s-line-height);
+}
+.row[data-density='compact'] .label {
+  font-weight: var(--mp-type-label-s-weight);
+}
+@media (max-width: 500px) {
+  .row,
+  .trailing {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .row {
+    align-items: flex-start;
+  }
+}

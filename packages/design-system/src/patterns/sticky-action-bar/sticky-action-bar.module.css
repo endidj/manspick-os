@@ -1,0 +1,18 @@
+/* 화면 하단의 주요 동작을 묶는 UI의 모양과 상태별 스타일을 정합니다. */
+.stickyBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: var(--mp-space-16) var(--mp-space-20)
+    max(var(--mp-space-16), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--mp-color-border-subtle);
+  background: var(--mp-color-bg-base);
+}
+.stickyContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-12);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+}

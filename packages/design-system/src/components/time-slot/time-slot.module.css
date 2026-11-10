@@ -1,0 +1,31 @@
+/* 예약 시간의 선택 가능 여부를 표시하는 UI의 모양과 상태별 스타일을 정합니다. */
+.timeSlot:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 4px;
+}
+.timeSlot {
+  min-width: 104px;
+  min-height: 44px;
+  padding: var(--mp-space-8) var(--mp-space-16);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-12);
+  color: var(--mp-color-text-primary);
+  background: var(--mp-color-bg-glass);
+  font-size: var(--mp-type-label-m-size);
+  font-weight: var(--mp-type-label-m-weight);
+  cursor: pointer;
+}
+.timeSlot[data-selected] {
+  background: var(--mp-date-cell-selected-bg);
+  border-color: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+}
+.timeSlot[data-unavailable] {
+  background: transparent;
+  border-style: dashed;
+  color: var(--mp-color-text-tertiary);
+  opacity: 0.5;
+}
+.timeSlot:disabled {
+  cursor: not-allowed;
+}

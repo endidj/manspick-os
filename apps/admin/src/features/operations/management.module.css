@@ -1,0 +1,462 @@
+/* 상품·설정·템플릿·후속 관리 원본의 카드와 표, 세 열 편집기를 배치합니다. */
+.screen {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.productCard {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  min-width: 0;
+}
+.productCard[data-featured] {
+  border-color: var(--mp-color-border-accent);
+}
+.productCard h2 {
+  font-size: var(--mp-type-h2-size);
+  font-weight: var(--mp-type-h2-weight);
+}
+.mapping {
+  justify-self: start;
+  padding: 6px 10px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 999px;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+  background: var(--mp-color-bg-elevated);
+}
+.price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--mp-type-h2-size);
+  font-weight: var(--mp-type-h2-weight);
+  color: var(--mp-color-text-accent);
+}
+.price del,
+.price small {
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+  font-weight: var(--mp-type-body-m-weight);
+}
+.facts {
+  border-top: 1px solid var(--mp-color-border-subtle);
+  padding-top: 4px;
+}
+.facts dl {
+  padding: 8px 0;
+  font-size: var(--mp-type-label-s-size);
+}
+.facts dd {
+  text-align: right;
+}
+.productCard > button {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 12px;
+}
+.sectionTitle {
+  font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.tableWrap {
+  overflow: auto;
+  min-width: 0;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  background: var(--mp-color-bg-surface);
+}
+.tableWrap table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  font-size: var(--mp-type-label-s-size);
+}
+.tableWrap thead {
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+}
+.tableWrap th,
+.tableWrap td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+  line-height: 1.6;
+}
+.tableWrap thead th {
+  font-weight: var(--mp-type-body-m-weight);
+  white-space: nowrap;
+}
+.tableWrap tbody th {
+  min-width: 110px;
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.tableWrap td {
+  color: var(--mp-color-text-secondary);
+}
+.tableWrap td > a {
+  color: var(--mp-color-text-accent);
+}
+.tableWrap button {
+  white-space: nowrap;
+}
+.form {
+  display: grid;
+  gap: 16px;
+}
+.form h2 {
+  font-size: var(--mp-type-body-l-size);
+}
+.form > label:not(:has(input[role='switch'])) {
+  font-size: var(--mp-type-label-s-size);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form input[type='checkbox']:not([role='switch']) {
+  width: 18px;
+  height: 18px;
+}
+.cardHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.cardHeading h2 {
+  font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+}
+.weekRules {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.weekRules > div {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: var(--mp-color-bg-accent-tint);
+}
+.weekRules span {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-tertiary);
+}
+.weekRules strong {
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-label-s-weight);
+  color: var(--mp-color-text-accent);
+}
+.muted {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+  line-height: 1.6;
+}
+.templateLayout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.templateNav {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 16px;
+  background: var(--mp-color-bg-surface);
+}
+.templateNav button {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  padding: 14px 8px;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+}
+.templateNav button[data-active='true'] {
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-primary);
+}
+.templateNav small,
+.templateNav button > span {
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+.templateEditor {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  min-width: 0;
+}
+.templateEditor > div:first-child > div {
+  flex: 1;
+}
+.templateEditor > div:first-child > div label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+.templateEditor > div:first-child input:not([role='switch']) {
+  font-size: var(--mp-type-h2-size);
+  font-weight: var(--mp-type-h2-weight);
+  background: none;
+  border-color: transparent;
+  padding-left: 0;
+}
+.conditions {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--mp-color-bg-elevated);
+}
+.conditions h3 {
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-body-m-weight);
+  color: var(--mp-color-text-tertiary);
+  margin-bottom: 12px;
+}
+.conditions label {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+}
+.variables {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: var(--mp-type-caption-size);
+}
+.variables > span {
+  color: var(--mp-color-text-tertiary);
+}
+.variables button,
+.queueFilters button {
+  padding: 6px 10px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 999px;
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+}
+.preview {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: var(--mp-color-channel-preview);
+  color: var(--mp-color-text-on-light);
+  border-radius: 16px;
+}
+.preview label {
+  display: grid;
+  gap: 8px;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-on-light);
+}
+.preview select {
+  min-height: 32px;
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-on-light);
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: 8px;
+}
+.bubble {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--mp-color-text-on-accent);
+  color: var(--mp-color-text-on-light);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 1.8;
+}
+.preview p {
+  padding: 12px;
+  font-size: var(--mp-type-overline-size);
+  line-height: 1.6;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mp-color-text-on-accent), transparent 45%);
+}
+.campaignCard {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+}
+.campaignCard dl {
+  padding: 4px 0;
+}
+.queueFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.queueFilters button[data-active='true'] {
+  border-color: var(--mp-color-border-accent);
+  color: var(--mp-color-text-accent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.inlineActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.inlineActions > a {
+  color: var(--mp-color-text-accent);
+  font-size: var(--mp-type-caption-size);
+  white-space: nowrap;
+}
+@media (max-width: 1250px) {
+  .templateLayout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .preview {
+    grid-column: 2;
+  }
+}
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .weekRules {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .templateLayout {
+    grid-template-columns: 1fr;
+  }
+  .preview {
+    grid-column: auto;
+  }
+  .templateNav {
+    max-height: 220px;
+    overflow: auto;
+  }
+  .cardHeading {
+    flex-wrap: wrap;
+  }
+}
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .settingsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.templateNav section {
+  display: grid;
+  gap: 2px;
+}
+.templateNav section + section {
+  margin-top: 12px;
+}
+.templateNav section h2 {
+  padding: 8px;
+  font-size: var(--mp-type-overline-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+  color: var(--mp-color-text-tertiary);
+}
+.templateNav section button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 38px;
+  padding: 10px 8px;
+}
+.templateNav section button > span {
+  font-size: var(--mp-type-label-s-size);
+  color: inherit;
+}
+.conditionRow {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.conditionRow > span {
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+}
+.conditionRow > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.conditions .addRule[data-size] {
+  min-height: 26px;
+  padding: 2px 6px;
+  font-size: var(--mp-type-caption-size);
+}
+.ruleOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 20px;
+}
+.templateBody {
+  min-height: 248px;
+  font-size: var(--mp-type-caption-size);
+  line-height: 1.8;
+}
+.variables > button[data-size] {
+  min-height: 30px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-body-m-weight);
+}
+@media (max-width: 600px) {
+  .conditionRow {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+.conditionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.conditionHeading h3 {
+  margin-bottom: 0;
+}
+.conditionHeading > button[data-size] {
+  min-height: 20px;
+  padding: 0 2px;
+  font-size: var(--mp-type-overline-size);
+}
+.templateEditor > div:has(> .templateBody) > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.productHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}

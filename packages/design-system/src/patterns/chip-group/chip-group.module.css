@@ -1,0 +1,52 @@
+/* 다중 선택과 선택 제거 칩을 토큰으로 표시하고 좁은 화면에서 줄바꿈합니다. */
+.group {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.legend {
+  margin-bottom: var(--mp-space-8);
+  padding: 0;
+  font-family: var(--mp-type-caption-family);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+  color: var(--mp-color-text-secondary);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mp-space-8);
+  min-width: 0;
+}
+.chip[data-size] {
+  min-height: 30px;
+  max-width: 100%;
+  padding: var(--mp-space-4) var(--mp-space-12);
+  border-radius: var(--mp-radius-full);
+  font-family: var(--mp-type-caption-family);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+  overflow-wrap: anywhere;
+}
+.chip[data-mode='remove'] {
+  border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+}
+.chip[data-mode='remove']:hover:not(:disabled) {
+  background: var(--mp-color-bg-elevated);
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

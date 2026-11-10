@@ -1,0 +1,178 @@
+/* 원본의 고정 240px 사이드바와 디렉터 모바일 하단 탐색을 배치합니다. */
+.shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--mp-color-bg-base);
+}
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding: 28px 12px 24px;
+  background: var(--mp-color-bg-surface);
+  border-right: 1px solid var(--mp-color-border-subtle);
+  overflow-y: auto;
+}
+.sidebarHeader {
+  min-height: auto;
+  padding: 0 var(--mp-space-12);
+  background: transparent;
+}
+.roleCaption {
+  margin: 4px 12px 26px;
+  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+}
+.navigation {
+  display: grid;
+  gap: 4px;
+}
+.navItem {
+  min-height: 40px;
+  padding: 10px 12px;
+  gap: 12px;
+  border-radius: 12px;
+  font-size: var(--mp-type-label-s-size);
+}
+.navItem svg {
+  width: 16px;
+  height: 16px;
+}
+.navItem[aria-current='page'] {
+  color: var(--mp-color-text-primary);
+  background: var(--mp-color-bg-accent-tint);
+}
+.navItem[aria-current='page'] svg {
+  color: var(--mp-color-text-accent);
+}
+.sidebarBottom {
+  margin-top: auto;
+  padding-top: 40px;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 59px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--mp-color-bg-elevated);
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  font-size: var(--mp-type-caption-size);
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+}
+.identityText {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 3px;
+}
+.identityText strong {
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-label-s-weight);
+}
+.identityText span {
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.identity > button {
+  min-width: 24px;
+  width: 24px;
+  height: 28px;
+  padding: 2px;
+  opacity: 0.5;
+}
+.identity:hover > button,
+.identity:focus-within > button {
+  opacity: 1;
+}
+.content {
+  min-width: 0;
+}
+.main {
+  padding: 28px 32px;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .shell {
+    display: block;
+  }
+  .sidebar {
+    position: static;
+    height: auto;
+    padding: 16px;
+  }
+  .roleCaption {
+    margin-bottom: 12px;
+  }
+  .navigation {
+    display: flex;
+    overflow-x: auto;
+  }
+  .navItem {
+    flex-shrink: 0;
+  }
+  .sidebarBottom {
+    display: none;
+  }
+  .main {
+    padding: 20px;
+  }
+  .shell[data-role='director'] .sidebar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    height: 82px;
+    padding: 0;
+    border-top: 1px solid var(--mp-color-border-subtle);
+  }
+  .shell[data-role='director'] .sidebarHeader,
+  .shell[data-role='director'] .roleCaption {
+    display: none;
+  }
+  .shell[data-role='director'] .navigation {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .shell[data-role='director'] .navItem {
+    min-height: 66px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 2px;
+    font-size: var(--mp-type-overline-size);
+    background: none;
+  }
+  .shell[data-role='director'] .navItem svg {
+    height: 20px;
+    width: 20px;
+  }
+  .shell[data-role='director'] .navItem[aria-current='page'] {
+    color: var(--mp-color-text-accent);
+  }
+  .shell[data-role='director'] .main {
+    padding: 0 20px 102px;
+  }
+  .shell[data-role='director'][data-detail] .sidebar {
+    display: none;
+  }
+  .shell[data-role='director'][data-detail] .main {
+    padding-bottom: 0;
+  }
+}

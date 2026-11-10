@@ -1,0 +1,221 @@
+/* 기존 앱이 사용하는 공통 UI의 전역 클래스 모양을 유지합니다. */
+.brand {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  font-size: var(--mp-type-h1-size);
+  font-weight: var(--mp-type-display-l-weight);
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+.brand-symbol {
+  width: 29px;
+  height: 29px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+  position: relative;
+}
+.brand-symbol > span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mp-color-text-on-accent);
+  right: 4px;
+  top: 5px;
+}
+.brand-period {
+  color: var(--accent);
+}
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-weight: var(--mp-type-label-m-weight);
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.button-primary {
+  background: var(--accent);
+  color: var(--mp-color-text-on-accent);
+}
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.button-secondary {
+  background: var(--elevated);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.button-secondary:hover:not(:disabled) {
+  background: var(--mp-color-bg-elevated);
+}
+.button-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+.button-ghost:hover {
+  background: var(--elevated);
+  color: var(--text);
+}
+.button-danger {
+  background: color-mix(in srgb, var(--mp-color-status-danger) 13%, transparent);
+  color: var(--mp-color-text-danger);
+  border-color: color-mix(in srgb, var(--mp-color-status-danger) 33%, transparent);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: var(--mp-type-overline-size);
+  font-weight: var(--mp-type-label-m-weight);
+  line-height: 1.5;
+  background: var(--mp-color-bg-glass);
+  color: var(--mp-color-text-secondary);
+}
+.badge-blue {
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+}
+.badge-green {
+  background: color-mix(in srgb, var(--mp-color-status-success) 9%, transparent);
+  color: var(--mp-color-status-success);
+}
+.badge-amber {
+  background: color-mix(in srgb, var(--mp-color-status-warning) 9%, transparent);
+  color: var(--mp-color-status-warning);
+}
+.badge-red {
+  background: color-mix(in srgb, var(--mp-color-status-danger) 9%, transparent);
+  color: var(--mp-color-text-danger);
+}
+.panel {
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.field-label {
+  font-weight: var(--mp-type-label-m-weight);
+  color: var(--mp-color-text-primary);
+}
+.field-hint {
+  color: var(--muted);
+  font-size: var(--mp-type-caption-size);
+}
+.notice {
+  font-size: var(--mp-type-label-s-size);
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mp-color-action-primary) 8%, transparent);
+  color: var(--mp-color-text-accent);
+  border: 1px solid color-mix(in srgb, var(--mp-color-action-primary) 21%, transparent);
+}
+.notice-error {
+  color: var(--mp-color-text-danger);
+  background: color-mix(in srgb, var(--mp-color-status-danger) 7%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-danger) 21%, transparent);
+}
+.notice-success {
+  color: var(--mp-color-status-success);
+  background: color-mix(in srgb, var(--mp-color-status-success) 7%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-success) 21%, transparent);
+}
+
+.notice-warning {
+  color: var(--mp-color-status-warning);
+  background: color-mix(in srgb, var(--mp-color-status-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-warning) 28%, transparent);
+}
+.empty-state {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state h3 {
+  color: var(--text);
+}
+.loading-state {
+  min-height: 250px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.spinner {
+  width: 17px;
+  height: 17px;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 2px solid var(--mp-color-border-strong);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.steps {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  gap: 16px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: var(--mp-type-caption-size);
+}
+.steps li > span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--elevated);
+  font-size: var(--mp-type-overline-size);
+}
+.steps li.current {
+  color: var(--text);
+}
+.steps li.current > span {
+  background: var(--accent);
+  color: var(--mp-color-text-on-accent);
+}
+.steps li.complete > span {
+  background: var(--mp-color-bg-accent-tint);
+  color: var(--mp-color-text-accent);
+}

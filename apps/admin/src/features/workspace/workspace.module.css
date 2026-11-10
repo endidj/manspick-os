@@ -1,0 +1,85 @@
+/* 운영 제목의 원본 글자 크기와 44px 높이 동작을 배치합니다. */
+.workspace {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 80px;
+}
+.title {
+  gap: 6px;
+}
+.title h1 {
+  font-size: var(--mp-type-h1-size);
+  line-height: 32px;
+}
+.title > p:first-child {
+  font-size: var(--mp-type-overline-size);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+}
+.title > p:last-child {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 22px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 18px;
+  flex-shrink: 0;
+}
+.heading .actions > button[data-size],
+.actions > a {
+  min-width: 150px;
+  height: 44px;
+  min-height: 44px;
+  padding: 10px 22px;
+  border-radius: 16px;
+  font-size: var(--mp-type-body-m-size);
+}
+.feedback {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+@media (max-width: 1000px) {
+  .heading {
+    flex-wrap: wrap;
+  }
+  .actions {
+    padding-top: 0;
+  }
+}
+@media (max-width: 600px) {
+  .heading {
+    gap: 12px;
+  }
+  .actions {
+    width: 100%;
+    gap: 8px;
+  }
+  .actions > button,
+  .actions > a {
+    min-width: 0;
+    flex: 1;
+  }
+}
+.customerSelect {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-secondary);
+}
+.customerSelect select {
+  padding: 8px 12px;
+  background: var(--mp-color-bg-elevated);
+  border-radius: 8px;
+}

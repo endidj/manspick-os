@@ -1,0 +1,240 @@
+/* 원본의 좁은 다섯 단계 추천 화면과 패키지 결과를 배치합니다. */
+.quiz {
+  display: grid;
+  gap: 28px;
+}
+.questionHeading {
+  padding-top: 8px;
+}
+.eyebrow {
+  color: var(--mp-color-text-accent);
+  font-family: var(--mp-font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.questionHeading h1 {
+  margin-top: 14px;
+  font-size: 25px;
+  line-height: 1.5;
+  letter-spacing: -0.04em;
+}
+.questionHeading p {
+  margin-top: 12px;
+  color: var(--mp-color-text-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.choices,
+.packageChoices {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  min-width: 0;
+}
+.choices label {
+  min-height: 80px;
+  border-radius: var(--mp-radius-16);
+}
+.stepActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.stepActions > button:first-child:not(:last-child) {
+  flex: none;
+}
+.privacy {
+  font-size: 11px;
+  color: var(--mp-color-text-secondary);
+  text-align: center;
+}
+.resultHeading {
+  padding-top: 10px;
+  text-align: center;
+}
+.resultHeading h1 {
+  margin-top: 16px;
+  font-size: 23px;
+  letter-spacing: -0.03em;
+}
+.resultHeading > p {
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--mp-color-text-secondary);
+}
+.resultHeading > strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--mp-color-text-accent);
+  font-family: var(--mp-font-display);
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+.packageChoices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.legend {
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.packageChoices label {
+  padding: 14px 8px;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.packageChoices label > span {
+  min-width: 0;
+}
+.packageChoices label span span {
+  font-size: 12px;
+}
+.packageChoices small {
+  display: block;
+  margin-top: 5px;
+  font-size: 9px;
+  line-height: 1.7;
+}
+.options {
+  display: grid;
+  gap: 0;
+}
+.options h2 {
+  margin-bottom: 8px;
+  font-size: 17px;
+  letter-spacing: -0.025em;
+}
+.option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-block: 20px;
+  border-bottom: 1px solid var(--mp-color-border-subtle);
+}
+.option > div {
+  display: grid;
+  gap: 5px;
+}
+.option strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.option span {
+  color: var(--mp-color-text-secondary);
+  font-size: 11px;
+}
+.option select {
+  width: 106px;
+  padding: 10px 12px;
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: var(--mp-radius-8);
+  color: var(--mp-color-text-primary);
+  background: var(--mp-color-bg-surface);
+  font-size: 12px;
+}
+.packageIncludes {
+  display: grid;
+  gap: 8px;
+}
+.packageIncludes > p {
+  padding-top: 12px;
+  font-size: 12px;
+  line-height: 1.9;
+}
+.disclaimer {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--mp-color-text-secondary);
+}
+.resultAction {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-surface);
+  padding: 16px;
+}
+.resultAction > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.resultAction > div > div {
+  display: grid;
+  gap: 4px;
+}
+.resultAction span {
+  color: var(--mp-color-text-secondary);
+  font-size: 10px;
+}
+.resultAction strong {
+  font-family: var(--mp-font-display);
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.bookingLink {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 16px;
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-button-primary-bg);
+  color: var(--mp-color-text-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.bookingLink:hover {
+  background: var(--mp-button-primary-hover-bg);
+}
+.resultLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.resultLinks > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mp-color-text-secondary);
+  font-size: 11px;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 360px) {
+  .questionHeading h1 {
+    font-size: 23px;
+  }
+  .resultAction > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .resultAction > div > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

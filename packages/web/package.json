@@ -1,0 +1,14 @@
+{
+  "name": "@manspick/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./client": "./src/client/index.ts",
+    "./format": "./src/format/index.ts",
+    "./proxy": "./src/proxy/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ../../tsconfig.json"
+  }
+}

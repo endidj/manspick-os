@@ -1,0 +1,12 @@
+// Storybook 정적 파일을 테스트 주소에서 제공합니다.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "manspick-storybook-test",
+  "compatibility_date": "2026-11-06",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../.local/storybook-static",
+  },
+  "observability": { "enabled": false },
+}
