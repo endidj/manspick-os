@@ -14,9 +14,12 @@ export default defineConfig([
     '**/.local/**',
     '**/.wrangler/**',
     '.yarn/**',
+    'apps/empty/out/**',
     '**/next-env.d.ts',
   ]),
-  { settings: { next: { rootDir: ['apps/admin/', 'apps/user/', 'apps/landing/'] } } },
+  {
+    settings: { next: { rootDir: ['apps/admin/', 'apps/user/', 'apps/landing/', 'apps/empty/'] } },
+  },
   {
     files: ['packages/**/*.{ts,tsx,js,mjs}', 'apps/server/**/*.{ts,tsx,js,mjs}'],
     plugins: { manspick: packageRules },

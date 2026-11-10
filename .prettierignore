@@ -1,6 +1,9 @@
 node_modules
 .next
 .open-next
+.vinext
+dist
+apps/empty/out
 .cloudflare
 .wrangler
 .local

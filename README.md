@@ -25,17 +25,44 @@ yarn db:init
 yarn dev
 ```
 
-`yarn db:init`은 비어 있는 로컬 DB를 처음 준비할 때 한 번 실행합니다. 이후 `yarn dev`로 재개하면 `.local/state`에 저장한 작업이 유지됩니다. 로컬 흐름에는 Cloudflare 계정이 필요 없습니다.
+`yarn db:init`은 비어 있는 로컬 DB를 처음 준비할 때 한 번 실행합니다. 이후 `yarn dev`로 API와 랜딩·고객·직원 앱을 함께 시작하면 `.local/state`에 저장한 작업이 유지됩니다. 앱을 개별 실행할 때는 다른 터미널에서 `yarn dev:server`로 API를 먼저 시작합니다. Empty와 Storybook은 API 없이 별도로 실행합니다. 로컬 실행에는 Cloudflare 계정이 필요 없습니다.
 
-| 화면                                         | 검수 방법                                                                                                   |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [랜딩](http://localhost:3000)                | 상품 목록과 패키지 추천을 살펴봅니다.                                                                       |
-| [고객 예약](http://localhost:3001/start)     | 가상 고객으로 예약을 접수합니다.                                                                            |
-| [직원 앱](http://localhost:3002)             | 로컬 대표 역할을 선택해 같은 고객의 접수와 입금 상태를 조회합니다.                                          |
-| [고객 개인 페이지](http://localhost:3001)    | 샘플을 골라 준비·셀렉·보정 결과를 각각 살펴봅니다. 준비 `1002`, 셀렉 `1003`, 결과 `1004`가 확인 번호입니다. |
-| [API 상태](http://127.0.0.1:8787/api/health) | 공통 API가 실행 중인지 확인합니다.                                                                          |
+| 화면                                                | 개별 실행 명령                         | 검수 방법                                                                                                                                           |
+| --------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [랜딩 · 3000](http://localhost:3000)                | `yarn workspace @manspick/landing dev` | 상품 목록과 패키지 추천을 살펴봅니다.                                                                                                               |
+| [고객 · 3001](http://localhost:3001)                | `yarn workspace @manspick/user dev`    | [`/start`](http://localhost:3001/start)에서 가상 예약을 접수하거나 홈에서 샘플을 고릅니다. 준비 `1002`, 셀렉 `1003`, 결과 `1004`가 확인 번호입니다. |
+| [직원 · 3002](http://localhost:3002)                | `yarn workspace @manspick/admin dev`   | 로컬 대표 역할을 선택해 같은 고객의 접수와 입금 상태를 조회합니다.                                                                                  |
+| [Empty · 3003](http://localhost:3003)               | `yarn workspace @manspick/empty dev`   | 공용 헤더만 표시하는 기본 화면을 확인합니다.                                                                                                        |
+| [API 상태 · 8787](http://127.0.0.1:8787/api/health) | `yarn dev:server`                      | 공통 API가 실행 중인지 확인합니다.                                                                                                                  |
+| [Storybook · 6006](http://127.0.0.1:6006)           | `yarn storybook`                       | 디자인 시스템의 공용 UI를 확인합니다.                                                                                                               |
 
-운영 환경은 별도 설정과 검수를 거칩니다. 실결제 연동, 자동 알림톡, 기존 고객 이관과 운영 복구는 별도 인수 범위입니다. 공개본에는 고객 자료와 운영 리소스 설정 대신 가상 데이터와 [설정 예시](infra/wrangler.production.example.jsonc)가 들어 있습니다.
+## Cloudflare 배포
+
+공개본에는 가상 데이터와 운영 설정 예시를 포함합니다. 실결제 연동, 자동 알림톡, 기존 고객 이관과 운영 복구는 별도 인수 범위입니다.
+
+**Empty**는 [공개 테스트 주소](https://manspick-empty-test.winningant8.workers.dev)에서 확인할 수 있습니다. 권한이 있는 Cloudflare 계정으로 `yarn wrangler login`을 실행한 후 정적 사이트를 빌드하고 배포합니다.
+
+```sh
+yarn workspace @manspick/empty build
+yarn wrangler deploy --config apps/empty/wrangler.jsonc
+```
+
+**API**는 [설정 예시](infra/wrangler.production.example.jsonc)를 `infra/wrangler.production.jsonc`로 복사하고 Worker 이름, D1 이름·ID, 비공개 R2 버킷, 직원·고객 앱 주소, 이메일 설정을 채웁니다. `yarn wrangler login`으로 로그인한 후 `운영 D1 이름`을 설정의 실제 DB 이름으로 바꿔 실행합니다.
+
+```sh
+yarn wrangler d1 migrations apply "운영 D1 이름" --config infra/wrangler.production.jsonc --remote
+yarn wrangler deploy --config infra/wrangler.production.jsonc
+```
+
+**랜딩·고객·직원 앱**은 각 앱의 `cloudflare.config.ts`에서 운영 Worker 이름과 도메인을 지정하고 `MANSPICK_API`를 위에서 배포한 API Worker에 연결합니다. `yarn workspace @manspick/admin cf auth login`으로 로그인한 후 아래 명령을 실행합니다.
+
+| 화면 | 배포 전 설정                                                      | 배포 명령                                 |
+| ---- | ----------------------------------------------------------------- | ----------------------------------------- |
+| 랜딩 | `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`, `NEXT_PUBLIC_ADMIN_APP_ORIGIN` | `yarn workspace @manspick/landing deploy` |
+| 고객 | `NEXT_PUBLIC_LANDING_APP_ORIGIN`                                  | `yarn workspace @manspick/user deploy`    |
+| 직원 | API의 `STAFF_APP_ORIGIN`에 직원 앱 주소 지정                      | `yarn workspace @manspick/admin deploy`   |
+
+배포한 각 화면의 `/api/health`에서 API 연결을 확인합니다. 직원 계정과 메일 설정은 [운영 인수인계](docs/reference/10-client-admin-architecture.md)를 참고합니다.
 
 ## 수정할 위치와 검사
 
