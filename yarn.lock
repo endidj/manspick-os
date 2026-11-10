@@ -1134,6 +1134,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@manspick/empty@workspace:apps/empty":
+  version: 0.0.0-use.local
+  resolution: "@manspick/empty@workspace:apps/empty"
+  dependencies:
+    "@manspick/design-system": "workspace:*"
+    next: "npm:16.4.3"
+    react: "npm:19.3.1"
+    react-dom: "npm:19.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@manspick/landing@workspace:apps/landing":
   version: 0.0.0-use.local
   resolution: "@manspick/landing@workspace:apps/landing"
