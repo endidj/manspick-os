@@ -1,0 +1,17 @@
+{
+  "name": "@manspick/empty",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3003",
+    "build": "next build",
+    "typecheck": "next typegen && node ../../node_modules/typescript/bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@manspick/design-system": "workspace:*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}
