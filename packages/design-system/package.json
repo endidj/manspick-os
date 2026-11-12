@@ -16,6 +16,7 @@
     "./tokens": "./src/tokens/index.ts",
     "./assets": "./src/assets/index.ts",
     "./styles": "./src/styles/base.css",
+    "./styles.css": "./src/styles/base.css",
     "./styles/tokens.css": "./src/styles/tokens.css",
     "./styles/fonts.css": "./src/styles/fonts.css"
   },

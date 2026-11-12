@@ -1,6 +1,6 @@
 // 관리자 앱에 공용 디자인 시스템과 검색 제외 메타데이터를 적용합니다.
 import type { Metadata } from 'next';
-import '@manspick/design-system/styles';
+import '@manspick/design-system/styles.css';
 export const metadata: Metadata = {
   title: '맨즈픽 OS · 운영',
   robots: { index: false, follow: false },

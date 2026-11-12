@@ -41,6 +41,14 @@ yarn deploy customer-page-test
 
 ## 배포 검증 결과
 
+정적 CSS 응답이 200이어도 페이지 HTML에 연결되지 않으면 화면이 깨질 수 있다. 배포 후 아래 명령으로 실제 stylesheet 링크에 공통 토큰·리셋·폰트 선언이 포함됐는지 확인하고, 브라우저에서 데스크톱·모바일의 계산된 스타일과 배치를 함께 검사한다.
+
+```sh
+node scripts/check-frontend-styles.mjs https://manspick-landing-test.winningant8.workers.dev/ https://manspick-landing-test.winningant8.workers.dev/recommend https://manspick-landing-test.winningant8.workers.dev/legal https://manspick-customer-test.winningant8.workers.dev/start https://manspick-customer-test.winningant8.workers.dev/s/demo-payment-access https://manspick-admin-test.winningant8.workers.dev/
+```
+
+Vinext의 서버 CSS 감지가 import 경로 확장자를 사용하므로 루트 layout은 `@manspick/design-system/styles.css`를 가져온다. 확장자가 없는 `/styles`는 빌드 파일만 생성하고 HTML 연결을 누락할 수 있다.
+
 - 전체 테스트 113개, typecheck, ESLint, Prettier 통과. 네 프런트엔드 빌드와 새 API의 Wrangler dry-run을 확인했다.
 - 실제 Cloudflare 주소에서 69개 확인 통과: 페이지·정적 자산, 예약 화면 이동·상품·달력, D1 상태, 네 가상 고객 로그인·소유 촬영 목록·다른 촬영 차단, 관리자 DB와의 세션 격리, R2 바이트·공개 여부, 로그아웃과 세션 폐기.
 - 검사에서 생성한 고객 세션은 모두 로그아웃으로 폐기했다.

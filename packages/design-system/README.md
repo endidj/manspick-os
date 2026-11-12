@@ -62,10 +62,10 @@ Overview에서 대표 조합을 보고 Foundations·Components·Patterns·Icons�
 
 ## 사용
 
-앱 루트 layout에서 스타일을 한 번 가져온다. Next 앱의 `transpilePackages`에는 이 workspace가 등록돼 있다.
+앱 루트 layout에서 스타일을 한 번 가져온다. Next 앱의 `transpilePackages`에는 이 workspace가 등록돼 있다. Vinext의 RSC 빌드가 서버 렌더링 HTML에 스타일 링크를 넣도록 `.css` 확장자가 있는 공개 경로를 사용한다. 기존 `/styles` 경로는 호환성을 위해 유지한다.
 
 ```tsx
-import '@manspick/design-system/styles';
+import '@manspick/design-system/styles.css';
 import { Button, PhotoTile } from '@manspick/design-system/components';
 import { TextField, Dialog } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';

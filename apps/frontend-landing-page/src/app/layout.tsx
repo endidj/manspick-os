@@ -1,7 +1,7 @@
 // 공개 페이지에 공통 메타데이터·폰트·기본 스타일을 적용합니다.
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import '@manspick/design-system/styles';
+import '@manspick/design-system/styles.css';
 
 export const metadata: Metadata = {
   title: { default: '맨즈픽 — 자연스러운 나의 매력', template: '%s | 맨즈픽' },
