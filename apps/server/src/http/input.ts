@@ -1,6 +1,5 @@
-// 요청 본문의 크기·JSON 형태·필수 문자열과 경로 매개변수를 검사합니다.
+// 요청 본문의 크기·JSON 형태와 필수 문자열을 검사합니다.
 import { DomainError } from '@manspick/domain';
-import type { HonoRequest } from 'hono/request';
 
 function tooLarge() {
   return new DomainError('BODY_TOO_LARGE', '요청 내용이 너무 큽니다.', 413);
@@ -45,10 +44,4 @@ export function requiredText(body: Record<string, unknown>, key: string, max = 1
   if (typeof value !== 'string' || !value.trim() || value.length > max)
     throw new DomainError('INVALID_INPUT', `${key} 항목을 확인해주세요.`);
   return value.trim();
-}
-
-export function pathParam(request: HonoRequest, name: string) {
-  // Hono가 잘못된 인코딩을 무시하지 않도록 먼저 검증하고, 디코딩은 param에 한 번만 맡깁니다.
-  decodeURI(request.path);
-  return request.param(name)!;
 }

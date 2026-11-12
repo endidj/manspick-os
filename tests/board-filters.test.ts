@@ -3,13 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import test from 'node:test';
-import { Hono } from 'hono';
-import type { Actor } from '@manspick/contracts';
 import { listBoardShoots, listShoots } from '../apps/server/src/shoots/queries.ts';
-import type { AuthenticatedEnvironment } from '../apps/server/src/http/context.ts';
-import { failure } from '../apps/server/src/http/responses.ts';
-import { shootRoutes } from '../apps/server/src/http/routes/shoots.ts';
+import { hash } from '../apps/server/src/security/crypto.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
+import { handleRequest } from './helpers/server.ts';
 import {
   defaultBoardFilters,
   restoreBoardFilters,
@@ -142,20 +139,37 @@ test('operator board paginates all shootings with independent counts and search 
 test('HTTP board requires an operator while the legacy list remains assigned to each role', async () => {
   const { database, env } = setup();
   try {
-    let actor: Actor = { kind: 'staff', role: 'director', id: 'demo-director', name: '디렉터' };
-    const app = new Hono<AuthenticatedEnvironment>();
-    app.onError((error, context) => failure(error, context.req.raw));
-    app.use('*', async (context, next) => {
-      context.set('actor', actor);
-      await next();
-    });
-    app.route('/', shootRoutes);
-    assert.equal((await app.request('/shoots/board', {}, env)).status, 403);
-    assert.equal((await app.request('/shoots', {}, env)).status, 200);
-    actor = { kind: 'staff', role: 'retoucher', id: 'demo-retoucher', name: '보정가' };
-    assert.equal((await app.request('/shoots/board', {}, env)).status, 403);
-    actor = { kind: 'staff', role: 'staff', id: 'demo-staff', name: '운영자' };
-    assert.equal((await app.request('/shoots/board', {}, env)).status, 200);
+    const session = async (staffId: string) => {
+      const token = crypto.randomUUID();
+      const now = new Date();
+      database
+        .prepare(
+          `INSERT INTO sessions(token_hash,kind,staff_id,token_version,created_at,expires_at)
+          SELECT ?,'staff',id,auth_version,?,? FROM staff WHERE id=?`,
+        )
+        .run(
+          await hash(token),
+          now.toISOString(),
+          new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
+          staffId,
+        );
+      return `manspick_staff=${token}`;
+    };
+    const request = (path: string, cookie = '') =>
+      handleRequest(
+        new Request(`http://localhost:8787/api${path}`, {
+          headers: { Cookie: cookie, 'X-Manspick-Surface': 'admin' },
+        }),
+        env,
+      );
+    assert.equal((await request('/shoots/board')).status, 401);
+    const director = await session('demo-director');
+    assert.equal((await request('/shoots/board', director)).status, 403);
+    assert.equal((await request('/shoots', director)).status, 200);
+    const retoucher = await session('demo-retoucher');
+    assert.equal((await request('/shoots/board', retoucher)).status, 403);
+    const staff = await session('demo-staff');
+    assert.equal((await request('/shoots/board', staff)).status, 200);
   } finally {
     database.close();
   }

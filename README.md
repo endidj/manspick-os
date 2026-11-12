@@ -20,7 +20,7 @@ yarn dev
 
 ### 앱별 실행 명령과 접속 주소
 
-`yarn dev`는 랜딩·고객·어드민 페이지와 공통 서버를 한꺼번에 실행합니다. 페이지 하나만 실행할 때는 첫 번째 터미널에서 `yarn dev:server`로 공통 서버를 켜고 두 번째 터미널에서 해당 페이지를 실행합니다. 공통 서버는 Wrangler로 실행하는 Cloudflare Worker이며, 로컬 포트는 `8787`입니다. Empty와 Storybook은 서버·DB 없이 따로 실행합니다.
+`yarn dev`는 랜딩·고객·어드민 페이지와 공통 서버를 한꺼번에 실행합니다. 페이지 하나만 실행할 때는 첫 번째 터미널에서 `yarn dev:server`로 공통 서버를 켜고 두 번째 터미널에서 해당 페이지를 실행합니다. 공통 서버는 NestJS·Express를 Cloudflare Workers의 Node HTTP 호환 계층에서 실행하며, Wrangler 로컬 포트는 `8787`입니다. Empty와 Storybook은 서버·DB 없이 따로 실행합니다.
 
 | 서비스                  | 개별 실행 명령           | 로컬 주소                                                                            | Cloudflare 주소                                                                                            |
 | ----------------------- | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
@@ -83,6 +83,8 @@ yarn deploy admin-page
 
 테스트 환경은 `yarn deploy server-test` → `yarn deploy admin-page-test` 순서입니다. Empty와 Storybook은 각각 `yarn deploy empty`, `yarn deploy storybook`으로 빌드·배포합니다. 배포 후 각 페이지의 `/api/health`로 서버 연결을 확인합니다.
 
+현재 API의 원격 설정은 비공개 `manspick-api-test`이며 관리자 테스트 앱에서 Service Binding으로 접근합니다. 운영 서버 설정은 예시만 있으므로 `yarn deploy server`는 실제 `infra/wrangler.production.jsonc`를 준비한 뒤 사용합니다. Nest 전환 검증은 `yarn test`와 서버 빌드, Wrangler 로컬 D1·R2 검사 후 배포한 Worker의 상태·인증·파일 요청까지 확인합니다. [전환 계획과 검증 기록](docs/reference/21-nestjs-migration.md)
+
 DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 설정 안내](apps/server/README.md#환경과-검사)를 참고합니다.
 
 ## 체험 데이터
@@ -107,7 +109,7 @@ DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 �
 ### 예약 한 건이 처리되는 과정
 
 1. **고객이 예약을 제출합니다.** 브라우저는 고객 앱의 `/api/start`로 요청을 보냅니다. 화면 Worker는 `MANSPICK_API`라는 Cloudflare 내부 연결을 통해 공통 API Worker에 요청을 전달합니다. 랜딩 앱은 상품 목록과 서비스 상태 확인에 이 연결을 사용합니다.
-2. **공통 API가 예약을 저장합니다.** Hono가 요청을 예약 처리 코드로 보냅니다. API가 입력과 예약 가능 여부를 확인하고, 예약 정보와 사용한 시간 슬롯을 D1에 기록합니다. 직원 앱도 같은 API를 통해 그 예약을 조회합니다.
+2. **공통 API가 예약을 저장합니다.** Nest 컨트롤러가 요청을 예약 처리 코드로 보내고 공통 가드가 인증과 권한을 검사합니다. API가 입력과 예약 가능 여부를 확인하고, 예약 정보와 사용한 시간 슬롯을 D1에 기록합니다. 직원 앱도 같은 API를 통해 그 예약을 조회합니다.
 3. **나중에 고객이 사진을 엽니다.** API Worker는 로그인한 사람이 그 촬영의 고객인지, 사진이 공개됐는지 확인합니다. 열람이 허용된 사진은 D1에서 저장 위치를 찾아 비공개 R2에서 읽어 전달합니다. 사진 파일은 R2에, 어느 촬영에 속하는지와 같은 정보는 D1에 저장합니다.
 
 ### 기술별 역할과 선택 이유
@@ -118,13 +120,15 @@ DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 �
 | [Vinext · Vite](https://vinext.dev/docs/deploying/cloudflare)                                             | Vite가 개발 서버와 빌드를 담당합니다. Vinext는 Next.js의 App Router와 이 프로젝트에서 쓰는 `next/*` API가 Vite 기반 Workers 환경에서 동작하도록 연결합니다. | 기존 Next.js 화면 구조를 유지하면서 Cloudflare Workers의 실행 환경과 내부 연결을 사용할 수 있습니다.                     |
 | [Cloudflare Workers](https://developers.cloudflare.com/workers/)                                          | 요청을 받으면 서버 코드를 실행합니다. 랜딩·고객·직원 화면과 공통 API가 각각 Worker로 구성됩니다.                                                            | Cloudflare가 서버 실행 환경을 관리합니다. 화면별 배포 단위를 나누면서 예약 처리와 권한 검사는 공통 API에 둘 수 있습니다. |
 | [Service Binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/) | 화면 Worker가 API Worker를 이름으로 호출하는 내부 연결입니다. 이 저장소의 연결 이름은 `MANSPICK_API`입니다.                                                 | API Worker에 공개 주소를 열 필요 없이 각 화면의 `/api`를 연결할 수 있습니다.                                             |
-| [Hono](https://hono.dev/docs/getting-started/cloudflare-workers)                                          | 공통 API Worker 안에서 요청을 기능별 코드로 보내고 로그인 같은 공통 검사를 적용합니다.                                                                      | 예약·촬영·파일 경로를 나눠 관리하면서 여러 화면에서 같은 인증과 업무 규칙을 적용할 수 있습니다.                          |
+| [NestJS](https://docs.nestjs.com/) · Express                                                              | 공통 API를 기능별 모듈·컨트롤러로 구성하고 가드에서 인증·권한을 검사합니다. Cloudflare의 Node HTTP 호환 계층으로 요청을 받습니다.                           | 예약·촬영·파일 기능의 경계와 공통 보안 처리를 명시하면서 기존 업무 함수와 D1·R2 바인딩을 재사용합니다.                   |
 | [Cloudflare D1](https://developers.cloudflare.com/d1/)                                                    | SQLite 기반의 관리형 SQL 데이터베이스입니다. 고객, 예약, 촬영, 세션, 사진 정보를 표로 연결해 저장합니다.                                                    | 직원이 담당자·날짜별 예약을 조회할 수 있고, 예약과 시간 슬롯처럼 함께 바뀌어야 하는 정보를 한 번에 저장할 수 있습니다.   |
 | [Cloudflare R2](https://developers.cloudflare.com/r2/)                                                    | 후보 사진·보정본·원본처럼 크기가 큰 파일을 보관하는 저장소입니다. 맨즈픽은 비공개 버킷을 사용합니다.                                                        | 파일 본문과 예약 정보를 분리해 저장하고, API에서 권한을 확인한 뒤 필요한 파일만 읽을 수 있습니다.                        |
 
 **개발 도구.** TypeScript로 앱과 API가 주고받는 데이터의 타입을 공유합니다. Yarn Workspaces로 여러 앱과 공용 코드를 한 저장소에서 연결합니다. Storybook으로 버튼과 입력창 같은 공용 UI를 실제 예약 데이터 없이 확인합니다.
 
 로컬 개발에서도 세 화면은 같은 `MANSPICK_API` 연결로 로컬 API와 D1·R2를 사용합니다. 원격 관리자 테스트는 별도 API와 테스트 저장소에 연결됩니다. 환경별 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [배포 안내](#cloudflare-배포)에 있습니다.
+
+API는 독립 Node.js 프로세스가 아니라 Workers의 Node API 호환 환경에서 실행됩니다. Nest의 공식 지원 대상에는 Workers가 포함되지 않으므로 실제 Cloudflare 실행 검증을 유지하며, shutdown hook·WebSocket gateway·TCP microservice는 사용하지 않습니다. [서버 런타임 범위](apps/server/README.md#런타임과-배포-범위) · [Nest Workers 안내](https://docs.nestjs.com/faq/cloudflare-workers)
 
 ## 모노레포 구조
 
@@ -137,7 +141,7 @@ DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 �
 | [`apps/landing`](apps/landing/README.md) | `@manspick/landing` | 방문자에게 브랜드와 상품을 소개하고, `/recommend`에서 패키지를 추천합니다. 예약 버튼은 고객 앱으로 연결됩니다.      |
 | [`apps/user`](apps/user/README.md)       | `@manspick/user`    | `/start`에서 예약을 접수합니다. 고객은 `/s/[token]` 개인 링크로 설문, 준비 안내, 사진 선택, 보정 결과를 확인합니다. |
 | [`apps/admin`](apps/admin/README.md)     | `@manspick/admin`   | 대표·운영 직원·디렉터·보정가가 배정, 일정, 촬영, 사진 업로드, 보정 전달을 처리합니다.                               |
-| [`apps/server`](apps/server/README.md)   | `@manspick/server`  | 세 화면이 공유하는 Hono API Worker입니다. 로그인·권한을 검사하고 예약·촬영 데이터와 보호된 사진을 저장합니다.       |
+| [`apps/server`](apps/server/README.md)   | `@manspick/server`  | 세 화면이 공유하는 NestJS API Worker입니다. 로그인·권한을 검사하고 예약·촬영 데이터와 보호된 사진을 저장합니다.     |
 | [`apps/empty`](apps/empty/)              | `@manspick/empty`   | 공통 상단 바를 독립적으로 확인하는 정적 Next.js 앱입니다.                                                           |
 
 ### `packages/` — 앱에서 가져다 쓰는 공용 코드

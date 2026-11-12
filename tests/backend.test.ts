@@ -10,7 +10,7 @@ import {
   requiredSlots,
   STATUS_DEFINITIONS,
 } from '../packages/domain/src/index.ts';
-import { handleRequest } from '../apps/server/src/http/app.ts';
+import { handleRequest, testWorker } from './helpers/server.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 import type {
   OperationsSettingsDTO,
@@ -19,7 +19,6 @@ import type {
   SettingsHistoryEntryDTO,
   StaffAccountDTO,
 } from '@manspick/contracts';
-import testWorker from '../infra/api-test.ts';
 
 test('staff account changes are administrator-only, revoke credentials and write audit history', async () => {
   const { api, db } = setup();
@@ -1279,12 +1278,15 @@ test('unknown paths and unsupported methods require a session before returning n
   const admin = await login(api, 'admin');
   for (const [method, path] of [
     ['GET', '/api/missing'],
+    ['GET', '/API/health'],
+    ['GET', '/api/Health'],
     ['GET', '/api/missing%0A'],
     ['GET', '/api/missing%0D'],
     ['GET', '/api/missing%E2%80%A8'],
     ['GET', '/api/health//'],
     ['POST', '/api/health'],
     ['HEAD', '/api/health'],
+    ['HEAD', '/api/shoots/%ZZ'],
     ['OPTIONS', '/api/shoots'],
     ['DELETE', '/api/shoots/demo-result'],
   ]) {
@@ -1410,6 +1412,69 @@ test('session surface selects the matching cookie and logout clears both session
   for (const value of cookies) assert.match(value, /HttpOnly; SameSite=Lax; Max-Age=0/);
   assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM sessions').get()?.n, 0);
   await expectError(await api('/api/session', { cookie, surface: 'user' }), 401, 'UNAUTHENTICATED');
+});
+
+test('concurrent Nest requests keep storage, authenticated actors and request queries isolated', async () => {
+  const first = setup();
+  const second = setup();
+  const fixtures = [
+    {
+      ...first,
+      role: 'admin',
+      staffId: 'demo-admin',
+      name: '첫 번째 저장소 관리자',
+      search: '1001',
+      shootId: 'demo-payment',
+    },
+    {
+      ...second,
+      role: 'staff',
+      staffId: 'demo-staff',
+      name: '두 번째 저장소 운영자',
+      search: '1002',
+      shootId: 'demo-preparation',
+    },
+  ] as const;
+  try {
+    for (const fixture of fixtures)
+      fixture.db.database
+        .prepare('UPDATE staff SET name=? WHERE id=?')
+        .run(fixture.name, fixture.staffId);
+    const sessions = await Promise.all(
+      fixtures.map(async (fixture) => ({
+        ...fixture,
+        cookie: await login(fixture.api, fixture.role),
+      })),
+    );
+    await Promise.all(
+      Array.from({ length: 8 }, () =>
+        sessions.map(async (fixture) => {
+          const [session, board, settings] = await Promise.all([
+            fixture.api('/api/session', { cookie: fixture.cookie, surface: 'admin' }),
+            fixture.api(`/api/shoots/board?search=${fixture.search}`, { cookie: fixture.cookie }),
+            fixture.api('/api/settings', { cookie: fixture.cookie }),
+          ]);
+          assert.equal(session.status, 200);
+          assert.deepEqual(((await session.json()) as { data: SessionDTO }).data.actor, {
+            kind: 'staff',
+            id: fixture.staffId,
+            name: fixture.name,
+            role: fixture.role,
+          });
+          assert.equal(board.status, 200);
+          const result = (await board.json()) as { data: { shoots: { id: string }[] } };
+          assert.deepEqual(
+            result.data.shoots.map((shoot) => shoot.id),
+            [fixture.shootId],
+          );
+          assert.equal(settings.status, fixture.role === 'admin' ? 200 : 403);
+        }),
+      ).flat(),
+    );
+  } finally {
+    first.db.database.close();
+    second.db.database.close();
+  }
 });
 
 test('notification and settings routes enforce their distinct staff role gates', async () => {
