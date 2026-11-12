@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 브라우저에서 화면 Worker, 공통 API, D1과 R2로 이어지는 요청 흐름입니다. -->
+<!-- 브라우저에서 Next.js 프런트엔드, 공통 서버, D1과 R2로 이어지는 요청 흐름입니다. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="840" height="608" viewBox="0 0 840 608" role="img" aria-labelledby="title description">
   <title id="title">맨즈픽 OS 서비스 아키텍처</title>
-  <desc id="description">브라우저는 랜딩, 고객 또는 직원 화면 Worker를 엽니다. 각 화면의 API 요청은 서비스 바인딩을 통해 공통 Hono API Worker로 전달됩니다. API Worker는 예약과 사진 정보를 D1에서, 사진 파일을 비공개 R2에서 읽습니다.</desc>
+  <desc id="description">브라우저는 Cloudflare Worker에서 실행되는 Next.js 프런트엔드의 랜딩 페이지, 고객 페이지 또는 어드민 페이지를 엽니다. 각 페이지의 API 요청은 서비스 바인딩을 통해 공통 Server Worker로 전달됩니다. 공통 서버는 예약과 사진 정보를 D1에서, 사진 파일을 비공개 R2에서 읽습니다.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
@@ -43,18 +43,18 @@
     <text x="420" y="116" text-anchor="middle" font-size="22" font-weight="700">브라우저</text>
     <text x="48" y="180" font-size="18" font-weight="750" fill="#7b420d">Cloudflare</text>
 
-    <text x="74" y="229" font-size="23" font-weight="750">화면 Worker 3개</text>
-    <text x="766" y="227" text-anchor="end" font-size="18" font-weight="600" fill="#415775">Next.js App Router · Vinext + Vite</text>
+    <text x="74" y="229" font-size="23" font-weight="750">Next.js Frontend App 3개 (CF worker)</text>
+    <text x="766" y="227" text-anchor="end" font-size="18" font-weight="600" fill="#415775">Vinext + Vite</text>
     <g text-anchor="middle" font-size="20" font-weight="700" fill="#253e61">
-      <text x="184" y="271">랜딩</text>
-      <text x="420" y="271">고객 앱</text>
-      <text x="656" y="271">직원 앱</text>
+      <text x="184" y="271">랜딩 페이지</text>
+      <text x="420" y="271">고객 페이지</text>
+      <text x="656" y="271">어드민 페이지</text>
     </g>
 
     <text x="402" y="335" text-anchor="end" font-size="18" font-weight="700" fill="#415775">/api/…</text>
     <text x="438" y="335" font-size="18" font-weight="600" fill="#415775">MANSPICK_API · 서비스 바인딩</text>
 
-    <text x="420" y="386" text-anchor="middle" font-size="25" font-weight="750" fill="#fff">공통 API Worker · Hono</text>
+    <text x="420" y="386" text-anchor="middle" font-size="25" font-weight="750" fill="#fff">공통 Server Worker</text>
     <text x="420" y="416" text-anchor="middle" font-size="17" fill="#e0eaf9">예약 처리 · 로그인과 접근 권한 확인</text>
 
     <text x="94" y="525" text-anchor="middle" font-size="21" font-weight="750" fill="#294481">D1</text>

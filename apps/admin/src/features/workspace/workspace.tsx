@@ -1,6 +1,8 @@
 // 로그인한 역할과 주소에 맞는 원본 운영 화면을 연결합니다.
 'use client';
 
+// Workers 빌드의 클라이언트 자산에도 공용 전역 스타일을 포함합니다.
+import '@manspick/design-system/styles';
 import { useState } from 'react';
 import { Button, Loading, Notice, Panel } from '@manspick/design-system/components';
 import { StaffLogin, useStaffLoginToken } from '../authentication';
