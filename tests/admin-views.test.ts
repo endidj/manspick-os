@@ -7,7 +7,7 @@ import {
   resolveView,
   shootHref,
   visibleMenu,
-} from '../apps/admin/src/features/workspace/model.ts';
+} from '../apps/frontend-admin-page/src/features/workspace/model.ts';
 
 test('admin menu exposes original operating screens and staff cannot enter administrator settings', () => {
   assert.deepEqual(
@@ -69,7 +69,7 @@ test('only views rendering the shared shoot list need that request before render
 });
 
 // 템플릿 조건은 차원 간 AND, 같은 차원의 여러 값은 OR로 적용합니다.
-import { templateMatches } from '../apps/admin/src/features/operations/template-model.ts';
+import { templateMatches } from '../apps/frontend-admin-page/src/features/operations/template-model.ts';
 
 test('message preview includes only active templates matching stage package addon and role', () => {
   const template = {

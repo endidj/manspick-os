@@ -1,25 +1,34 @@
 # Cloudflare 전환 아키텍처와 로컬 실행 기준
 
-작성일 2026-11-06. 프런트엔드 배포 구성 갱신일 2026-11-10. 최신 사용자 요청: Cloudflare Workers + D1 + R2, Next.js 3앱·Yarn workspace·단일 design-system 유지, 로컬 구현·검증만 진행하고 배포하지 않는다.
+작성일 2026-11-06. 프런트엔드 배포 구성 갱신일 2026-11-10. NestJS 전환 설계 갱신일 2026-11-12. 현재 선택은 Cloudflare Workers + D1 + R2와 Next.js 3앱·Yarn workspace·단일 design-system을 유지하면서 공통 API를 NestJS로 전환하는 것이다. 사용자는 푸시·배포를 요청했으며, 대상과 실행 결과는 [NestJS 마이그레이션 기록](reference/21-nestjs-migration.md)에 남긴다.
 
 ## 1. 적용 우선순위와 변경 범위
 
 이 문서는 현재 Cloudflare 구현의 기술 구조를 설명한다. API 동작과 환경 설정은 [서버 README](../apps/server/README.md), 운영 전 확인은 [운영 인수인계](reference/10-client-admin-architecture.md#현재-맨즈픽-운영-인수인계)를 참고한다. Supabase·Vercel을 사용한 원문 설계의 판단은 [보관 기록](README.md#보관-기록)에 남아 있다.
 
-| 구분             | 이번 결정                                                                                                     |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- |
-| 사용자 고정      | Next.js 풀스택·TypeScript·Yarn workspaces, apps/admin·user·landing, CSS 최적화·공개 index.ts·ESLint·Prettier  |
-| 사용자 고정      | packages/design-system 한 곳에 토큰·공통 컴포넌트·아이콘·애셋                                                 |
-| 최신 인프라 선택 | Cloudflare Workers·D1·R2. Supabase Auth/RLS/Storage/Postgres와 Vercel을 구현 의존에서 제거                    |
-| 구현 구조 결정   | apps/server/src/worker.ts의 단일 서버 Worker가 인증·인가·업무 변경·D1·R2를 소유. 세 Next 앱은 서버에서 프록시 |
-| 로컬 실행        | API Worker 127.0.0.1:8787, Next 앱은 독립 포트. 로컬 리소스만 사용                                            |
-| 운영 목표 구조   | 앱별 Vinext Worker → 내부 서비스 바인딩 → API Worker                                                          |
-| 업무 유지        | 개인 링크·뒤4자리, 직원 4role, 30상태+별도 취소, 후기 확인 후 원본 공개, 수정3회 등 현행 정책                 |
-| 파일 저장        | 고객 파일은 private R2에 저장. 원본 전달은 R2 원본 또는 검증한 외부 HTTPS 링크를 지원                         |
+| 구분             | 이번 결정                                                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 사용자 고정      | Next.js 풀스택·TypeScript·Yarn workspaces, apps/frontend-admin-page·frontend-customer-page·frontend-landing-page, CSS 최적화·공개 index.ts·ESLint·Prettier |
+| 사용자 고정      | packages/design-system 한 곳에 토큰·공통 컴포넌트·아이콘·애셋                                                                                              |
+| 최신 인프라 선택 | Cloudflare Workers·D1·R2. Supabase Auth/RLS/Storage/Postgres와 Vercel을 구현 의존에서 제거                                                                 |
+| 구현 구조 결정   | apps/server/src/worker.ts의 단일 NestJS 서버 Worker가 인증·인가·업무 변경·D1·R2를 소유. 세 Next 앱은 서버에서 프록시                                       |
+| HTTP 런타임      | NestJS 12.4.2·Express와 Workers의 Node HTTP 호환 계층. 독립 Node.js 프로세스는 배포하지 않음                                                               |
+| 로컬 실행        | API Worker 127.0.0.1:8787, Next 앱은 독립 포트. 로컬 리소스만 사용                                                                                         |
+| 운영 목표 구조   | 앱별 Vinext Worker → 내부 서비스 바인딩 → API Worker                                                                                                       |
+| 업무 유지        | 개인 링크·뒤4자리, 직원 4role, 30상태+별도 취소, 후기 확인 후 원본 공개, 수정3회 등 현행 정책                                                              |
+| 파일 저장        | 고객 파일은 private R2에 저장. 원본 전달은 R2 원본 또는 검증한 외부 HTTPS 링크를 지원                                                                      |
 
 API Worker는 별도 Next.js 앱을 추가하는 것이 아니라 공통 서버의 실행 진입점이다. 제품 화면 폴더는 사용자 요청대로 세 개다. 서버 업무를 세 앱에 중복 구현하거나 브라우저가 D1을 직접 조회하는 구조를 만들지 않는다.
 
-현재 API의 HTTP 계층은 `hono@4.13.16`이다. `http/app.ts`가 공통 Origin 검사와 기능별 라우터를 조립하고, 공개 경로 뒤에 인증 미들웨어를 배치해 보호 요청의 검증된 actor를 전달한다. 알림·설정에는 역할 미들웨어를 추가하며 촬영·파일 소유권과 D1/R2 변경은 기존 업무 모듈이 책임진다. Hono context는 HTTP 계층에서 사용한다. 경로·응답 계약과 검사는 [서버 README](../apps/server/README.md)를 따른다. Hono는 Workers의 Fetch API와 binding을 직접 사용한다. [Hono Workers 안내](https://hono.dev/docs/getting-started/cloudflare-workers)
+현재 API의 HTTP 계층은 NestJS 12.4.2와 Express이다. `app.module.ts`가 기능 모듈을 조립하고 각 기능 폴더의 컨트롤러가 기존 업무 함수를 호출한다. `http/app.ts`는 본문 처리 전에 Origin을 검사하고, `http/access.ts`의 `AccessGuard`는 인증과 `@Public()`·`@RequireRole()` 선언을 적용한다. 촬영·파일 소유권과 D1/R2 변경은 기존 업무 모듈이 책임진다. 원본 Fetch 요청·바인딩·검증된 actor는 `http/context.ts`의 `AsyncLocalStorage`로 요청마다 분리하며 컨트롤러는 `@ApiContext()`로 받는다. 기존 업무 함수는 application service로 재사용하고 단순 위임용 클래스를 덧붙이지 않는다. 경로·응답 계약과 검사는 [서버 README](../apps/server/README.md)를 따른다.
+
+`runtime/worker-handler.ts`는 Nest 앱을 isolate마다 한 번 부팅한 뒤 `cloudflare:node`의 `handleAsNodeRequest()`로 요청을 Node HTTP 서버에 연결한다. `http/express.adapter.ts`는 업무 함수가 돌려준 Fetch 응답을 HTTP 응답으로 변환하고 R2 본문을 스트리밍한다. 이때 listen 포트는 Worker 내부 라우팅 식별자이며 별도 공개 서버 포트를 여는 것이 아니다. 현재 compatibility date와 `nodejs_compat` 설정에서 Node HTTP server API를 사용할 수 있다. [Cloudflare Node HTTP](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/)
+
+### Nest와 Workers의 지원 범위
+
+Workers의 Node API 호환 환경은 독립 Node.js 프로세스와 다르다. Nest 공식 문서는 Workers에서 Express 어댑터를 실행할 수 있지만 공식 지원 대상은 아니라고 설명한다. 이 프로젝트는 기존 Workers·D1·R2 배포 경계를 유지하는 선택을 적용하며, 실제 workerd와 배포 Worker에서 호환성을 검증한다. Nest shutdown hook·WebSocket gateway·TCP microservice는 사용하지 않는다. 해당 기능이나 완전한 Node 런타임이 필요해지면 Cloudflare Containers 등의 실행 환경을 별도로 검토한다. [Nest Workers 안내](https://docs.nestjs.com/faq/cloudflare-workers)
+
+Wrangler의 esbuild는 생성자 타입의 decorator metadata를 출력하지 않으므로 DI는 명시적 `@Inject()` 토큰 또는 factory provider를 사용한다. `reflect-metadata`는 Nest 초기화 전에 로드하고, 사용하지 않는 선택 의존성의 번들 처리는 실행 기능과 함께 검토한다. 테스트는 `tsx`로 데코레이터를 변환해 실제 Nest·Express 라우팅·가드·예외 처리에 요청을 주입한다. 테스트와 번들 생성만으로 Workers 호환성을 판정하지 않는다.
 
 ## 2. 프런트엔드 빌드와 배포
 
@@ -31,7 +40,7 @@ API Worker는 별도 Next.js 앱을 추가하는 것이 아니라 공통 서버�
 
 `yarn dev`는 Wrangler API Worker와 세 Vinext 앱을 실행한다. 화면 앱의 서버 코드도 로컬 `workerd`에서 동작하며, 프록시는 `MANSPICK_API` 바인딩을 통해 API에 연결한다. `yarn build`는 세 프런트엔드의 Workers 산출물과 API 번들을 생성한다. 앱의 `preview`는 빌드한 Worker를 로컬에서 실행한다.
 
-`yarn test:local`은 세 화면의 API 연결과 공통 API의 세션·권한·파일 전송을 점검한다. 운영 도메인, 리소스, 배포 상태는 별도로 검증한다.
+`yarn test`는 `tsx`와 Node 테스트 러너를 사용하며 `tests/helpers/server.ts`에서 실제 Nest·Express 앱에 `light-my-request`로 요청을 주입한다. `yarn test:local`은 세 화면의 API 연결과 공통 API의 세션·권한·파일 전송을 점검한다. Wrangler 실행에서는 동일 기능과 D1·R2를 확인하고, 배포 후에는 관리자 테스트 앱을 거쳐 실제 Cloudflare의 상태·인증·파일 응답을 확인한다. 운영 도메인, 리소스, 배포 상태는 별도로 검증한다.
 
 ## 4. 단일 API Worker와 신뢰 경계
 
@@ -42,7 +51,7 @@ flowchart TD
   S --> U[user Next 앱]
   B[고객·직원 브라우저] --> NX[각 Next 앱의 서버 /api 프록시]
   U --> NX
-  NX -->|MANSPICK_API 서비스 바인딩| API[단일 API Worker]
+  NX -->|MANSPICK_API 서비스 바인딩| API[NestJS API Worker · Node HTTP 호환 계층]
   API --> AU[세션·active·role·배정·상태 검증]
   AU --> D[(D1 업무·인증·알림 원장)]
   AU --> R[private R2 객체]
@@ -50,7 +59,7 @@ flowchart TD
   O --> A[개발 발송 기록 / 향후 메일·알림톡 어댑터]
 ```
 
-운영 목표는 API Worker에 공개 workers.dev/custom route를 주지 않고 Next Worker의 Service Binding으로 호출하는 것이다. HTTP Service Binding은 다른 Worker의 fetch handler를 내부적으로 호출할 수 있다. 이것은 향후 운영 설정이며 배포된 상태로 표현하지 않는다. [Service Binding HTTP](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
+운영 목표는 API Worker에 공개 workers.dev/custom route를 주지 않고 Next Worker의 Service Binding으로 호출하는 것이다. HTTP Service Binding은 다른 Worker의 fetch handler를 내부적으로 호출할 수 있다. 현재 원격 설정 `infra/wrangler.api-test.jsonc`는 비공개 `manspick-api-test`와 전용 D1·R2를 가리킨다. `infra/api-test.ts`는 관리자 surface 헤더를 검사하고 `LOCAL_DEMO=false`, `ADMIN_TEST=true`로 요청한다. 실제 운영 설정 `infra/wrangler.production.jsonc`는 없으며 예시만 제공하므로 테스트 환경과 운영 환경을 구분한다. [Service Binding HTTP](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
 
 프록시는 브라우저가 보낸 role·staff_id·shoot_id를 신뢰된 실행 문맥으로 승격시키지 않는다. API Worker가 세션을 직접 검증하고 현재 DB의 active·배정과 자원 소속을 확인한다. 내부 통신이라는 사실이 사용자 인가를 대체하지 않는다. 전달할 Cookie·Origin·요청 ID의 허용 목록을 정하고 헤더 변조를 검사한다. 파일 응답의 Set-Cookie·Cache-Control·Content-Type·스트림도 손상 없이 전달한다.
 
@@ -148,7 +157,9 @@ Queues 로컬 모드도 가능하지만 consumer concurrency는 로컬에서 지
 
 ## 11. 전환 검증과 남은 운영 조건
 
-| 검증           | 로컬 완료 증거                                                                          |
+아래 표는 검증할 기준이며 완료 선언이 아니다. 전환 전 검증 결과와 이번 Nest 전환 결과는 날짜와 실행 환경을 구분해 기록한다.
+
+| 검증           | 확인할 증거                                                                             |
 | -------------- | --------------------------------------------------------------------------------------- |
 | 공유 상태      | user에서 생성한 촬영을 admin이 즉시 조회, 재시작 후 D1/R2 유지, 동일 파일 교차 조회     |
 | 예약 원자성    | 동일/올데이/쇼핑 슬롯 동시 예약, 일부 자원 실패 시 결제·이력·알림까지 rollback          |
@@ -157,7 +168,8 @@ Queues 로컬 모드도 가능하지만 consumer concurrency는 로컬에서 지
 | 파일           | 후보 공개 전 거부, 타 촬영 key 거부, 후기 확인 전 원본 거부, 부분 업로드/객체 고아 복구 |
 | 멱등·기한      | 중복 요청·커밋후응답유실·입금/만료 경합, UTC↔운영 일자·D-1 경계                         |
 | 앱 호환        | 3앱 format/lint/typecheck/build, Vinext 로컬 Workers 통합 검사                          |
-| 외부 영향 없음 | 원격 binding·실발송·원격 DB 명령·deploy가 실행되지 않았음                               |
+| Nest 실행 경계 | 실제 Nest·Express 요청 테스트, workerd 부팅, 요청 문맥 분리, HTTP 오류·파일 스트림 계약 |
+| 배포 확인      | 요청한 대상 Worker의 배포 버전과 실제 Cloudflare 경로의 상태·인증·파일 응답             |
 
 운영 메일·알림톡 승인, 사용자 도메인·공개 경로 차단·secret 관리·백업/복구·모니터링·비용/한도·개인정보 보존·약관 정합성은 별도 출시 조건이다. R2 용량·쿼리·Workers 실행 비용을 300만원 개발 예산 안의 무제한 운영비로 포함하지 않는다. 정확한 한도는 적용 플랜과 실제 부하로 검증한다. [D1 한도](https://developers.cloudflare.com/d1/platform/limits/)
 

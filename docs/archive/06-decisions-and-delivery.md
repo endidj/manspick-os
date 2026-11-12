@@ -19,14 +19,14 @@ Figma Website Desktop 14개 섹션에서 확인한 공개 카피는 최신 OS의
 
 ## 2. 사용자 고정 조건
 
-| ID     | 고정 조건                                                                   | 적용 문서                                         |
-| ------ | --------------------------------------------------------------------------- | ------------------------------------------------- |
-| FIX-01 | 코드를 바로 작성하지 않고 설계 문서를 먼저 작성                             | 문서 전체                                         |
-| FIX-02 | Next.js 풀스택·TypeScript                                                   | [현재 구조](../../README.md#모노레포-구조)        |
-| FIX-03 | CSS 최적화·폴더별 공개 index.ts·ESLint·Prettier                             | 아키텍처·디자인 시스템                            |
-| FIX-04 | apps/admin·apps/user·apps/landing 분리, Yarn workspaces                     | 아키텍처                                          |
-| FIX-05 | packages/design-system 단일 공용 workspace에 컴포넌트·컬러 토큰·아이콘·애셋 | [디자인 시스템](../reference/03-design-system.md) |
-| FIX-06 | Figma 우선, Notion PRD·회의록·내부 링크와 함께 조사                         | 출처 대장·PRD                                     |
+| ID     | 고정 조건                                                                                             | 적용 문서                                         |
+| ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| FIX-01 | 코드를 바로 작성하지 않고 설계 문서를 먼저 작성                                                       | 문서 전체                                         |
+| FIX-02 | Next.js 풀스택·TypeScript                                                                             | [현재 구조](../../README.md#모노레포-구조)        |
+| FIX-03 | CSS 최적화·폴더별 공개 index.ts·ESLint·Prettier                                                       | 아키텍처·디자인 시스템                            |
+| FIX-04 | apps/frontend-admin-page·apps/frontend-customer-page·apps/frontend-landing-page 분리, Yarn workspaces | 아키텍처                                          |
+| FIX-05 | packages/design-system 단일 공용 workspace에 컴포넌트·컬러 토큰·아이콘·애셋                           | [디자인 시스템](../reference/03-design-system.md) |
+| FIX-06 | Figma 우선, Notion PRD·회의록·내부 링크와 함께 조사                                                   | 출처 대장·PRD                                     |
 
 현재 폴더 트리는 구현 계획이다. 문서의 package.json·yarn.lock·앱 경로 예시가 실제 생성됐다는 뜻이 아니다. 정확한 Node·Next·React·Yarn·SDK 버전은 구현 착수 시 호환성을 검증해 고정한다.
 

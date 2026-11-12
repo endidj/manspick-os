@@ -334,7 +334,7 @@ C4b에서 확인한 9개 묶음의 의미는 촬영 확정, 촬영 설계(컨셉
 
 촬영 중심 32개 테이블·관계·불변 조건은 [데이터·흐름](archive/05-data-and-flows.md), 인증·권한·개인정보는 [계정·권한](reference/02-accounts-and-permissions.md)이 상세 계약이다. 고객의 DB 직접 접근은 없고 Next.js 서버가 session.shoot_id로 제한한다. 내부 읽기는 Supabase RLS, 중요 변경은 서버 검증 후 트랜잭션 함수로 통일하는 설계 보완을 사용한다.
 
-사용자 고정 기술은 Next.js 풀스택·TypeScript·최적화 CSS·공개 index.ts·ESLint·Prettier·Yarn workspaces다. apps/admin·user·landing을 분리하고 공통 컴포넌트·토큰·아이콘·애셋은 단일 packages/design-system에서 공유한다. 원문 인프라는 Supabase Postgres/Auth/RLS/Storage와 Vercel이며, 현재 구현은 Cloudflare를 사용한다. [Cloudflare 아키텍처](07-cloudflare-architecture.md) · [디자인 시스템](reference/03-design-system.md)
+사용자 고정 기술은 Next.js 풀스택·TypeScript·최적화 CSS·공개 index.ts·ESLint·Prettier·Yarn workspaces다. apps/frontend-admin-page·frontend-customer-page·frontend-landing-page을 분리하고 공통 컴포넌트·토큰·아이콘·애셋은 단일 packages/design-system에서 공유한다. 원문 인프라는 Supabase Postgres/Auth/RLS/Storage와 Vercel이며, 현재 구현은 Cloudflare를 사용한다. [Cloudflare 아키텍처](07-cloudflare-architecture.md) · [디자인 시스템](reference/03-design-system.md)
 
 ## 9. 충돌·폐기·미결
 

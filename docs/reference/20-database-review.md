@@ -11,7 +11,9 @@ flowchart LR
     API --> R[(비공개 R2 · 사진 파일)]
 ```
 
-세 Next.js 앱은 사용자가 하는 일을 나누고, Hono API Worker 하나가 인증·업무 규칙·저장 처리를 맡는다. 앱의 `/api`는 내부 Service Binding으로 API에 요청한다. 예를 들어 고객이 시간을 고르면 API가 가격과 배정 가능성을 다시 확인한다. 예약·슬롯·결제 기록이 저장된 뒤 직원은 같은 촬영 건을 조회한다. [API 진입점](../../apps/server/src/http/app.ts) · [Cloudflare Service Binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
+세 Next.js 앱은 사용자가 하는 일을 나누고, NestJS API Worker 하나가 인증·업무 규칙·저장 처리를 맡는다. 앱의 `/api`는 내부 Service Binding으로 API에 요청한다. Nest의 기능별 컨트롤러와 접근 가드를 통과한 요청은 기존 업무 함수와 D1·R2 바인딩을 사용한다. 예를 들어 고객이 시간을 고르면 API가 가격과 배정 가능성을 다시 확인한다. 예약·슬롯·결제 기록이 저장된 뒤 직원은 같은 촬영 건을 조회한다. [앱 모듈](../../apps/server/src/app.module.ts) · [Cloudflare Service Binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
+
+Nest 전환은 HTTP 실행·구성 계층의 변경이다. D1 스키마, 예약 스냅샷, 원자적 batch, 비공개 R2, 공유 `domain`·`contracts` 경계를 유지한다. API는 Workers의 Node HTTP 호환 계층에서 실행되며 독립 Node.js 프로세스와 구분한다. 아래 2026-11-10 결과는 전환 전 검증 기록이며 Nest 전환의 새 검사 결과는 [마이그레이션 기록](21-nestjs-migration.md)에서 확인한다.
 
 ## DB 관계와 제약
 

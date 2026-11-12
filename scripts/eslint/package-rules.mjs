@@ -130,7 +130,14 @@ const packageBoundaries = {
       const target = source.match(/^@manspick\/([^/]+)/)?.[1] ?? packageOf(targetPath);
       const targetApp =
         appOf(targetPath) ??
-        (['server', 'landing', 'user', 'admin'].includes(target) ? target : undefined);
+        ([
+          'server',
+          'frontend-landing-page',
+          'frontend-customer-page',
+          'frontend-admin-page',
+        ].includes(target)
+          ? target
+          : undefined);
       let reason;
       if (targetApp && targetApp !== app)
         reason = '다른 앱의 실행부를 가져올 수 없습니다. 공통 타입은 contracts를 사용합니다.';

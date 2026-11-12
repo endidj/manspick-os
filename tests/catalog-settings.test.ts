@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import test from 'node:test';
 import { datePlusDays, koreaDate } from '../packages/domain/src/index.ts';
-import { handleRequest } from '../apps/server/src/http/app.ts';
+import { handleRequest } from './helpers/server.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 import type { AddonDTO, OperationsSettingsDTO, PackageDTO } from '@manspick/contracts';
 

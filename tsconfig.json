@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
-    "types": ["node", "@cloudflare/workers-types"]
+    "types": ["node", "@cloudflare/workers-types"],
+    "experimentalDecorators": true
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx", "infra/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "apps", "packages/design-system"]

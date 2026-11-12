@@ -38,7 +38,7 @@ test('shoot actions update the current detail from their POST response', async (
           if (id === '\0shoot-action-fixture')
             return `import React, { useState } from 'react';
               import { createRoot } from 'react-dom/client';
-              import { useShootDetail } from '/apps/admin/src/features/shoot-detail/use-shoot-detail.ts';
+              import { useShootDetail } from '/apps/frontend-admin-page/src/features/shoot-detail/use-shoot-detail.ts';
 
               function Probe() {
                 const { shoot, busy, error, success, perform } = useShootDetail('test-shoot');

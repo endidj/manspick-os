@@ -1,7 +1,7 @@
 // 고객 상태가 올바른 원본 화면과 행동으로 연결되는지 확인합니다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveJourney } from '../apps/user/src/features/customer/journey.ts';
+import { resolveJourney } from '../apps/frontend-customer-page/src/features/customer/journey.ts';
 
 const now = new Date('2026-11-06T03:00:00Z');
 const base = {

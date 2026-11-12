@@ -4,7 +4,7 @@
 
 ## 1. 확정할 구조
 
-사용자 요청에 따라 **`packages/design-system`을 단일 Yarn workspace**로 둔다. `apps/admin`, `apps/user`, `apps/landing`이 공통 컴포넌트·컬러 토큰·아이콘·브랜드 애셋을 가져다 쓴다. 별도 tokens/ui/assets workspace로 쪼개지 않는다.
+사용자 요청에 따라 **`packages/design-system`을 단일 Yarn workspace**로 둔다. `apps/frontend-admin-page`, `apps/frontend-customer-page`, `apps/frontend-landing-page`이 공통 컴포넌트·컬러 토큰·아이콘·브랜드 애셋을 가져다 쓴다. 별도 tokens/ui/assets workspace로 쪼개지 않는다.
 
 원본: [Figma Foundations](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=0-1), [Components](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=1-3), 같은 파일의 `98 Icons`, `99 Assets`, 고객·운영 화면. Foundations에는 manspick.kr Tailwind/style.css 기반, 다크, Pretendard/Geist, 파랑 강조색, 카드·버튼 radius 16 기준이 명시되어 있다.
 
@@ -171,6 +171,6 @@ CSS Modules + CSS custom properties를 기본 설계로 채택한다. Foundation
 
 원본 확인 → 명세 → 대표 화면 조합 → 세 앱 영향 확인 순서로 변경한다. Storybook의 Overview, Foundations, Components, Patterns, Icons에서 토큰·상태·공개 props를 볼 수 있다. Chromium play 검사는 controlled 선택·입력·복사 실패·탭·모달/드로어 Escape 및 포커스 복귀·파일 선택을 확인하고 addon-a11y는 위반을 실패로 처리한다. 자동 검사 통과는 모든 브라우저·수동 접근성·전체 화면의 픽셀 일치 보증이 아니다. 실행 명령과 최신 검증 범위는 패키지 README에 기록한다.
 
-고객 앱은 AppBar·StepHeader·DateCell/TimeSlot·CheckItem·PhotoTile과 입력/탭/업로더를, 운영 앱은 NavItem·KanbanCard·StageBadge·TemplateBlock과 입력/탭/모달을, 랜딩은 PriceCard·Accordion·SectionHeader·ChoiceCard와 브랜드 자산을 조합한다. 인증·업로드 요청·상태 전이는 앱과 서버가 맡는다. [고객 앱](../../apps/user/README.md) · [운영 앱](../../apps/admin/README.md) · [랜딩](../../apps/landing/README.md) · [Figma 대응과 검증](13-figma-parity.md)
+고객 앱은 AppBar·StepHeader·DateCell/TimeSlot·CheckItem·PhotoTile과 입력/탭/업로더를, 운영 앱은 NavItem·KanbanCard·StageBadge·TemplateBlock과 입력/탭/모달을, 랜딩은 PriceCard·Accordion·SectionHeader·ChoiceCard와 브랜드 자산을 조합한다. 인증·업로드 요청·상태 전이는 앱과 서버가 맡는다. [고객 앱](../../apps/frontend-customer-page/README.md) · [운영 앱](../../apps/frontend-admin-page/README.md) · [랜딩](../../apps/frontend-landing-page/README.md) · [Figma 대응과 검증](13-figma-parity.md)
 
 [PRD](../01-product-requirements.md) · [권한](02-accounts-and-permissions.md) · [Cloudflare 아키텍처](../07-cloudflare-architecture.md) · [출처](00-sources-and-traceability.md)

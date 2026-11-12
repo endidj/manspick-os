@@ -13,7 +13,7 @@ if (server.error) throw server.error;
 if (server.status !== 0) process.exit(server.status ?? 1);
 
 const require = createRequire(import.meta.url);
-for (const app of ['landing', 'user', 'admin']) {
+for (const app of ['frontend-landing-page', 'frontend-customer-page', 'frontend-admin-page']) {
   const cwd = fileURLToPath(new URL(`../apps/${app}/`, import.meta.url));
   const vite = dirname(require.resolve('vite/package.json', { paths: [cwd] }));
   const result = spawnSync(process.execPath, [join(vite, 'bin/vite.js'), 'build'], {

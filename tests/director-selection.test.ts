@@ -6,7 +6,7 @@ import {
   directorSelectionState,
   directorSelectionAction,
   toggleSelection,
-} from '../apps/admin/src/features/director/selection-model.ts';
+} from '../apps/frontend-admin-page/src/features/director/selection-model.ts';
 
 type SelectionSource = Parameters<typeof directorSelectionState>[0];
 

@@ -9,9 +9,9 @@ Codex는 루트 `AGENTS.md`의 안내에 따라 프로젝트 작업 규칙을 �
 - [프로젝트 작업 규칙](AGENTS.md) · 공용 패키지 재사용, 코드 경계, 구현과 검증
 - [제품 요구사항](01-product-requirements.md) · 목표 동작, 업무 상태, 수용 기준
 - [시각 기준](DESIGN.md) · 앱별 디자인 방향, 색상, 서체와 상태 표현
-- [Cloudflare 아키텍처](07-cloudflare-architecture.md) · 프런트엔드, API Worker, D1·R2 경계
+- [Cloudflare 아키텍처](07-cloudflare-architecture.md) · 프런트엔드, NestJS API Worker, D1·R2 경계
 
-Next.js 앱별 개발 규칙은 [랜딩](../apps/landing/AGENTS.md), [고객](../apps/user/AGENTS.md), [직원](../apps/admin/AGENTS.md) 앱에서 확인합니다.
+Next.js 앱별 개발 규칙은 [랜딩](../apps/frontend-landing-page/AGENTS.md), [고객](../apps/frontend-customer-page/AGENTS.md), [직원](../apps/frontend-admin-page/AGENTS.md) 앱에서 확인합니다.
 
 ## 상세 참고
 
@@ -23,6 +23,7 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/landing/AGENTS.md), [고객](..
 - [운영 인수인계](reference/10-client-admin-architecture.md#현재-맨즈픽-운영-인수인계) · 운영 설정, 복구 절차와 고객사별 재사용 설계
 - [클라이언트 미팅](reference/19-client-review.md) · 시연 순서, 300만원 검수 제안, 운영 출시 조건
 - [DB와 아키텍처](reference/20-database-review.md) · 현재 스키마, 예약 경합, 파일 권한과 회사별 확장
+- [NestJS 마이그레이션](reference/21-nestjs-migration.md) · HTTP 계층 전환, Workers 런타임 제약, 회귀 검사와 배포 기록
 - [역할별 QA](reference/18-role-workflow-qa.md) · 고객과 직원의 수동 검증 시나리오
 
 ## 보관 기록
@@ -33,3 +34,5 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/landing/AGENTS.md), [고객](..
 - [초기 결정과 출시 계획](archive/06-decisions-and-delivery.md) · 원래의 설계 판단, 미결 정책과 출시 조건
 - [초기 공수 추정](archive/08-scope-estimate.md) · 작업량과 일정 가정
 - [1차 구현과 검증 기록](archive/09-implementation-status.md) · 당시 구현 표, 검사 결과와 이후 변경 기록
+
+- [랜딩·고객 공개 테스트 배포](reference/22-public-test-deployment.md)

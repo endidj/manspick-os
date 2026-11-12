@@ -23,7 +23,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 직원 메뉴는 `/?view=board`, `detail`, `calendar`, `retouch`, `templates`, `packages`, `followups`, `settings`를 사용한다. `list`, `requests`, `notifications`도 일부 직접 주소로 제공한다. 디렉터는 `my-customers`, `today`, `calendar`, `profile`, 보정가는 `retouch`, `completed`가 주 메뉴다. 상세는 `/shoots/{id}`이며 디렉터의 `?screen=manage`, `field`, `candidates`와 보정 전용 화면이 있다. **메뉴 숨김만으로 접근 차단을 판정하면 안 된다.** `board`/`list` 직접 주소는 역할 공통 호환 경로가 있으므로 서버가 반환하는 데이터 범위를 함께 검사한다.
 
-근거: [메뉴·역할](../../apps/admin/src/features/workspace/model.ts), [앱 조립](../../apps/admin/src/features/workspace/workspace.tsx), [촬영 범위](../../apps/server/src/shoots/access.ts), [응답 마스킹](../../apps/server/src/shoots/queries.ts).
+근거: [메뉴·역할](../../apps/frontend-admin-page/src/features/workspace/model.ts), [앱 조립](../../apps/frontend-admin-page/src/features/workspace/workspace.tsx), [촬영 범위](../../apps/server/src/shoots/access.ts), [응답 마스킹](../../apps/server/src/shoots/queries.ts).
 
 ## 2. 시작 방법·데이터 준비
 
@@ -69,7 +69,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 4. 방문자·랜딩 — VIS 10개
 
-근거: [사이트 셸](../../apps/landing/src/features/site/site-shell.tsx), [추천 UI](../../apps/landing/src/features/package-quiz/package-quiz.tsx), [추천 계산](../../apps/landing/src/features/package-quiz/recommendation.ts), [상담 동작](../../apps/landing/src/features/site/contact-actions.tsx).
+근거: [사이트 셸](../../apps/frontend-landing-page/src/features/site/site-shell.tsx), [추천 UI](../../apps/frontend-landing-page/src/features/package-quiz/package-quiz.tsx), [추천 계산](../../apps/frontend-landing-page/src/features/package-quiz/recommendation.ts), [상담 동작](../../apps/frontend-landing-page/src/features/site/contact-actions.tsx).
 
 | ID    | 우선 | 수행·검증                                                           | 기대 결과                                                               | 범위 |
 | ----- | ---- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---- |
@@ -86,7 +86,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 5. 고객 신규 예약 — BKG 18개
 
-근거: [예약 UI](../../apps/user/src/features/booking/booking.tsx), [달력](../../apps/user/src/features/booking/booking-calendar.tsx), [접수](../../apps/server/src/booking/start.ts), [상품 규칙](../../packages/domain/src/catalog.ts).
+근거: [예약 UI](../../apps/frontend-customer-page/src/features/booking/booking.tsx), [달력](../../apps/frontend-customer-page/src/features/booking/booking-calendar.tsx), [접수](../../apps/server/src/booking/start.ts), [상품 규칙](../../packages/domain/src/catalog.ts).
 
 | ID    | 우선 | 수행·검증                                                      | 기대 결과                                                          | 범위 |
 | ----- | ---- | -------------------------------------------------------------- | ------------------------------------------------------------------ | ---- |
@@ -111,7 +111,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 6. 고객·직원 인증과 세션 — AUT 12개
 
-근거: [고객 진입](../../apps/user/src/features/customer/customer.tsx), [직원 로그인](../../apps/admin/src/features/authentication/staff-login.tsx), [세션](../../apps/server/src/security/sessions.ts), [로컬 조건](../../apps/server/src/runtime/env.ts).
+근거: [고객 진입](../../apps/frontend-customer-page/src/features/customer/customer.tsx), [직원 로그인](../../apps/frontend-admin-page/src/features/authentication/staff-login.tsx), [세션](../../apps/server/src/security/sessions.ts), [로컬 조건](../../apps/server/src/runtime/env.ts).
 
 | ID    | 우선 | 수행·검증                                                | 기대 결과                                                              | 범위 |
 | ----- | ---- | -------------------------------------------------------- | ---------------------------------------------------------------------- | ---- |
@@ -132,7 +132,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 7. 결제·입금 요청·hold — PAY 10개
 
-근거: [결제 화면](../../apps/user/src/features/customer/payment.tsx), [결제 명령](../../apps/server/src/shoots/commands/payments.ts), [hold/취소](../../apps/server/src/shoots/commands/lifecycle.ts), [hold 계산](../../packages/domain/src/booking.ts).
+근거: [결제 화면](../../apps/frontend-customer-page/src/features/customer/payment.tsx), [결제 명령](../../apps/server/src/shoots/commands/payments.ts), [hold/취소](../../apps/server/src/shoots/commands/lifecycle.ts), [hold 계산](../../packages/domain/src/booking.ts).
 
 | ID    | 우선 | 수행·검증                                              | 기대 결과                                                              | 범위 |
 | ----- | ---- | ------------------------------------------------------ | ---------------------------------------------------------------------- | ---- |
@@ -149,7 +149,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 8. 설문 4페이지 — SUR 14개
 
-근거: [설문 UI](../../apps/user/src/features/survey/survey.tsx), [서버 설문](../../apps/server/src/shoots/commands/preparation.ts), [마감 계산](../../packages/domain/src/preparation.ts).
+근거: [설문 UI](../../apps/frontend-customer-page/src/features/survey/survey.tsx), [서버 설문](../../apps/server/src/shoots/commands/preparation.ts), [마감 계산](../../packages/domain/src/preparation.ts).
 
 | ID    | 우선 | 수행·검증                                             | 기대 결과                                                            | 범위 |
 | ----- | ---- | ----------------------------------------------------- | -------------------------------------------------------------------- | ---- |
@@ -170,7 +170,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 9. 고객 촬영 준비·설계·당일 — PRE 12개
 
-근거: [준비/당일 화면](../../apps/user/src/features/customer/preparation.tsx), [준비 명령](../../apps/server/src/shoots/commands/workspace.ts), [여정 분기](../../apps/user/src/features/customer/journey.ts).
+근거: [준비/당일 화면](../../apps/frontend-customer-page/src/features/customer/preparation.tsx), [준비 명령](../../apps/server/src/shoots/commands/workspace.ts), [여정 분기](../../apps/frontend-customer-page/src/features/customer/journey.ts).
 
 | ID    | 우선 | 수행·검증                                                   | 기대 결과                                                    | 범위 |
 | ----- | ---- | ----------------------------------------------------------- | ------------------------------------------------------------ | ---- |
@@ -189,7 +189,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 10. 디렉터 업무 — DIR 12개
 
-근거: [내 고객](../../apps/admin/src/features/director/my-customers.tsx), [고객 관리](../../apps/admin/src/features/director/customer-manage.tsx), [현장 체크](../../apps/admin/src/features/director/field-checklist.tsx), [서버 현장 게이트](../../apps/server/src/shoots/commands/workspace.ts).
+근거: [내 고객](../../apps/frontend-admin-page/src/features/director/my-customers.tsx), [고객 관리](../../apps/frontend-admin-page/src/features/director/customer-manage.tsx), [현장 체크](../../apps/frontend-admin-page/src/features/director/field-checklist.tsx), [서버 현장 게이트](../../apps/server/src/shoots/commands/workspace.ts).
 
 | ID    | 우선 | 수행·검증                                                 | 기대 결과                                                          | 범위 |
 | ----- | ---- | --------------------------------------------------------- | ------------------------------------------------------------------ | ---- |
@@ -210,7 +210,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 11. 파일 업로드·후보 공개 — UPL 10개
 
-근거: [업로드 hook](../../apps/admin/src/features/shoot-detail/use-photo-upload.ts), [후보 화면](../../apps/admin/src/features/director/candidate-upload.tsx), [사진 관리](../../apps/admin/src/features/shoot-detail/photos.tsx), [서버 업로드](../../apps/server/src/files/uploads.ts).
+근거: [업로드 hook](../../apps/frontend-admin-page/src/features/shoot-detail/use-photo-upload.ts), [후보 화면](../../apps/frontend-admin-page/src/features/director/candidate-upload.tsx), [사진 관리](../../apps/frontend-admin-page/src/features/shoot-detail/photos.tsx), [서버 업로드](../../apps/server/src/files/uploads.ts).
 
 | ID    | 우선 | 수행·검증                                                        | 기대 결과                                                               | 범위 |
 | ----- | ---- | ---------------------------------------------------------------- | ----------------------------------------------------------------------- | ---- |
@@ -229,7 +229,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 12. 고객/디렉터 최종 셀렉·추가 주문 — SEL 12개
 
-근거: [고객 사진 작업](../../apps/user/src/features/customer/photo-workspace.tsx), [디렉터 셀렉](../../apps/admin/src/features/director/director-selection.tsx), [셀렉 명령](../../apps/server/src/shoots/commands/selection.ts), [추가 주문](../../apps/server/src/shoots/commands/extra-retouch.ts).
+근거: [고객 사진 작업](../../apps/frontend-customer-page/src/features/customer/photo-workspace.tsx), [디렉터 셀렉](../../apps/frontend-admin-page/src/features/director/director-selection.tsx), [셀렉 명령](../../apps/server/src/shoots/commands/selection.ts), [추가 주문](../../apps/server/src/shoots/commands/extra-retouch.ts).
 
 | ID    | 우선 | 수행·검증                                                | 기대 결과                                                                                   | 범위 |
 | ----- | ---- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---- |
@@ -248,7 +248,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 13. 보정가 작업·결과 전달 — RET 12개
 
-근거: [보정 작업 UI](../../apps/admin/src/features/retouch/retouch-workspace.tsx), [보정 명령](../../apps/server/src/shoots/commands/retouch.ts), [파일 권한](../../apps/server/src/files/access.ts), [응답 마스킹](../../apps/server/src/shoots/queries.ts).
+근거: [보정 작업 UI](../../apps/frontend-admin-page/src/features/retouch/retouch-workspace.tsx), [보정 명령](../../apps/server/src/shoots/commands/retouch.ts), [파일 권한](../../apps/server/src/files/access.ts), [응답 마스킹](../../apps/server/src/shoots/queries.ts).
 
 | ID    | 우선 | 수행·검증                                                | 기대 결과                                                                    | 범위 |
 | ----- | ---- | -------------------------------------------------------- | ---------------------------------------------------------------------------- | ---- |
@@ -267,7 +267,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 14. 고객 수정 요청 — REV 8개
 
-근거: [수정 화면](../../apps/user/src/features/customer/photo-workspace.tsx), [수정 명령](../../apps/server/src/shoots/commands/retouch.ts), [DB 제약](../../infra/migrations/0001_initial.sql).
+근거: [수정 화면](../../apps/frontend-customer-page/src/features/customer/photo-workspace.tsx), [수정 명령](../../apps/server/src/shoots/commands/retouch.ts), [DB 제약](../../infra/migrations/0001_initial.sql).
 
 | ID    | 우선 | 수행·검증                                                    | 기대 결과                                                       | 범위 |
 | ----- | ---- | ------------------------------------------------------------ | --------------------------------------------------------------- | ---- |
@@ -282,7 +282,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 15. 후기·원본·후속 혜택 — RVW 10개
 
-근거: [고객 후기](../../apps/user/src/features/customer/customer-scenes.tsx), [후기 처리](../../apps/server/src/shoots/commands/follow-up.ts), [외부 링크 공개](../../apps/server/src/shoots/workspace.ts), [후속 운영](../../apps/admin/src/features/operations/followups.tsx).
+근거: [고객 후기](../../apps/frontend-customer-page/src/features/customer/customer-scenes.tsx), [후기 처리](../../apps/server/src/shoots/commands/follow-up.ts), [외부 링크 공개](../../apps/server/src/shoots/workspace.ts), [후속 운영](../../apps/frontend-admin-page/src/features/operations/followups.tsx).
 
 | ID    | 우선 | 수행·검증                                                 | 기대 결과                                                           | 범위 |
 | ----- | ---- | --------------------------------------------------------- | ------------------------------------------------------------------- | ---- |
@@ -299,7 +299,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 16. 운영 직원·대표 공통 운영 — OPS 14개
 
-근거: [고객 보드](../../apps/admin/src/features/board/customer-board.tsx), [필터](../../apps/admin/src/features/board/board-filters.ts), [수동 접수](../../apps/admin/src/features/board/manual-registration.tsx), [상세](../../apps/admin/src/features/shoot-detail/shoot-detail.tsx), [상태 명령](../../apps/server/src/shoots/commands/lifecycle.ts).
+근거: [고객 보드](../../apps/frontend-admin-page/src/features/board/customer-board.tsx), [필터](../../apps/frontend-admin-page/src/features/board/board-filters.ts), [수동 접수](../../apps/frontend-admin-page/src/features/board/manual-registration.tsx), [상세](../../apps/frontend-admin-page/src/features/shoot-detail/shoot-detail.tsx), [상태 명령](../../apps/server/src/shoots/commands/lifecycle.ts).
 
 | ID    | 우선 | 수행·검증                                                       | 기대 결과                                                                         | 범위 |
 | ----- | ---- | --------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---- |
@@ -320,7 +320,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 17. 일정·재배정·휴무 — SCH 10개
 
-근거: [일정 UI](../../apps/admin/src/features/schedule/schedule.tsx), [배정](../../apps/server/src/shoots/assignment.ts), [자동 배정](../../apps/server/src/booking/directors.ts), [설정](../../apps/server/src/settings/commands.ts).
+근거: [일정 UI](../../apps/frontend-admin-page/src/features/schedule/schedule.tsx), [배정](../../apps/server/src/shoots/assignment.ts), [자동 배정](../../apps/server/src/booking/directors.ts), [설정](../../apps/server/src/settings/commands.ts).
 
 | ID    | 우선 | 수행·검증                                             | 기대 결과                                                                       | 범위 |
 | ----- | ---- | ----------------------------------------------------- | ------------------------------------------------------------------------------- | ---- |
@@ -337,7 +337,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 18. CEO / 대표 관리자 설정 — CEO 20개
 
-근거: [상품](../../apps/admin/src/features/operations/packages.tsx), [운영 설정](../../apps/admin/src/features/operations/settings.tsx), [정책 편집](../../apps/admin/src/features/operations/policy-editor.tsx), [설정 명령](../../apps/server/src/settings/commands.ts), [설정 이력](../../apps/server/src/settings/history.ts).
+근거: [상품](../../apps/frontend-admin-page/src/features/operations/packages.tsx), [운영 설정](../../apps/frontend-admin-page/src/features/operations/settings.tsx), [정책 편집](../../apps/frontend-admin-page/src/features/operations/policy-editor.tsx), [설정 명령](../../apps/server/src/settings/commands.ts), [설정 이력](../../apps/server/src/settings/history.ts).
 
 | ID    | 우선 | 수행·검증                                                           | 기대 결과                                                                                                        | 범위 |
 | ----- | ---- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---- |
@@ -364,7 +364,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 19. 안내 템플릿·발송 대기·후속 큐 — MSG 10개
 
-근거: [템플릿 UI](../../apps/admin/src/features/operations/templates.tsx), [치환 규칙](../../apps/server/src/activity/template-rules.ts), [촬영별 안내](../../apps/server/src/activity/shoot-messages.ts), [알림 처리](../../apps/server/src/activity/commands.ts).
+근거: [템플릿 UI](../../apps/frontend-admin-page/src/features/operations/templates.tsx), [치환 규칙](../../apps/server/src/activity/template-rules.ts), [촬영별 안내](../../apps/server/src/activity/shoot-messages.ts), [알림 처리](../../apps/server/src/activity/commands.ts).
 
 | ID    | 우선 | 수행·검증                                               | 기대 결과                                                                      | 범위 |
 | ----- | ---- | ------------------------------------------------------- | ------------------------------------------------------------------------------ | ---- |
@@ -406,7 +406,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 
 ## 21. 오류·동시성·모바일·접근성·규모 — REL 14개
 
-근거: [web 클라이언트](../../packages/web/src/client/api.ts), [원자적 변경](../../apps/server/src/database/mutations.ts), [고객 요청 처리](../../apps/user/src/features/customer/customer.tsx), [상세 요청 처리](../../apps/admin/src/features/shoot-detail/use-shoot-detail.ts), [디자인 시스템](../../packages/design-system/README.md).
+근거: [web 클라이언트](../../packages/web/src/client/api.ts), [원자적 변경](../../apps/server/src/database/mutations.ts), [고객 요청 처리](../../apps/frontend-customer-page/src/features/customer/customer.tsx), [상세 요청 처리](../../apps/frontend-admin-page/src/features/shoot-detail/use-shoot-detail.ts), [디자인 시스템](../../packages/design-system/README.md).
 
 | ID    | 우선 | 수행·검증                                                             | 기대 결과                                                                   | 범위 |
 | ----- | ---- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---- |
@@ -475,7 +475,7 @@ CEO는 별도 `ceo` 역할이 아니라 `admin`에 해당한다. 현재 역할�
 | 직원 템플릿 편집 UI와 저장 권한 불일치         | `operations/templates.tsx` staff에도 추가/편집/저장 노출, `http/routes/operations.ts` 저장은requireAdministrator | staff가 작성 후 저장 단계에서 거부되는지, 수정내용/안내 보존 여부         |
 | 템플릿 key 입력 규칙 불일치                    | `operations/templates.tsx` 대문자 허용, `activity/commands.ts` 소문자만 허용                                     | UI에서 생성 가능한 key가 실제 저장에서는 실패하는지                       |
 | 셀렉 현장 미확정의 UI/API 조건 차이            | 고객 `photo-workspace.tsx` 설문 선호 fallback, 서버 `selection.ts` 확정director일 때만 고객 차단                 | 설문director·현장미확정에서 고객UI 잠금과 직접API 허용이 다른지           |
-| 랜딩/추천 가격·답변은 정적 계산                | `apps/landing/src/features/site/site-data.ts:2`, `package-quiz.tsx:150`                                          | 대표 설정과 공개 가격 차이, 추천 선택의 예약 미전달                       |
+| 랜딩/추천 가격·답변은 정적 계산                | `apps/frontend-landing-page/src/features/site/site-data.ts:2`, `package-quiz.tsx:150`                            | 대표 설정과 공개 가격 차이, 추천 선택의 예약 미전달                       |
 | 보정 완료는 현재 작업 결과 최소1장             | `apps/server/src/shoots/commands/retouch.ts` finish_retouch                                                      | 선택 컷 전체 완료·1:1 대응을 증명하지 못함                                |
 | 일반 고객 화면·상위 보드의 즉시 갱신 범위 제한 | `customer.tsx:48`, `use-shoot-detail.ts:38`, `use-workspace.ts:49`                                               | 상대 역할 변경/상세 저장 뒤 목록·CTA가 오래 남는지                        |
 | 디렉터 메뉴 전환 시 필터 초기화 후보           | `my-customers.tsx:22` useState 초기값                                                                            | 내 고객→오늘 촬영에서 필터 상태 재사용 여부                               |

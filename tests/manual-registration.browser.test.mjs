@@ -39,7 +39,7 @@ test('manual registration preserves fresh forms and applies shared source quanti
           if (id === '\0registration-fixture')
             return `import React from 'react';
               import { createRoot } from 'react-dom/client';
-              import { ManualRegistration } from '/apps/admin/src/features/board/manual-registration.tsx';
+              import { ManualRegistration } from '/apps/frontend-admin-page/src/features/board/manual-registration.tsx';
               createRoot(document.getElementById('root')).render(
                 React.createElement(ManualRegistration, { onCreated: async () => {} }));`;
         },

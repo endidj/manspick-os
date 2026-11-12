@@ -4,6 +4,13 @@
   "main": "../apps/server/src/worker.ts",
   "compatibility_date": "2026-11-06",
   "compatibility_flags": ["nodejs_compat"],
+  "alias": {
+    "class-validator": "../apps/server/src/runtime/unsupported.ts",
+    "class-transformer": "../apps/server/src/runtime/unsupported.ts",
+    "@nestjs/microservices": "../apps/server/src/runtime/unsupported.ts",
+    "@nestjs/websockets/socket-module.js": "../apps/server/src/runtime/unsupported.ts",
+    "@nestjs/microservices/microservices-module.js": "../apps/server/src/runtime/unsupported.ts",
+  },
   "vars": { "LOCAL_DEMO": "true" },
   "d1_databases": [
     {

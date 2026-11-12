@@ -3,7 +3,7 @@ node_modules
 .open-next
 .vinext
 dist
-apps/empty/out
+apps/frontend-empty-page/out
 .cloudflare
 .wrangler
 .local

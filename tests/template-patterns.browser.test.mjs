@@ -39,7 +39,7 @@ test('template condition chips and customer selects preserve draft and save beha
             return `import React from 'react';
           import { createRoot } from 'react-dom/client';
           import '@manspick/design-system/styles';
-          import { Templates } from '/apps/admin/src/features/operations/templates.tsx';
+          import { Templates } from '/apps/frontend-admin-page/src/features/operations/templates.tsx';
           const role = new URLSearchParams(location.search).get('role') ?? 'admin';
           createRoot(document.getElementById('root')).render(React.createElement(Templates, { role }));`;
         },

@@ -14,11 +14,20 @@ export default defineConfig([
     '**/.local/**',
     '**/.wrangler/**',
     '.yarn/**',
-    'apps/empty/out/**',
+    'apps/frontend-empty-page/out/**',
     '**/next-env.d.ts',
   ]),
   {
-    settings: { next: { rootDir: ['apps/admin/', 'apps/user/', 'apps/landing/', 'apps/empty/'] } },
+    settings: {
+      next: {
+        rootDir: [
+          'apps/frontend-admin-page/',
+          'apps/frontend-customer-page/',
+          'apps/frontend-landing-page/',
+          'apps/frontend-empty-page/',
+        ],
+      },
+    },
   },
   {
     files: ['packages/**/*.{ts,tsx,js,mjs}', 'apps/server/**/*.{ts,tsx,js,mjs}'],
