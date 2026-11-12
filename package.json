@@ -39,7 +39,11 @@
     "storybook:build": "node scripts/storybook.mjs build",
     "storybook:test": "node scripts/storybook.mjs test",
     "storybook:watch": "node scripts/storybook.mjs watch",
-    "storybook:browser": "node scripts/storybook.mjs install-browser"
+    "storybook:browser": "node scripts/storybook.mjs install-browser",
+    "deploy:public-server-test": "wrangler deploy --config infra/wrangler.public-test.jsonc",
+    "deploy:landing-page-test": "yarn workspace @manspick/frontend-landing-page deploy:test",
+    "deploy:customer-page-test": "yarn workspace @manspick/frontend-customer-page deploy:test",
+    "db:public-test:media": "node scripts/seed-public-test-media.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20261102.1",

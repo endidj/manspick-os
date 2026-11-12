@@ -2,8 +2,8 @@
 import { bindings, defineConfig, defineWorker } from 'cf/config';
 
 export default defineConfig({
-  worker: defineWorker({
-    name: 'manspick-landing',
+  worker: defineWorker(({ mode }) => ({
+    name: mode === 'test' ? 'manspick-landing-test' : 'manspick-landing',
     entrypoint: 'vinext/server/fetch-handler',
     compatibilityDate: '2026-11-06',
     compatibilityFlags: ['nodejs_compat'],
@@ -14,7 +14,14 @@ export default defineConfig({
     },
     env: {
       ASSETS: bindings.assets(),
-      MANSPICK_API: bindings.worker({ worker: 'manspick-api-local' }),
+      MANSPICK_API: bindings.worker({
+        worker: mode === 'test' ? 'manspick-public-api-test' : 'manspick-api-local',
+      }),
     },
-  }),
+    ...(mode === 'test' && {
+      workersDev: true,
+      previewUrls: false,
+      observability: { enabled: false },
+    }),
+  })),
 });

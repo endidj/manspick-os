@@ -8,7 +8,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite build && vite preview --port 3001",
-    "deploy": "vinext-cloudflare deploy"
+    "deploy": "vinext-cloudflare deploy",
+    "deploy:test": "vinext-cloudflare deploy --env test"
   },
   "dependencies": {
     "@manspick/contracts": "workspace:*",

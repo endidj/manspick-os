@@ -3,7 +3,16 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { defineConfig } from 'vite';
 import vinext from 'vinext';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define:
+    mode === 'test'
+      ? {
+          'process.env.NEXT_PUBLIC_LANDING_APP_ORIGIN': JSON.stringify(
+            'https://manspick-landing-test.winningant8.workers.dev',
+          ),
+          'process.env.MANSPICK_PUBLIC_TEST': JSON.stringify('true'),
+        }
+      : {},
   plugins: [
     vinext(),
     cloudflare({
@@ -15,4 +24,4 @@ export default defineConfig({
     }),
   ],
   server: { host: '127.0.0.1', port: 3001, strictPort: true },
-});
+}));
