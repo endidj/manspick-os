@@ -4,7 +4,7 @@
 
 ## 실행과 경로
 
-루트에서 `yarn dev`로 API와 세 앱을 실행합니다. 고객 앱만 실행할 때는 `yarn workspace @manspick/user dev`를 사용합니다. 기존 로컬 D1/R2 데이터 초기화와 원격 배포는 하지 않습니다.
+루트에서 `yarn dev`로 API와 세 앱을 실행합니다. 고객 앱만 실행할 때는 `yarn workspace @manspick/frontend-customer-page dev`를 사용합니다. 기존 로컬 D1/R2 데이터 초기화와 원격 배포는 하지 않습니다.
 
 | 경로             | 역할                                                    |
 | ---------------- | ------------------------------------------------------- |
@@ -75,7 +75,7 @@ src/
 
 ```sh
 node --test tests/customer-journey.test.ts
-node node_modules/typescript/bin/tsc --noEmit -p apps/user/tsconfig.json
-node node_modules/eslint/bin/eslint.js apps/user/src tests/customer-journey.test.ts --max-warnings 0
-node node_modules/prettier/bin/prettier.cjs --check apps/user/src apps/user/README.md tests/customer-journey.test.ts
+node node_modules/typescript/bin/tsc --noEmit -p apps/frontend-customer-page/tsconfig.json
+node node_modules/eslint/bin/eslint.js apps/frontend-customer-page/src tests/customer-journey.test.ts --max-warnings 0
+node node_modules/prettier/bin/prettier.cjs --check apps/frontend-customer-page/src apps/frontend-customer-page/README.md tests/customer-journey.test.ts
 ```

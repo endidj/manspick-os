@@ -10,7 +10,7 @@ import { handleRequest } from './helpers/server.ts';
 import {
   defaultBoardFilters,
   restoreBoardFilters,
-} from '../apps/admin/src/features/board/board-filters.ts';
+} from '../apps/frontend-admin-page/src/features/board/board-filters.ts';
 
 test('legacy saved filters retain existing values and default the new addon condition to all', () => {
   const legacy = restoreBoardFilters(

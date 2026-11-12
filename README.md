@@ -39,14 +39,14 @@ yarn dev
 
 주소를 바꾸거나 운영에 배포할 때만 아래 파일을 각 앱 폴더에 만듭니다. 예시 도메인을 실제 주소로 바꾸고 **빌드·배포 전에** 저장합니다.
 
-`apps/landing/.env.local` — 랜딩 페이지의 고객·어드민 이동 주소
+`apps/frontend-landing-page/.env.local` — 랜딩 페이지의 고객·어드민 이동 주소
 
 ```dotenv
 NEXT_PUBLIC_CUSTOMER_APP_ORIGIN=https://customer.example.com
 NEXT_PUBLIC_ADMIN_APP_ORIGIN=https://admin.example.com
 ```
 
-`apps/user/.env.local` — 고객 페이지에서 돌아갈 랜딩 주소
+`apps/frontend-customer-page/.env.local` — 고객 페이지에서 돌아갈 랜딩 주소
 
 ```dotenv
 NEXT_PUBLIC_LANDING_APP_ORIGIN=https://www.example.com
@@ -136,13 +136,13 @@ API는 독립 Node.js 프로세스가 아니라 Workers의 Node API 호환 환�
 
 ### `apps/` — 실행하는 서비스
 
-| 폴더                                     | 워크스페이스        | 담당하는 일                                                                                                         |
-| ---------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [`apps/landing`](apps/landing/README.md) | `@manspick/landing` | 방문자에게 브랜드와 상품을 소개하고, `/recommend`에서 패키지를 추천합니다. 예약 버튼은 고객 앱으로 연결됩니다.      |
-| [`apps/user`](apps/user/README.md)       | `@manspick/user`    | `/start`에서 예약을 접수합니다. 고객은 `/s/[token]` 개인 링크로 설문, 준비 안내, 사진 선택, 보정 결과를 확인합니다. |
-| [`apps/admin`](apps/admin/README.md)     | `@manspick/admin`   | 대표·운영 직원·디렉터·보정가가 배정, 일정, 촬영, 사진 업로드, 보정 전달을 처리합니다.                               |
-| [`apps/server`](apps/server/README.md)   | `@manspick/server`  | 세 화면이 공유하는 NestJS API Worker입니다. 로그인·권한을 검사하고 예약·촬영 데이터와 보호된 사진을 저장합니다.     |
-| [`apps/empty`](apps/empty/)              | `@manspick/empty`   | 공통 상단 바를 독립적으로 확인하는 정적 Next.js 앱입니다.                                                           |
+| 폴더                                                                   | 워크스페이스                       | 담당하는 일                                                                                                         |
+| ---------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [`apps/frontend-landing-page`](apps/frontend-landing-page/README.md)   | `@manspick/frontend-landing-page`  | 방문자에게 브랜드와 상품을 소개하고, `/recommend`에서 패키지를 추천합니다. 예약 버튼은 고객 앱으로 연결됩니다.      |
+| [`apps/frontend-customer-page`](apps/frontend-customer-page/README.md) | `@manspick/frontend-customer-page` | `/start`에서 예약을 접수합니다. 고객은 `/s/[token]` 개인 링크로 설문, 준비 안내, 사진 선택, 보정 결과를 확인합니다. |
+| [`apps/frontend-admin-page`](apps/frontend-admin-page/README.md)       | `@manspick/frontend-admin-page`    | 대표·운영 직원·디렉터·보정가가 배정, 일정, 촬영, 사진 업로드, 보정 전달을 처리합니다.                               |
+| [`apps/server`](apps/server/README.md)                                 | `@manspick/server`                 | 세 화면이 공유하는 NestJS API Worker입니다. 로그인·권한을 검사하고 예약·촬영 데이터와 보호된 사진을 저장합니다.     |
+| [`apps/frontend-empty-page`](apps/frontend-empty-page/)                | `@manspick/frontend-empty-page`    | 공통 상단 바를 독립적으로 확인하는 정적 Next.js 앱입니다.                                                           |
 
 ### `packages/` — 앱에서 가져다 쓰는 공용 코드
 

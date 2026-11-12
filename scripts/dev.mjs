@@ -14,7 +14,7 @@ const commands = [
     ['dev', '--config', 'infra/wrangler.jsonc', '--port', '8787', '--persist-to', '.local/state'],
     root,
   ],
-  ...['landing', 'user', 'admin'].map((name) => {
+  ...['frontend-landing-page', 'frontend-customer-page', 'frontend-admin-page'].map((name) => {
     const cwd = join(root, 'apps', name);
     const vite = dirname(require.resolve('vite/package.json', { paths: [cwd] }));
     return [name, join(vite, 'bin/vite.js'), ['dev'], cwd];

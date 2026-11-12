@@ -9,4 +9,4 @@
 - [NestJS 공통 API 전환](reference/21-nestjs-migration.md)
 - [Storybook 가이드](reference/STORYBOOK.md)
 
-화면을 수정할 때는 [랜딩](../apps/landing/AGENTS.md), [고객](../apps/user/AGENTS.md), [직원](../apps/admin/AGENTS.md) 앱의 작업 규칙을 확인합니다.
+화면을 수정할 때는 [랜딩](../apps/frontend-landing-page/AGENTS.md), [고객](../apps/frontend-customer-page/AGENTS.md), [직원](../apps/frontend-admin-page/AGENTS.md) 앱의 작업 규칙을 확인합니다.

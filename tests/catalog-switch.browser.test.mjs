@@ -39,8 +39,8 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
             return `import React from 'react';
               import { createRoot } from 'react-dom/client';
               import '@manspick/design-system/styles';
-              import { Packages } from '/apps/admin/src/features/operations/packages.tsx';
-              import { Settings } from '/apps/admin/src/features/operations/settings.tsx';
+              import { Packages } from '/apps/frontend-admin-page/src/features/operations/packages.tsx';
+              import { Settings } from '/apps/frontend-admin-page/src/features/operations/settings.tsx';
               createRoot(document.getElementById('root')).render(
                 new URLSearchParams(location.search).has('settings')
                   ? React.createElement(Settings, { actorId: 'd1' })

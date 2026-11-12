@@ -5,7 +5,9 @@ const projects = [
   'packages/design-system/tsconfig.json',
   'packages/design-system/.storybook/tsconfig.json',
   'apps/server/tsconfig.json',
-  ...['landing', 'user', 'admin'].map((app) => `apps/${app}/tsconfig.json`),
+  ...['frontend-landing-page', 'frontend-customer-page', 'frontend-admin-page'].map(
+    (app) => `apps/${app}/tsconfig.json`,
+  ),
 ];
 for (const project of projects) {
   const result = spawnSync(

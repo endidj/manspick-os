@@ -4,7 +4,7 @@
 
 ## 실행과 로컬 인증
 
-루트에서 `yarn dev` 실행 후 [운영 앱](http://localhost:3002)을 엽니다. 앱만 실행할 때는 `yarn workspace @manspick/admin dev`를 사용합니다. D1/R2 데이터는 초기화하지 않습니다.
+루트에서 `yarn dev` 실행 후 [운영 앱](http://localhost:3002)을 엽니다. 앱만 실행할 때는 `yarn workspace @manspick/frontend-admin-page dev`를 사용합니다. D1/R2 데이터는 초기화하지 않습니다.
 
 역할 선택은 localhost의 `LOCAL_DEMO` 환경에서 가상 직원 계정으로 동작합니다. 대표·운영 직원·디렉터·보정가의 데이터 범위와 허용 동작은 서버가 검증합니다. 직원 이메일 링크 로그인은 [운영 설정](../server/README.md#환경과-검사)이 필요합니다. 고객 외부 알림 발송은 연결되지 않았습니다.
 

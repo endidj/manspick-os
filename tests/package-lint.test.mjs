@@ -61,7 +61,7 @@ tester.run('package-boundaries', plugin.rules['package-boundaries'], {
       code: "import { failure } from './response.ts';",
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import { feature } from '@/features/feature';",
     },
   ],
@@ -87,7 +87,7 @@ tester.run('package-boundaries', plugin.rules['package-boundaries'], {
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import { handleRequest } from '@manspick/server';",
       errors: [{ messageId: 'boundary' }],
     },
@@ -97,12 +97,12 @@ tester.run('package-boundaries', plugin.rules['package-boundaries'], {
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import { handleRequest } from '../../server/src/http/app.ts';",
       errors: [{ messageId: 'boundary' }],
     },
-    ...['server', 'admin', 'landing'].map((app) => ({
-      filename: file('apps/user/src/feature.ts'),
+    ...['server', 'frontend-admin-page', 'frontend-landing-page'].map((app) => ({
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: `import { feature } from '@manspick/${app}';`,
       errors: [{ messageId: 'boundary' }],
     })),
@@ -113,11 +113,11 @@ tester.run('package-boundaries', plugin.rules['package-boundaries'], {
     },
     {
       filename: file('apps/server/src/http/app.ts'),
-      code: "import { feature } from '../../../admin/src/feature.ts';",
+      code: "import { feature } from '../../../frontend-admin-page/src/feature.ts';",
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "const server = import('@manspick/server');",
       errors: [{ messageId: 'boundary' }],
     },
@@ -135,15 +135,15 @@ const typescriptTester = new RuleTester({
 typescriptTester.run('typed package-boundaries', plugin.rules['package-boundaries'], {
   valid: [
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import type { ShootDetail } from '@manspick/contracts';",
     },
     {
-      filename: file('apps/admin/src/feature.ts'),
+      filename: file('apps/frontend-admin-page/src/feature.ts'),
       code: "import { type Actor } from '@manspick/contracts';",
     },
     {
-      filename: file('apps/admin/src/feature.ts'),
+      filename: file('apps/frontend-admin-page/src/feature.ts'),
       code: "export type { Actor } from '@manspick/contracts';",
     },
     {
@@ -161,17 +161,17 @@ typescriptTester.run('typed package-boundaries', plugin.rules['package-boundarie
   ],
   invalid: [
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import { Actor } from '@manspick/contracts';",
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import type { Env } from '@manspick/server';",
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import { type Actor, handleRequest } from '@manspick/contracts';",
       errors: [{ messageId: 'boundary' }],
     },
@@ -196,12 +196,12 @@ typescriptTester.run('typed package-boundaries', plugin.rules['package-boundarie
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "type Env = import('@manspick/server').Env;",
       errors: [{ messageId: 'boundary' }],
     },
     {
-      filename: file('apps/user/src/feature.ts'),
+      filename: file('apps/frontend-customer-page/src/feature.ts'),
       code: "import type { Actor } from '../../../packages/contracts/src/contracts.ts';",
       errors: [{ messageId: 'boundary' }],
     },

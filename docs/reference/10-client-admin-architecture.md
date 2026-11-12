@@ -14,9 +14,9 @@
 
 ### 현재 코드에서 시작할 곳
 
-- **인증.** 직원의 일회용 이메일 링크와 고객의 촬영 링크 인증을 나누고, 두 방식에서 세션 쿠키와 발급·만료·폐기를 공유한다. 관리자 앱에서는 직원 세션과 제품 메뉴 이동을 분리한다. 대표는 직원을 등록하고 역할·활성 상태를 바꾸거나 로그인 자격을 회수할 수 있다. 세션과 미사용 링크는 권한을 변경한 트랜잭션에서 함께 폐기한다. [직원 로그인](../../apps/server/src/security/staff-login.ts) · [서버 세션](../../apps/server/src/security/sessions.ts) · [관리자 직원 세션](../../apps/admin/src/features/authentication/use-staff-session.ts)
+- **인증.** 직원의 일회용 이메일 링크와 고객의 촬영 링크 인증을 나누고, 두 방식에서 세션 쿠키와 발급·만료·폐기를 공유한다. 관리자 앱에서는 직원 세션과 제품 메뉴 이동을 분리한다. 대표는 직원을 등록하고 역할·활성 상태를 바꾸거나 로그인 자격을 회수할 수 있다. 세션과 미사용 링크는 권한을 변경한 트랜잭션에서 함께 폐기한다. [직원 로그인](../../apps/server/src/security/staff-login.ts) · [서버 세션](../../apps/server/src/security/sessions.ts) · [관리자 직원 세션](../../apps/frontend-admin-page/src/features/authentication/use-staff-session.ts)
 - **인가.** Nest의 `AccessGuard`가 요청과 행위자를 확인하고, 공개 경로와 역할 제한은 `@Public()`·`@RequireRole()`로 선언한다. 요청 문맥은 `AsyncLocalStorage`로 분리한다. 촬영·파일 업무는 배정과 공개 조건까지 검사한다. 예를 들어 디렉터는 배정된 촬영만 조회할 수 있다. 같은 범위 정책을 목록·상세·파일에 적용하고, 화면의 버튼 표시는 서버가 허용한 동작을 반영한다. 사용자별 역할 배정에서 시작하고 개별 권한 예외는 실제 필요가 생기면 사유·만료와 함께 기록한다. 구체 역할명과 `finish_retouch` 같은 촬영 명령은 맨즈픽 모듈에 둔다. [접근 가드](../../apps/server/src/http/access.ts) · [촬영 조회](../../apps/server/src/shoots/access.ts) · [파일 접근](../../apps/server/src/files/access.ts)
-- **화면과 요청.** 디자인 시스템의 입력·탭·대화상자·상태 컴포넌트와 웹 클라이언트·프록시를 재사용한다. 관리자 셸에는 제품별 메뉴·브랜드를 연결한다. API 계약은 `contracts`, 업종별 순수 규칙은 해당 제품의 `domain`, 인가·저장은 서버가 맡는다. [디자인 시스템](../../packages/design-system/README.md) · [웹](../../packages/web/README.md) · [관리자 셸](../../apps/admin/src/features/shell/admin-shell.tsx) · [계약](../../packages/contracts/README.md) · [도메인](../../packages/domain/README.md)
+- **화면과 요청.** 디자인 시스템의 입력·탭·대화상자·상태 컴포넌트와 웹 클라이언트·프록시를 재사용한다. 관리자 셸에는 제품별 메뉴·브랜드를 연결한다. API 계약은 `contracts`, 업종별 순수 규칙은 해당 제품의 `domain`, 인가·저장은 서버가 맡는다. [디자인 시스템](../../packages/design-system/README.md) · [웹](../../packages/web/README.md) · [관리자 셸](../../apps/frontend-admin-page/src/features/shell/admin-shell.tsx) · [계약](../../packages/contracts/README.md) · [도메인](../../packages/domain/README.md)
 - **로그.** 직원·설정·템플릿 변경은 같은 감사 이벤트 형식으로 실제 변경과 함께 저장한다. 운영 오류는 요청 ID와 오류 코드로 추적한다. 촬영의 고객·직원용 진행 타임라인은 업무 화면의 읽기 모델로 유지한다. [감사 이벤트](../../apps/server/src/activity/audit.ts) · [운영 로그](../../apps/server/src/runtime/log.ts)
 
 ### 두 번째 납품에서 검증할 것

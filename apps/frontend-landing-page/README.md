@@ -1,4 +1,4 @@
-# @manspick/landing
+# @manspick/frontend-landing-page
 
 맨즈픽 서비스 소개·맞춤 추천·로컬 이용 안내를 제공하는 Next.js 앱이다. 실제 상담 채널·결제·리드 저장을 연결하지 않으며 기존 고객/직원 앱 이동을 유지한다.
 
@@ -39,11 +39,11 @@
 ## 로컬 확인
 
 ```sh
-yarn workspace @manspick/landing dev
-node node_modules/typescript/bin/tsc --noEmit -p apps/landing/tsconfig.json
-node node_modules/eslint/bin/eslint.js apps/landing/src --max-warnings 0
-node node_modules/prettier/bin/prettier.cjs --check apps/landing/src apps/landing/README.md
-node --test apps/landing/src/features/package-quiz/recommendation.test.ts
+yarn workspace @manspick/frontend-landing-page dev
+node node_modules/typescript/bin/tsc --noEmit -p apps/frontend-landing-page/tsconfig.json
+node node_modules/eslint/bin/eslint.js apps/frontend-landing-page/src --max-warnings 0
+node node_modules/prettier/bin/prettier.cjs --check apps/frontend-landing-page/src apps/frontend-landing-page/README.md
+node --test apps/frontend-landing-page/src/features/package-quiz/recommendation.test.ts
 ```
 
 각 명령은 저장소 루트에서 실행한다. 추천 규칙 테스트는 촬영 규모의 상품 연결·예산 상한 경계를 확인한다. 실제 브라우저에서는 390/1440px 및 작은 모바일의 넘침, 메뉴·FAQ·상담 안내·5단계 왕복·옵션 합계·예약/법률 링크를 확인한다. 관련 전체 회귀·최종3앱 빌드는 root 통합 검증에서 수행한다.
