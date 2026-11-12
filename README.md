@@ -1,6 +1,6 @@
 # 맨즈픽 OS
 
-남성 스타일링·프로필 촬영의 예약부터 준비, 사진 선택·보정, 후기·원본 전달까지 연결하는 시스템입니다. 랜딩에서 서비스를 소개하고, 고객 앱에서 예약과 촬영 진행을 확인하며, 직원 앱에서 같은 예약을 처리합니다.
+남성 스타일링·프로필 촬영의 예약부터 준비, 사진 선택·보정, 후기·원본 전달까지 연결하는 시스템입니다. 랜딩 페이지에서 서비스를 소개하고, 고객 페이지에서 예약과 촬영 진행을 확인하며, 어드민 페이지에서 같은 예약을 처리합니다.
 
 ## 로컬 실행
 
@@ -20,66 +20,70 @@ yarn dev
 
 ### 앱별 실행 명령과 접속 주소
 
-`yarn dev`는 랜딩·고객·직원 앱과 API Worker를 한꺼번에 실행합니다. 랜딩·고객·직원 앱 중 하나만 실행할 때는 첫 번째 터미널에서 `yarn dev:server`로 API를 켜고 두 번째 터미널에서 앱을 실행합니다. Empty와 Storybook은 API·DB 없이 따로 실행합니다.
+`yarn dev`는 랜딩·고객·어드민 페이지와 공통 서버를 한꺼번에 실행합니다. 페이지 하나만 실행할 때는 첫 번째 터미널에서 `yarn dev:server`로 공통 서버를 켜고 두 번째 터미널에서 해당 페이지를 실행합니다. 공통 서버는 Wrangler로 실행하는 Cloudflare Worker이며, 로컬 포트는 `8787`입니다. Empty와 Storybook은 서버·DB 없이 따로 실행합니다.
 
-| 서비스                  | 개별 실행 명령                         | 로컬 주소                                                                            | Cloudflare 주소                                                                                            |
-| ----------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| 랜딩                    | `yarn workspace @manspick/landing dev` | [localhost:3000](http://localhost:3000)                                              | 공개 배포 주소 미확인                                                                                      |
-| 고객 앱                 | `yarn workspace @manspick/user dev`    | [localhost:3001](http://localhost:3001)                                              | 공개 배포 주소 미확인                                                                                      |
-| 직원 앱                 | `yarn workspace @manspick/admin dev`   | [localhost:3002](http://localhost:3002)                                              | [manspick-admin-test.winningant8.workers.dev](https://manspick-admin-test.winningant8.workers.dev)         |
-| Empty                   | `yarn workspace @manspick/empty dev`   | [localhost:3003](http://localhost:3003)                                              | 공개 배포 주소 미확인 (`manspick-empty-test` Worker 설정)                                                  |
-| API Worker              | `yarn dev:server`                      | [127.0.0.1:8787/api/health](http://127.0.0.1:8787/api/health)                        | 비공개 · [관리자 테스트에서 상태 확인](https://manspick-admin-test.winningant8.workers.dev/api/health)     |
-| 디자인 시스템 Storybook | `yarn storybook`                       | [127.0.0.1:6006](http://127.0.0.1:6006/?path=/story/overview-design-system--catalog) | [manspick-storybook-test.winningant8.workers.dev](https://manspick-storybook-test.winningant8.workers.dev) |
+| 서비스                  | 개별 실행 명령           | 로컬 주소                                                                            | Cloudflare 주소                                                                                            |
+| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| 랜딩 페이지             | `yarn dev:landing-page`  | [localhost:3000](http://localhost:3000)                                              | 공개 배포 주소 미확인                                                                                      |
+| 고객 페이지             | `yarn dev:customer-page` | [localhost:3001](http://localhost:3001)                                              | 공개 배포 주소 미확인                                                                                      |
+| 어드민 페이지           | `yarn dev:admin-page`    | [localhost:3002](http://localhost:3002)                                              | [manspick-admin-test.winningant8.workers.dev](https://manspick-admin-test.winningant8.workers.dev)         |
+| Empty                   | `yarn dev:empty`         | [localhost:3003](http://localhost:3003)                                              | [manspick-empty-test.winningant8.workers.dev](https://manspick-empty-test.winningant8.workers.dev)         |
+| 공통 서버               | `yarn dev:server`        | [공통 서버 · 8787](http://127.0.0.1:8787/api/health)                                 | 비공개 · [관리자 테스트에서 상태 확인](https://manspick-admin-test.winningant8.workers.dev/api/health)     |
+| 디자인 시스템 Storybook | `yarn storybook`         | [127.0.0.1:6006](http://127.0.0.1:6006/?path=/story/overview-design-system--catalog) | [manspick-storybook-test.winningant8.workers.dev](https://manspick-storybook-test.winningant8.workers.dev) |
 
 화면 앱 간 이동과 세션을 확인할 때는 브라우저에서 `localhost` 주소를 일관되게 사용합니다. API 요청이 실패하면 위의 로컬 상태 확인 링크를 먼저 엽니다. Cloudflare 열에는 저장소에 기록된 테스트 주소를 표시했습니다. 운영 도메인은 배포 설정에서 지정합니다.
 
+## 환경 변수 (`.env`)
+
+**기본 로컬 실행에는 `.env`가 필요 없습니다.** 페이지 주소는 `localhost:3000`·`3001`·`3002`를 사용하며, 로컬 D1·R2와 `LOCAL_DEMO=true`는 [로컬 서버 설정](infra/wrangler.jsonc)에 이미 지정되어 있습니다.
+
+주소를 바꾸거나 운영에 배포할 때만 아래 파일을 각 앱 폴더에 만듭니다. 예시 도메인을 실제 주소로 바꾸고 **빌드·배포 전에** 저장합니다.
+
+`apps/landing/.env.local` — 랜딩 페이지의 고객·어드민 이동 주소
+
+```dotenv
+NEXT_PUBLIC_CUSTOMER_APP_ORIGIN=https://customer.example.com
+NEXT_PUBLIC_ADMIN_APP_ORIGIN=https://admin.example.com
+```
+
+`apps/user/.env.local` — 고객 페이지에서 돌아갈 랜딩 주소
+
+```dotenv
+NEXT_PUBLIC_LANDING_APP_ORIGIN=https://www.example.com
+```
+
+어드민·Empty·Storybook에는 별도의 필수 `.env` 항목이 없습니다. `NEXT_PUBLIC_*` 값은 브라우저에 공개되므로 주소만 넣고 비밀 키는 넣지 않습니다.
+
+공통 서버의 운영 설정은 `.env` 대신 `infra/wrangler.production.jsonc`에 둡니다. [설정 예시](infra/wrangler.production.example.jsonc)를 복사한 뒤 다음 값을 지정합니다.
+
+| 위치   | 항목                      | 넣을 값                                           |
+| ------ | ------------------------- | ------------------------------------------------- |
+| `vars` | `STAFF_APP_ORIGIN`        | 경로를 제외한 어드민 페이지의 HTTPS 주소          |
+| `vars` | `CUSTOMER_APP_ORIGIN`     | 경로를 제외한 고객 페이지의 HTTPS 주소            |
+| `vars` | `STAFF_EMAIL_DOMAIN`      | 직원 이메일의 회사 도메인, 예: `example.com`      |
+| `vars` | `STAFF_EMAIL_FROM`        | Cloudflare에서 승인된 로그인 메일 발신 주소       |
+| 바인딩 | `DB` · `BUCKET` · `EMAIL` | 실제 D1 이름·ID, 비공개 R2 버킷, 이메일 발송 연결 |
+
+운영에서는 `LOCAL_DEMO`·`ADMIN_TEST_DEMO`를 켜지 않습니다. 직원 로그인에 사용할 해당 도메인의 활성 대표 계정도 DB에 준비합니다.
+
 ## Cloudflare 배포
 
-대상 Cloudflare 계정에 배포 권한이 필요합니다. API·Empty·Storybook은 `yarn wrangler login`, 랜딩·고객·직원 앱은 `yarn workspace @manspick/admin cf auth login`으로 로그인합니다. 모든 명령은 저장소 루트에서 실행합니다.
+모든 명령은 저장소 루트에서 실행합니다.
 
-### Cloudflare 테스트 환경
-
-**API와 직원 앱.** 테스트 API는 D1 `manspick-admin-test-db`와 비공개 R2 `manspick-admin-test-media`를 사용합니다. 미적용 스키마 변경이 있으면 마이그레이션을 적용하고, 새 테스트 DB라면 시드를 한 번 넣습니다. 그다음 API와 직원 앱을 순서대로 배포합니다. 관리자 테스트는 가상 직원 역할로 공유 데이터를 바꿀 수 있으므로 가상 데이터만 사용합니다.
-
-```sh
-# yarn wrangler d1 migrations apply manspick-admin-test-db --config infra/wrangler.api-test.jsonc --remote
-# yarn wrangler d1 execute manspick-admin-test-db --config infra/wrangler.api-test.jsonc --remote --file infra/seed.sql
-yarn wrangler deploy --config infra/wrangler.api-test.jsonc
-yarn workspace @manspick/admin deploy:test
-```
-
-**Empty.** Next.js로 정적 파일을 빌드한 뒤 `manspick-empty-test` Worker에 배포합니다.
+1. **로그인:** 서버·Empty·Storybook은 `yarn wrangler login`, 세 페이지는 `yarn cf:login`을 실행합니다.
+2. **설정:** 위의 환경 변수와 운영 서버 설정을 준비합니다. 각 앱의 `cloudflare.config.ts`에서 Worker 이름·공개 도메인을 정하고, `MANSPICK_API`를 운영 서버 Worker에 연결합니다. 기본 연결 대상은 `manspick-api-local`이므로 바꿔야 합니다. D1 마이그레이션도 먼저 적용합니다.
+3. **배포:** 공통 서버를 먼저 배포한 뒤 필요한 페이지를 배포합니다. 페이지 명령은 빌드도 함께 실행합니다.
 
 ```sh
-yarn workspace @manspick/empty build
-yarn wrangler deploy --config apps/empty/wrangler.jsonc
+yarn deploy server
+yarn deploy landing-page
+yarn deploy customer-page
+yarn deploy admin-page
 ```
 
-**Storybook.** `.local/storybook-static`에 정적 파일을 빌드한 뒤 별도로 배포합니다.
+테스트 환경은 `yarn deploy server-test` → `yarn deploy admin-page-test` 순서입니다. Empty와 Storybook은 각각 `yarn deploy empty`, `yarn deploy storybook`으로 빌드·배포합니다. 배포 후 각 페이지의 `/api/health`로 서버 연결을 확인합니다.
 
-```sh
-yarn storybook:build
-yarn wrangler deploy --config infra/wrangler.storybook-test.jsonc
-```
-
-### 운영 배포
-
-1. **API를 배포합니다.** [운영 API 설정 예시](infra/wrangler.production.example.jsonc)를 `infra/wrangler.production.jsonc`로 복사합니다. Worker 이름과 실제 D1 이름·ID, 비공개 R2 버킷을 지정합니다. `STAFF_APP_ORIGIN`과 `CUSTOMER_APP_ORIGIN`에는 각 앱의 HTTPS 주소를 넣습니다. 직원 로그인에는 `EMAIL` 바인딩, 승인된 발신 주소 `STAFF_EMAIL_FROM`, 회사 도메인 `STAFF_EMAIL_DOMAIN`이 필요합니다. 새 운영 DB에는 해당 도메인의 활성 대표 계정을 준비합니다. API는 비공개로 두고 데모 모드는 끕니다. 아래 `운영 D1 이름`을 설정의 `database_name`으로 바꿔 실행합니다.
-
-   ```sh
-   yarn wrangler d1 migrations apply "운영 D1 이름" --config infra/wrangler.production.jsonc --remote
-   yarn wrangler deploy --config infra/wrangler.production.jsonc
-   ```
-
-2. **화면 앱을 배포합니다.** 각 앱의 `cloudflare.config.ts`에 운영 Worker 이름과 공개 도메인을 지정하고, `MANSPICK_API`를 1단계의 Worker 이름에 연결합니다. 기본 설정의 바인딩 대상은 `manspick-api-local`입니다. 필요한 환경 변수를 빌드 전에 설정하면 각 `deploy` 명령이 Vinext 빌드와 배포를 실행합니다. [프로젝트 Cloudflare 설계](docs/07-cloudflare-architecture.md)
-
-   | 앱      | 배포 전 설정                                                      | 배포 명령                                 |
-   | ------- | ----------------------------------------------------------------- | ----------------------------------------- |
-   | 랜딩    | `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`, `NEXT_PUBLIC_ADMIN_APP_ORIGIN` | `yarn workspace @manspick/landing deploy` |
-   | 고객 앱 | `NEXT_PUBLIC_LANDING_APP_ORIGIN`                                  | `yarn workspace @manspick/user deploy`    |
-   | 직원 앱 | API의 `STAFF_APP_ORIGIN`에 직원 앱 주소 지정                      | `yarn workspace @manspick/admin deploy`   |
-
-3. **배포를 확인합니다.** 각 앱의 `/api/health`로 API 연결을 확인한 뒤 랜딩의 예약 버튼, 고객의 예약·개인 링크, 직원의 이메일 로그인을 점검합니다. [운영 인수인계](docs/reference/10-client-admin-architecture.md#현재-맨즈픽-운영-인수인계)
+DB 준비와 상세 설정은 [Cloudflare 아키텍처](docs/07-cloudflare-architecture.md)와 [서버 설정 안내](apps/server/README.md#환경과-검사)를 참고합니다.
 
 ## 체험 데이터
 
@@ -98,7 +102,7 @@ yarn wrangler deploy --config infra/wrangler.storybook-test.jsonc
 
 ## 아키텍처와 기술 선택
 
-![브라우저에서 랜딩·고객·직원 화면 Worker를 거쳐 공통 Hono API Worker로 요청이 전달됩니다. API Worker는 D1의 예약·권한 정보와 비공개 R2의 사진 파일에 접근합니다.](docs/assets/architecture.svg)
+![브라우저에서 랜딩 페이지·고객 페이지·어드민 페이지의 Next.js Frontend App 3개(CF worker)를 거쳐 공통 Server Worker로 요청이 전달됩니다. 공통 서버는 D1의 예약·권한 정보와 비공개 R2의 사진 파일에 접근합니다.](docs/assets/architecture.svg)
 
 ### 예약 한 건이 처리되는 과정
 
@@ -149,34 +153,6 @@ yarn wrangler deploy --config infra/wrangler.storybook-test.jsonc
 
 - `infra/`에는 Wrangler 설정, D1 스키마 변경 이력(`migrations/`), 가상 샘플 데이터(`seed.sql`)가 있습니다.
 - `scripts/`에는 루트 실행·초기화·빌드 스크립트, `tests/`에는 업무 규칙·권한·통합 테스트, `docs/`에는 설계와 구현 기록이 있습니다.
-
-## 코드를 수정할 때
-
-화면은 각 앱의 `src/app/`에서 경로를 찾고, 기능별 UI는 `src/features/`에서 확인합니다. HTTP 요청 처리는 `apps/server/src/worker.ts`에서 시작해 `src/http/`의 Hono 라우터와 미들웨어로 이어집니다.
-
-버튼이나 입력을 고칠 때는 `design-system`, 예약·상태 규칙은 `domain`, 요청·응답 타입은 `contracts`, 웹 요청과 표시는 `web`의 공개 경로를 먼저 확인합니다. 패키지의 `index.ts`는 재수출을 담당하며, 앱은 패키지의 `src/`를 직접 가져오지 않습니다. 공통 토큰·컴포넌트 사용과 앱별 CSS Modules 규칙은 [프로젝트 작업 규칙](docs/AGENTS.md)을 따릅니다.
-
-## 검사 명령
-
-```sh
-yarn typecheck
-yarn lint
-yarn format:check
-yarn test
-yarn build
-```
-
-Empty를 빌드한 뒤에는 `yarn lint --ignore-pattern 'apps/empty/out/**'`로 정적 산출물을 제외합니다.
-
-`yarn build`는 API 번들과 랜딩·고객·직원 Worker를 로컬에서 빌드합니다. 화면을 배포 전에 보려면 API를 켜고 `yarn workspace @manspick/landing preview`처럼 앱별 `preview`를 실행합니다. Storybook 상호작용·접근성 검사는 `yarn storybook:browser`로 Chromium을 한 번 설치한 뒤 `yarn storybook:test`로 실행합니다.
-
-별도 터미널에서 `yarn dev`가 실행 중이고 `db:init`을 마친 상태라면 다음 통합 확인을 실행할 수 있습니다. 로컬 샘플 촬영에 테스트 파일이 추가됩니다.
-
-```sh
-yarn test:local
-```
-
-이 테스트는 Vinext 프런트엔드와 API Worker 사이의 서비스 바인딩을 거쳐 세션·권한 거부·파일 바이트·D1/R2 공유 상태를 확인합니다. 역할을 바꿔 가며 직접 확인할 때는 [역할별 QA 체크리스트](docs/reference/18-role-workflow-qa.md)를 참고합니다.
 
 ## 문서
 
