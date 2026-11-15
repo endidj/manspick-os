@@ -43,13 +43,22 @@ const purposes = [
   { value: '비즈니스', label: '비즈니스 프로필' },
 ];
 
-export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: CustomerViewProps) {
+export function Survey({
+  shoot,
+  busy,
+  onAction,
+  onUpload,
+  onNavigate,
+  onHelp,
+  active,
+  page,
+  onPageChange,
+}: CustomerViewProps & {
+  active: boolean;
+  page: number;
+  onPageChange: (page: number) => void;
+}) {
   const now = useClock();
-  const [page, setPage] = useState(() =>
-    shoot.survey?.submittedAt
-      ? 1
-      : ([1, 2, 3, 4].find((value) => !shoot.survey?.pageDone.includes(value)) ?? 4),
-  );
   const [answers, setAnswers] = useState<Record<string, unknown>>(shoot.survey?.answers ?? {});
   const [done, setDone] = useState<number[]>(shoot.survey?.pageDone ?? []);
   const [validation, setValidation] = useState('');
@@ -58,6 +67,7 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
   const [consentOpen, setConsentOpen] = useState(false);
   const [addons, setAddons] = useState<AddonDTO[]>([]);
   const edited = useRef(false);
+  const currentView = useRef({ active, page });
   const saveRef = useRef(onAction);
   const pending = useRef<Promise<unknown>>(Promise.resolve());
   const value = (key: string) => String(answers[key] ?? '');
@@ -71,6 +81,9 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
       shoot.survey?.submittedAt && shoot.survey.dueAt && Date.parse(shoot.survey.dueAt) < now,
     );
 
+  useEffect(() => {
+    currentView.current = { active, page };
+  }, [active, page]);
   useEffect(() => {
     saveRef.current = onAction;
   }, [onAction]);
@@ -151,9 +164,10 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
       setSaveState(saved ? 'saved' : 'error');
       if (saved) {
         setDone(completed);
+        if (!currentView.current.active || currentView.current.page !== page) return;
         if (page === 4) onNavigate('survey-complete');
         else {
-          setPage(page + 1);
+          onPageChange(page + 1);
           window.scrollTo({ top: 0 });
         }
       }
@@ -174,6 +188,9 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
       />
     );
   }
+
+  // 다른 업무 화면을 열어도 초안과 대기 중인 자동 저장을 유지합니다.
+  if (!active) return null;
 
   return (
     <>
@@ -513,10 +530,7 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
             <Button
               variant="secondary"
               disabled={busy || savingPage}
-              onClick={() => {
-                setPage(page - 1);
-                window.scrollTo({ top: 0 });
-              }}
+              onClick={() => onPageChange(page - 1)}
             >
               이전
             </Button>

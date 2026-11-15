@@ -14,6 +14,8 @@ import { packageName } from '../customer/presentation';
 import { addonQuantityLimit, validateCatalogQuantities } from '@manspick/domain';
 import type { OperationsPolicy } from '@manspick/domain';
 import { BookingCalendar, type CalendarDay } from './booking-calendar';
+import { useFlowNavigation } from '../shell/flow-navigation';
+import { bookingPaths, bookingStep } from './routes';
 import layout from '../shell/customer-shell.module.css';
 import styles from './booking.module.css';
 
@@ -35,7 +37,8 @@ export function Booking() {
     extraRetouchAvailable?: boolean;
   }>();
   const [policy, setPolicy] = useState<OperationsPolicy>();
-  const [step, setStep] = useState(1);
+  const { pathname, navigate, back } = useFlowNavigation('/start');
+  const step = bookingStep(pathname) ?? 1;
   const [packageId, setPackage] = useState('hybrid');
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [name, setName] = useState('');
@@ -56,6 +59,19 @@ export function Booking() {
     message: string;
     localAccess?: { token: string; last4: string };
   }>();
+  const detailsReady = Boolean(
+    name.trim() && phone.replace(/\D/g, '').length >= 10 && privacy && notifications,
+  );
+
+  useEffect(() => {
+    if (result) navigate('/start/complete', true);
+    else if (step === 4) navigate('/start', true);
+    else if (step === 3 && !detailsReady) navigate('/start/details', true);
+  }, [step, detailsReady, result, navigate]);
+
+  function setStep(next: number) {
+    navigate(bookingPaths[next - 1]!);
+  }
 
   const calendarOptions = Object.entries(extras)
     .filter(([, quantity]) => quantity > 0)
@@ -168,6 +184,7 @@ export function Booking() {
   }
 
   async function submit() {
+    if (busy || result || !detailsReady) return;
     setBusy(true);
     setError('');
     try {
@@ -202,6 +219,10 @@ export function Booking() {
 
   return (
     <CustomerShell
+      onBack={() => {
+        if (result || step === 1) window.location.assign(landingOrigin || '/');
+        else back(bookingPaths[step - 2]!);
+      }}
       onHelp={() => setHelpOpen(true)}
       step={
         !result
@@ -484,13 +505,13 @@ export function Booking() {
                         checked={privacy}
                         onChange={(event) => setPrivacy(event.target.checked)}
                       />
-                      <span>개인정보 수집·이용 동의</span>
-                      {landingOrigin ? (
+                      <span>
+                        개인정보 수집·이용 동의 <span className={styles.required}>(필수)</span>
+                      </span>
+                      {landingOrigin && (
                         <a href={`${landingOrigin}/legal`} target="_blank" rel="noreferrer">
                           안내 보기
                         </a>
-                      ) : (
-                        <span className={styles.required}>필수</span>
                       )}
                     </label>
                     <label>
@@ -500,8 +521,10 @@ export function Booking() {
                         checked={notifications}
                         onChange={(event) => setNotifications(event.target.checked)}
                       />
-                      <span>촬영 안내 알림 수신 동의 (카카오톡)</span>
-                      <span className={styles.required}>필수</span>
+                      <span>
+                        촬영 안내 알림 수신 동의 (카카오톡){' '}
+                        <span className={styles.required}>(필수)</span>
+                      </span>
                     </label>
                     <label>
                       <input
@@ -509,8 +532,9 @@ export function Booking() {
                         checked={marketing}
                         onChange={(event) => setMarketing(event.target.checked)}
                       />
-                      <span>마케팅 정보 수신 동의</span>
-                      <small>선택</small>
+                      <span>
+                        마케팅 정보 수신 동의 <span>(선택)</span>
+                      </span>
                     </label>
                   </section>
                   <SceneFooter>

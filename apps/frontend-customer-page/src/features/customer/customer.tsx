@@ -14,6 +14,8 @@ import { ReviewView } from './customer-scenes';
 import { PreparationView, PlanView, ShootDayView } from './preparation';
 import { PaymentView } from './payment';
 import type { CustomerScene } from './journey';
+import { customerPath, customerParent, customerRoute } from './routes';
+import { useFlowNavigation } from '../shell/flow-navigation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
@@ -41,11 +43,28 @@ export function CustomerApp({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState('');
-  const [scene, setScene] = useState<CustomerScene>('home');
+  const root = customerPath(token, 'home');
+  const { pathname, navigate: navigatePath, back } = useFlowNavigation(root);
+  const route = customerRoute(pathname.slice(root.length).split('/').filter(Boolean));
+  const scene = route?.scene ?? 'home';
+  const surveyPage = route?.surveyPage ?? 1;
   const [helpOpen, setHelpOpen] = useState(false);
   const refresh = useCallback(async (id: string) => {
     setShoot(await api<ShootDetail>(`/shoots/${id}`));
   }, []);
+
+  useEffect(() => {
+    if (
+      verified &&
+      ((scene === 'survey' && !route?.surveyPage) ||
+        (scene === 'survey-complete' && !shoot?.survey?.submittedAt))
+    ) {
+      const resumePage = shoot?.survey?.submittedAt
+        ? 1
+        : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
+      navigatePath(customerPath(token, 'survey', resumePage), true);
+    }
+  }, [verified, scene, route?.surveyPage, shoot?.survey, token, navigatePath]);
 
   useEffect(() => {
     if (!verified || !shootId || scene !== 'shoot-day' || busy) return;
@@ -133,7 +152,7 @@ export function CustomerApp({ token }: { token: string }) {
       setVerified(false);
       setShoot(undefined);
       setLast4('');
-      setScene('home');
+      navigatePath(root, true);
       setHelpOpen(false);
     } catch (failure) {
       setError((failure as Error).message);
@@ -143,7 +162,10 @@ export function CustomerApp({ token }: { token: string }) {
   }
 
   function navigate(next: CustomerScene) {
-    setScene(next);
+    const resumePage = shoot?.survey?.submittedAt
+      ? 1
+      : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
+    navigatePath(customerPath(token, next, resumePage));
     setError('');
     setAnnouncement('');
     window.scrollTo({ top: 0 });
@@ -156,6 +178,7 @@ export function CustomerApp({ token }: { token: string }) {
 
   return (
     <CustomerShell
+      onBack={() => back(scene === 'home' ? '/' : customerParent(token, scene, surveyPage))}
       onHome={verified ? () => navigate('home') : undefined}
       onHelp={onHelp}
       step={verified ? sceneSteps[scene] : undefined}
@@ -199,8 +222,15 @@ export function CustomerApp({ token }: { token: string }) {
             <CustomerHome shoot={viewProps.shoot} onNavigate={navigate} onHelp={onHelp} />
           )}
           {scene === 'payment' && <PaymentView {...viewProps} />}
-          {scene === 'survey' && <Survey {...viewProps} />}
-          {scene === 'survey-complete' && <SurveyComplete {...viewProps} />}
+          <Survey
+            {...viewProps}
+            active={scene === 'survey'}
+            page={surveyPage}
+            onPageChange={(page) => navigatePath(customerPath(token, 'survey', page))}
+          />
+          {scene === 'survey-complete' && shoot?.survey?.submittedAt && (
+            <SurveyComplete {...viewProps} />
+          )}
           {scene === 'preparation' && <PreparationView {...viewProps} />}
           {scene === 'plan' && <PlanView {...viewProps} />}
           {scene === 'shoot-day' && <ShootDayView {...viewProps} />}

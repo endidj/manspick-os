@@ -1,12 +1,15 @@
 // 화면 상단의 브랜드와 동작을 배치하는 공통 컴포넌트입니다.
 import type { HTMLAttributes, ReactNode } from 'react';
 import { Icon } from '../../icons';
+import { Button } from '../button';
 import styles from './app-bar.module.css';
 
 export type AppBarProps = HTMLAttributes<HTMLElement> & {
   brand?: ReactNode;
   leading?: ReactNode;
   actions?: ReactNode;
+  onBack?: () => void;
+  backLabel?: string;
 };
 
 export function AppBarBrand() {
@@ -20,10 +23,29 @@ export function AppBarBrand() {
   );
 }
 
-export function AppBar({ brand, leading, actions, className = '', ...props }: AppBarProps) {
+export function AppBar({
+  brand,
+  leading,
+  actions,
+  onBack,
+  backLabel = '뒤로가기',
+  className = '',
+  ...props
+}: AppBarProps) {
   return (
     <header {...props} className={`${styles.appBar} ${className}`}>
       <div className={styles.appBarIdentity}>
+        {onBack && (
+          <Button
+            variant="ghost"
+            size="md"
+            className={styles.appBarBack}
+            aria-label={backLabel}
+            onClick={onBack}
+          >
+            <Icon name="solar/arrow-left-linear" />
+          </Button>
+        )}
         {leading}
         {brand ?? <AppBarBrand />}
       </div>

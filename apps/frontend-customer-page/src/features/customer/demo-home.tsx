@@ -1,5 +1,6 @@
 // 로컬 샘플 고객과 신규 예약 진입을 보여주는 개발용 홈입니다.
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AppBar, Badge, Notice, Loading } from '@manspick/design-system/components';
 import { Icon } from '@manspick/design-system/icons';
@@ -42,9 +43,9 @@ export function DemoHome() {
             새로운 예약을 만들거나 샘플 여정을 이어가세요.
           </p>
         </div>
-        <a className={styles.button} href="/start">
+        <Link className={styles.button} href="/start">
           새 예약 체험하기 <Icon name="arrow" size={17} />
-        </a>
+        </Link>
         <section className={layout.stack}>
           <div className={layout.between}>
             <h2>샘플 촬영 둘러보기</h2>

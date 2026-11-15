@@ -6,12 +6,24 @@
 
 루트에서 `yarn dev`로 API와 세 앱을 실행합니다. 고객 앱만 실행할 때는 `yarn workspace @manspick/frontend-customer-page dev`를 사용합니다. 기존 로컬 D1/R2 데이터 초기화와 원격 배포는 하지 않습니다.
 
-| 경로             | 역할                                                    |
-| ---------------- | ------------------------------------------------------- |
-| `/`              | 로컬 시연용 촬영 목록·신규 예약 진입                    |
-| `/start`         | 옵션 → 기본정보·동의 → 실제 가능 날짜·시간 → 예약 접수  |
-| `/s/[token]`     | 휴대전화 뒤 4자리 확인 후 개인 촬영 홈과 해당 업무 화면 |
-| `/api/[...path]` | 같은 출처의 API 요청을 기존 Worker로 전달               |
+| 경로                                                                         | 역할                                      |
+| ---------------------------------------------------------------------------- | ----------------------------------------- |
+| `/`                                                                          | 로컬 시연용 촬영 목록·신규 예약 진입      |
+| `/start`                                                                     | 촬영 옵션 선택                            |
+| `/start/details`                                                             | 기본정보·필수/선택 동의                   |
+| `/start/schedule`                                                            | 실제 가능 날짜·시간 선택                  |
+| `/start/complete`                                                            | 해당 탭에서 성공한 예약 접수 결과         |
+| `/s/[token]`                                                                 | 휴대전화 뒤 4자리 인증·개인 촬영 홈       |
+| `/s/[token]/payment`, `/preparation`, `/plan`, `/shoot-day`                  | 입금·촬영 준비·설계·당일 진행             |
+| `/s/[token]/survey/1` ~ `/survey/4`, `/survey-complete`                      | 설문 각 페이지·서버에 제출한 완료 결과    |
+| `/s/[token]/selection`, `/results`, `/revision`, `/review`, `/extra-retouch` | 셀렉·수령·수정·후기·추가 보정             |
+| `/api/[...path]`                                                             | 같은 출처의 API 요청을 기존 Worker로 전달 |
+
+단계 전환은 Next/Vinext의 Native History API 연동과 `usePathname`을 사용합니다. 브라우저 뒤로/앞으로와 공통 `AppBar.onBack`이 방문한 단계로 돌아가며 같은 흐름 안의 입력 상태를 유지합니다. 직접 진입해 이전 방문 기록이 없으면 상위 단계로 돌아갑니다. 설문의 하단 ‘이전’은 바로 앞 설문 페이지로 이동합니다. 설문을 잠깐 벗어나도 초안과 자동 저장을 유지하며 저장 지연 중 이탈한 화면으로 강제 이동하지 않습니다.
+
+개인정보는 URL이나 브라우저 저장소에 추가로 기록하지 않습니다. 새로고침 시 미접수 예약 입력은 초기화되고 기본정보가 없으면 일정 화면에서 기본정보로 돌아갑니다. 개인 링크의 하위 URL도 먼저 인증해야 하며 서버 권한 검사를 그대로 따릅니다. 접수/설문 완료 URL만 열어서 성공한 것처럼 표시하지 않습니다.
+
+개인 링크는 고객·주문 ID 해시가 아니라 촬영별 32바이트 난수의 64자리 hex 토큰입니다. 서버에는 토큰의 SHA-256 해시만 저장합니다. 같은 난수를 Base64url로 인코딩하면 43자리로 줄일 수 있지만 이번 변경에서는 기존 링크 형식과 재발급 정책을 유지합니다.
 
 샘플 링크와 신규 접수 응답의 체험용 확인 번호는 로컬 모드용입니다. 고객 조회·업로드·다운로드·업무 요청은 서버의 촬영 범위 및 파일 공개 검사를 통과해야 합니다. 쿠키를 클라이언트 저장소에 복제하지 않습니다.
 
@@ -79,3 +91,14 @@ node node_modules/typescript/bin/tsc --noEmit -p apps/frontend-customer-page/tsc
 node node_modules/eslint/bin/eslint.js apps/frontend-customer-page/src tests/customer-journey.test.ts --max-warnings 0
 node node_modules/prettier/bin/prettier.cjs --check apps/frontend-customer-page/src apps/frontend-customer-page/README.md tests/customer-journey.test.ts
 ```
+
+## 단계별 URL 회귀 검사
+
+`tests/customer-routes.test.ts`는 허용 경로·설문 페이지 범위·직접 진입의 상위 경로를 검사합니다. `tests/customer-navigation.browser.test.mjs`는 실행 중인 실제 고객 앱의 라우터를 사용하고 API 응답만 모킹합니다. 고객 개발 서버를 켠 뒤 PowerShell에서 실행합니다.
+
+```powershell
+$env:CUSTOMER_APP_URL='http://127.0.0.1:3001'
+node --test tests/customer-navigation.browser.test.mjs
+```
+
+예약/설문 뒤로·앞으로, 입력 보존, 필수·선택 문구, 직접 URL의 인증/404, 중복 접수 방지와 저장 중 이탈을 확인합니다. 공통 UI는 기존 AppBar·Button·Solar 아이콘·토큰을 재사용하며 URL 검증과 방문 기록 연결만 고객 앱에 둡니다.
