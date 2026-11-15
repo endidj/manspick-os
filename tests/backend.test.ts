@@ -12,6 +12,7 @@ import {
 } from '../packages/domain/src/index.ts';
 import { handleRequest, testWorker } from './helpers/server.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
+import { hash } from '../apps/server/src/security/crypto.ts';
 import type {
   OperationsSettingsDTO,
   ScheduleDTO,
@@ -310,7 +311,7 @@ test('operator reissues a customer link and revokes both the old token and activ
   const url = new URL(data.url);
   assert.equal(url.origin, 'http://localhost:3001');
   const token = url.pathname.split('/').at(-1)!;
-  assert.equal(token.length, 64);
+  assert.match(token, /^[A-Za-z0-9]{10}$/);
   await expectError(await api('/api/session', { cookie: customer }), 401, 'UNAUTHENTICATED');
   await expectError(
     await api('/api/auth/customer', {
@@ -336,6 +337,134 @@ test('operator reissues a customer link and revokes both the old token and activ
       .get()?.n,
     1,
   );
+});
+
+test('new bookings use ten-character customer links while sessions and legacy links remain valid', async () => {
+  const { api, db } = setup();
+  const created = await api('/api/start', {
+    method: 'POST',
+    body: bookingInput(futureBookingDate(), '11:00', '01000002501'),
+  });
+  assert.equal(created.status, 201);
+  const access = (await bookingResponse(created)).localAccess!;
+  assert.match(access.token, /^[A-Za-z0-9]{10}$/);
+  const stored = db.database
+    .prepare('SELECT access_token_hash FROM shoots WHERE id=?')
+    .get(access.shootId);
+  assert.equal(stored?.access_token_hash, await hash(access.token));
+  const cookie = await customerLogin(api, access.token, access.last4);
+  assert.match(cookie.split('=')[1]!, /^[a-f0-9]{64}$/);
+  assert.equal((await api(`/api/shoots/${access.shootId}`, { cookie })).status, 200);
+  assert.equal((await api('/api/shoots/demo-payment', { cookie })).status, 404);
+
+  const legacy = 'ab'.repeat(32);
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(legacy));
+  const legacyCookie = await customerLogin(api, legacy, '1001');
+  assert.equal((await api('/api/shoots/demo-payment', { cookie: legacyCookie })).status, 200);
+});
+
+test('customer link reissue skips existing tokens including its own old token', async (context) => {
+  const { api, db } = setup();
+  const staff = await login(api, 'staff');
+  const oldToken = '0000000000';
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(oldToken));
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-selection'")
+    .run(await hash('1111111111'));
+  let attempt = 0;
+  const rng = context.mock.method(crypto, 'getRandomValues', (bytes: Uint8Array) => {
+    bytes.fill(attempt++);
+    return bytes;
+  });
+  const response = await api('/api/auth/customer-link/demo-payment', {
+    method: 'POST',
+    cookie: staff,
+  });
+  rng.mock.restore();
+  assert.equal(response.status, 200);
+  const token = new URL(((await response.json()) as { data: { url: string } }).data.url).pathname
+    .split('/')
+    .at(-1)!;
+  assert.equal(token, '2222222222');
+  assert.equal(attempt, 3);
+  await expectError(
+    await api('/api/auth/customer', { method: 'POST', body: { token: oldToken, last4: '1001' } }),
+    401,
+    'AUTH_FAILED',
+  );
+  assert.equal(
+    (await api('/api/shoots/demo-payment', { cookie: await customerLogin(api, token, '1001') }))
+      .status,
+    200,
+  );
+});
+
+test('exhausted customer token collisions preserve the old link, session and history', async (context) => {
+  const { api, db } = setup();
+  const staff = await login(api, 'staff');
+  const token = '0000000000';
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(token));
+  const customer = await customerLogin(api, token, '1001');
+  const before = db.database
+    .prepare("SELECT access_token_hash,version,token_version FROM shoots WHERE id='demo-payment'")
+    .get();
+  const historyBefore = db.database
+    .prepare("SELECT COUNT(*) AS n FROM timeline WHERE shoot_id='demo-payment'")
+    .get()?.n;
+  const rng = context.mock.method(crypto, 'getRandomValues', (bytes: Uint8Array) => bytes.fill(0));
+  await expectError(
+    await api('/api/auth/customer-link/demo-payment', { method: 'POST', cookie: staff }),
+    503,
+    'CUSTOMER_LINK_UNAVAILABLE',
+  );
+  assert.equal(rng.mock.callCount(), 5);
+  rng.mock.restore();
+  assert.deepEqual(
+    db.database
+      .prepare("SELECT access_token_hash,version,token_version FROM shoots WHERE id='demo-payment'")
+      .get(),
+    before,
+  );
+  assert.equal(
+    db.database.prepare("SELECT COUNT(*) AS n FROM timeline WHERE shoot_id='demo-payment'").get()
+      ?.n,
+    historyBefore,
+  );
+  assert.equal((await api('/api/shoots/demo-payment', { cookie: customer })).status, 200);
+});
+
+test('a customer token collision during booking rolls back without reporting a sold-out slot', async (context) => {
+  const { api, db } = setup();
+  const batch = db.batch.bind(db);
+  const originalCount = db.database.prepare('SELECT COUNT(*) AS n FROM shoots').get()?.n;
+  context.mock.method(db, 'batch', async (statements: LocalStatement[]) => {
+    const insert = statements.find((statement) => statement.sql.includes('INSERT INTO shoots('));
+    if (insert)
+      db.database
+        .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+        .run(insert.values[2]!);
+    return batch(statements);
+  });
+  await expectError(
+    await api('/api/start', {
+      method: 'POST',
+      body: bookingInput(futureBookingDate(), '11:00', '01000002502'),
+    }),
+    503,
+    'CUSTOMER_LINK_UNAVAILABLE',
+  );
+  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM shoots').get()?.n, originalCount);
+  assert.equal(
+    db.database.prepare("SELECT COUNT(*) AS n FROM customers WHERE phone='01000002502'").get()?.n,
+    0,
+  );
+  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM mutation_guards').get()?.n, 0);
 });
 
 class LocalStatement {

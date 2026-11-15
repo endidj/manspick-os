@@ -14,7 +14,8 @@ import { batch, first, statement } from '../database/statements.ts';
 import { requiredText } from '../http/input.ts';
 import { localDemo } from '../runtime/env.ts';
 import type { Env } from '../runtime/env.ts';
-import { hash, id, randomToken } from '../security/crypto.ts';
+import { hash, id } from '../security/crypto.ts';
+import { newCustomerToken } from '../security/customer-token.ts';
 import { normalizePhone } from '../security/phone.ts';
 import { catalog } from './catalog.ts';
 import { directors, directorSkillsCondition } from './directors.ts';
@@ -121,8 +122,7 @@ export async function start(request: Request, env: Env, body: Record<string, unk
   const addonIds = selected.map((item) => item.addon.id);
   const skills = directorSkillsCondition(addonIds);
   const eligible = await directors(env, addonIds);
-  const token = randomToken();
-  const tokenHash = await hash(token);
+  const { token, tokenHash } = await newCustomerToken(env);
   const shootId = id();
   const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
   const amount =

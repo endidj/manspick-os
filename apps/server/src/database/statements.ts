@@ -21,6 +21,12 @@ export async function batch(env: Env, statements: D1PreparedStatement[]) {
     return await env.DB.batch(statements);
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
+    if (/UNIQUE constraint failed: shoots\.access_token_hash/.test(message))
+      throw new DomainError(
+        'CUSTOMER_LINK_UNAVAILABLE',
+        '고객 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.',
+        503,
+      );
     if (/UNIQUE|CHECK|REVISION_LIMIT|PHOTO_SCOPE|FOREIGN KEY/.test(message))
       throw new DomainError(
         'CONFLICT',
