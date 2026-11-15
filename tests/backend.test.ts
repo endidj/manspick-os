@@ -2454,8 +2454,11 @@ test('payment, survey and plan preserve independent customer progress', async ()
     age: 30,
     style: '캐주얼',
     motivation: '새 프로필',
+    purposes: ['비즈니스'],
     retouchStrength: 0,
     selector: 'customer',
+    referral: '네이버 검색',
+    reviewParticipation: false,
     safetyRead: true,
   };
   assert.equal(
@@ -2471,6 +2474,64 @@ test('payment, survey and plan preserve independent customer progress', async ()
     (await action({ type: 'save_survey', answers, pageDone: [1, 2, 3, 4], submit: true })).status,
     200,
   );
+  for (const [key, invalid] of [
+    ['purposes', []],
+    ['referral', ''],
+    ['reviewParticipation', null],
+  ]) {
+    assert.equal(
+      (
+        await action({
+          type: 'save_survey',
+          answers: { ...answers, [String(key)]: invalid },
+          pageDone: [1, 2, 3, 4],
+          submit: true,
+        })
+      ).status,
+      400,
+      `Required survey field: ${key}`,
+    );
+  }
+  db.database
+    .prepare(
+      "INSERT INTO shoot_addons(shoot_id,addon_id,name,quantity,unit_price) VALUES('demo-payment','rental','의상 대여',1,25000)",
+    )
+    .run();
+  const wardrobeAnswers = {
+    ...answers,
+    height: 178,
+    weight: 72,
+    topSize: 'L',
+    bottomSize: '32',
+    shoeSize: 270,
+    budget: 500000,
+  };
+  for (const key of ['height', 'weight', 'topSize', 'bottomSize', 'shoeSize', 'budget']) {
+    assert.equal(
+      (
+        await action({
+          type: 'save_survey',
+          answers: { ...wardrobeAnswers, [key]: '' },
+          pageDone: [1, 2, 3, 4],
+          submit: true,
+        })
+      ).status,
+      400,
+      `Required wardrobe field: ${key}`,
+    );
+  }
+  assert.equal(
+    (
+      await action({
+        type: 'save_survey',
+        answers: wardrobeAnswers,
+        pageDone: [1, 2, 3, 4],
+        submit: true,
+      })
+    ).status,
+    200,
+  );
+  Object.assign(answers, wardrobeAnswers);
   assert.equal(
     (
       await action(

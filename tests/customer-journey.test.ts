@@ -35,8 +35,31 @@ test('unsubmitted survey and submitted preparation use separate customer tasks',
   assert.equal(submitted.stage, 4);
 });
 
+test('sharing a plan early never completes an unsubmitted customer survey', () => {
+  for (const status of ['preparing', 'reminder_ready'] as const) {
+    const journey = resolveJourney({ ...base, status }, now);
+    assert.equal(journey.state, 'survey');
+    assert.equal(journey.scene, 'survey');
+    assert.equal(journey.stage, 3);
+  }
+  assert.equal(
+    resolveJourney({ ...base, status: 'preparing', startsAt: now.toISOString() }, now).state,
+    'survey',
+  );
+  assert.equal(
+    resolveJourney({ ...base, status: 'preparing', paymentState: 'pending' }, now).state,
+    'payment',
+  );
+  assert.equal(resolveJourney({ ...base, status: 'arrived' }, now).state, 'shoot-day');
+});
+
 test('shoot-day home begins at Seoul midnight and does not replace completed shooting', () => {
-  const shoot = { ...base, status: 'preparing' as const, startsAt: '2026-11-06T04:00:00Z' };
+  const shoot = {
+    ...base,
+    status: 'preparing' as const,
+    startsAt: '2026-11-06T04:00:00Z',
+    survey: { submittedAt: '2026-11-05T03:00:00Z', answers: {} },
+  };
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T14:59:59Z')).state, 'preparation');
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T15:00:00Z')).state, 'shoot-day');
   assert.equal(resolveJourney({ ...shoot, status: 'shoot_complete' }, now).state, 'retouching');

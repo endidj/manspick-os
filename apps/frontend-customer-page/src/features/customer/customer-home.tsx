@@ -44,6 +44,24 @@ export function CustomerHome({
   const state = journey.state;
   const homeStage = state === 'results' ? 7 : journey.stage;
   const name = shoot.customerName;
+  const surveyPages = new Set(shoot.survey?.pageDone ?? []).size;
+  const surveyStarted = surveyPages > 0 || Object.keys(shoot.survey?.answers ?? {}).length > 0;
+  const preparationConfirmed = Boolean(preparation?.confirmedAt);
+  const guidesRemaining = preparation?.guides.filter((guide) => !guide.readAt).length ?? 0;
+  const outfitsMissing = Math.max(
+    0,
+    shoot.outfitPhotosRequired - shoot.uploads.filter((asset) => asset.kind === 'outfit').length,
+  );
+  const preparationComplete = preparationConfirmed && outfitsMissing === 0;
+  const reviewRequest = shoot.requests.find((request) => request.type === 'review');
+  const reviewPending = reviewRequest && ['new', 'processing'].includes(reviewRequest.state);
+  const originalsAvailable =
+    shoot.originals.length > 0 || shoot.fileLinks.some((link) => link.kind === 'original');
+  const reviewApproved =
+    reviewRequest?.state === 'complete' ||
+    ['review_confirmed', 'originals_pending', 'originals_delivered', 'follow_up'].includes(
+      shoot.status,
+    );
   const copy =
     state === 'payment'
       ? {
@@ -56,10 +74,14 @@ export function CustomerHome({
       : state === 'survey'
         ? {
             title: `${name}님, 예약이 확정됐어요`,
-            subtitle: '촬영 전에 설문만 남았어요. 10분이면 끝나요.',
-            task: `설문 작성${shoot.survey?.dueAt ? ` · ${shootDate(shoot.survey.dueAt)}까지` : ''}`,
-            description: '디렉터가 설문을 보고 코디와 촬영 장소를 설계해요.',
-            cta: '설문 작성하기',
+            subtitle: surveyStarted
+              ? '작성 중인 설문을 이어서 마무리해주세요.'
+              : '촬영 준비의 첫 단계는 설문이에요. 10분이면 끝나요.',
+            task: `설문 작성 · ${surveyPages} / 4${shoot.survey?.dueAt ? ` · ${shootDate(shoot.survey.dueAt)}까지` : ''}`,
+            description: surveyStarted
+              ? '저장한 답변부터 이어서 작성할 수 있어요. 마지막 제출까지 완료해주세요.'
+              : '디렉터가 설문을 보고 코디와 촬영 장소를 설계해요.',
+            cta: surveyStarted ? '설문 이어서 작성하기' : '설문 작성하기',
           }
         : state === 'shoot-day'
           ? {
@@ -80,20 +102,55 @@ export function CustomerHome({
             : state === 'director-selection'
               ? {
                   title: `${name}님, 사진을 고르는 중이에요`,
-                  subtitle: "설문에서 '디렉터에게 맡기기'를 고르셨어요.",
+                  subtitle:
+                    shoot.selectionMode === 'director'
+                      ? '촬영 현장에서 디렉터 셀렉으로 확정했어요.'
+                      : "설문에서 '디렉터에게 맡기기'를 고르셨어요.",
                   task: `디렉터 셀렉 중 · ${required}장`,
                   description:
                     '고른 사진은 바로 보정에 들어가요.\n보정본은 평균 1~3일 뒤에 받아보실 수 있어요.',
                   cta: '후보 사진 둘러보기',
                 }
               : state === 'results' || state === 'follow-up'
-                ? {
-                    title: `${name}님, 보정본을 모두 받으셨어요`,
-                    subtitle: '후기를 남겨주시면 원본 사진 전체를 드려요.',
-                    task: '후기 남기고 원본 받기',
-                    description: '후기를 확인하면 원본 전체를 보내드려요.',
-                    cta: '후기 남기기',
-                  }
+                ? originalsAvailable
+                  ? {
+                      title: `${name}님, 원본 사진도 도착했어요`,
+                      subtitle: '함께한 순간을 오래 간직해주세요.',
+                      task: '원본 사진 공개 완료',
+                      description: '보정본과 함께 원본 사진 전체를 확인할 수 있어요.',
+                      cta: '원본 사진 확인하기',
+                    }
+                  : reviewPending
+                    ? {
+                        title: `${name}님, 후기를 확인하고 있어요`,
+                        subtitle: '남겨주신 후기 감사합니다.',
+                        task: '후기 확인 대기',
+                        description: '직원이 후기를 확인하면 원본 사진을 공개해드려요.',
+                        cta: '후기 진행상태 보기',
+                      }
+                    : reviewApproved
+                      ? {
+                          title: `${name}님, 원본 사진을 준비하고 있어요`,
+                          subtitle: '남겨주신 후기가 확인됐어요.',
+                          task: '원본 전달 대기',
+                          description: '원본이 공개되면 이곳에서 확인할 수 있어요.',
+                          cta: '원본 전달 상태 보기',
+                        }
+                      : reviewRequest?.state === 'rejected'
+                        ? {
+                            title: `${name}님, 후기를 다시 확인해주세요`,
+                            subtitle: '제출한 후기에서 확인이 필요한 내용이 있어요.',
+                            task: '후기 다시 제출',
+                            description: '후기 화면에서 캡처를 확인하고 다시 제출해주세요.',
+                            cta: '후기 다시 확인하기',
+                          }
+                        : {
+                            title: `${name}님, 보정본이 도착했어요`,
+                            subtitle: '후기를 남겨주시면 원본 사진 전체를 드려요.',
+                            task: '후기 남기고 원본 받기',
+                            description: '후기를 확인하면 원본 전체를 보내드려요.',
+                            cta: '후기 남기기',
+                          }
                 : state === 'retouching'
                   ? {
                       title: `${name}님, 사진을 준비하고 있어요`,
@@ -112,10 +169,35 @@ export function CustomerHome({
                       }
                     : {
                         title: `${name}님, ${days !== null && days > 0 ? `촬영까지 ${days}일 남았어요` : '촬영을 함께 준비해요'}`,
-                        subtitle: '지금 하실 일은 하나예요. 나머지는 저희가 준비할게요.',
-                        task: `촬영 준비 확인 · ${read} / ${preparation?.guides.length ?? 9}`,
-                        description: `의상 사진을 ${shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지 ` : ''}올려주세요. 확인할 안내도 ${Math.max(0, (preparation?.guides.length ?? 9) - read)}개 남았어요.`,
-                        cta: '준비 안내 이어서 보기',
+                        subtitle: preparationComplete
+                          ? '준비 확인을 마쳤어요. 촬영 당일 안내에 맞춰 와주세요.'
+                          : '지금 필요한 준비를 확인해주세요. 나머지는 저희가 준비할게요.',
+                        task: preparationComplete
+                          ? '촬영 준비 확인 완료'
+                          : preparationConfirmed && outfitsMissing > 0
+                            ? `의상 사진 준비 · ${outfitsMissing}장 남음`
+                            : `촬영 준비 확인 · ${read} / ${preparation?.guides.length || 9}`,
+                        description: preparationComplete
+                          ? '일정과 장소, 준비물은 언제든 다시 확인할 수 있어요.'
+                          : [
+                              outfitsMissing > 0
+                                ? `의상 사진 ${outfitsMissing}장을 ${shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지 ` : ''}더 올려주세요.`
+                                : '',
+                              !preparation?.guides.length
+                                ? '담당자가 촬영 준비 안내를 정리하고 있어요.'
+                                : guidesRemaining > 0
+                                  ? `확인할 안내가 ${guidesRemaining}개 남았어요.`
+                                  : preparationConfirmed
+                                    ? ''
+                                    : '안내를 모두 읽으셨다면 준비 화면에서 전체 확인을 마쳐주세요.',
+                            ]
+                              .filter(Boolean)
+                              .join(' '),
+                        cta: preparationComplete
+                          ? '준비 안내 다시 보기'
+                          : preparationConfirmed && outfitsMissing > 0
+                            ? '의상 사진 올리기'
+                            : '준비 안내 이어서 보기',
                       };
   const target = state === 'results' ? 'review' : journey.scene;
 
@@ -219,14 +301,28 @@ export function CustomerHome({
                     ? state === 'payment'
                       ? '입금 대기'
                       : state === 'survey'
-                        ? '작성 전'
+                        ? surveyStarted
+                          ? '작성 중'
+                          : '작성 전'
                         : state === 'shoot-day'
                           ? '오늘'
                           : state === 'selection'
                             ? '셀렉 대기'
                             : state === 'director-selection'
                               ? '디렉터 셀렉 중'
-                              : '진행 중'
+                              : state === 'preparation' && preparationComplete
+                                ? '확인 완료'
+                                : state === 'results' || state === 'follow-up'
+                                  ? originalsAvailable
+                                    ? '원본 공개'
+                                    : reviewPending
+                                      ? '후기 확인 중'
+                                      : reviewApproved
+                                        ? '원본 전달 대기'
+                                        : reviewRequest?.state === 'rejected'
+                                          ? '재확인 필요'
+                                          : '후기 대기'
+                                  : '진행 중'
                     : ''}
               </span>
             </button>

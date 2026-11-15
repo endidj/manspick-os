@@ -47,8 +47,10 @@ export function resolveJourney(shoot: JourneyInput, now = new Date()): Journey {
   const status = statusInfo(shoot.status);
   if (shoot.status === 'cancelled') return { state: 'cancelled', stage: 0, scene: null };
   if (status.stage === 1) return { state: 'options', stage: 1, scene: 'home' };
-  if (status.stage <= 2 && shoot.paymentState !== 'confirmed')
+  if (status.stage <= 4 && shoot.paymentState !== 'confirmed')
     return { state: 'payment', stage: 2, scene: 'payment' };
+  if (status.stage <= 4 && !shoot.survey?.submittedAt)
+    return { state: 'survey', stage: 3, scene: 'survey' };
   if (status.stage === 7) return { state: 'follow-up', stage: 7, scene: 'review' };
   if (shoot.status === 'delivered') return { state: 'results', stage: 6, scene: 'results' };
   if (shoot.status === 'selection_pending') {
@@ -67,8 +69,7 @@ export function resolveJourney(shoot: JourneyInput, now = new Date()): Journey {
     (shoot.startsAt && koreanDay(shoot.startsAt) === koreanDay(now))
   )
     return { state: 'shoot-day', stage: 5, scene: 'shoot-day' };
-  if (shoot.survey?.submittedAt || status.stage === 4)
-    return { state: 'preparation', stage: 4, scene: 'preparation' };
+  if (shoot.survey?.submittedAt) return { state: 'preparation', stage: 4, scene: 'preparation' };
   return { state: 'survey', stage: 3, scene: 'survey' };
 }
 

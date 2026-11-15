@@ -123,6 +123,8 @@ async function mockApi(page) {
       } else if (body.type === 'mark_preparation_read') {
         shoot.preparation.guides.find((guide) => guide.id === body.guideId).readAt =
           new Date().toISOString();
+      } else if (body.type === 'request_deposit') {
+        shoot.requests.push({ id: 'deposit-request', type: 'deposit', state: 'new' });
       }
       data = shoot;
     } else {
@@ -156,7 +158,7 @@ async function fillBookingDetails(page) {
 
 test(
   'customer app preserves route history, forms and authenticated deep links',
-  { skip: !appUrl && 'Set CUSTOMER_APP_URL to a running customer app', timeout: 180000 },
+  { skip: !appUrl && 'Set CUSTOMER_APP_URL to a running customer app', timeout: 300000 },
   async (suite) => {
     process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
       new URL('../.local/playwright', import.meta.url),
@@ -284,13 +286,14 @@ test(
 
       await scenario(
         'customer payment and preparation paths support browser and app bar back',
-        async (page) => {
+        async (page, requests) => {
+          requests.shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
           await page.goto(`${appUrl}/s/demo-token`);
           await signIn(page);
           const journey = page.getByRole('navigation', { name: '나의 촬영 여정' });
           await journey.getByRole('button', { name: /촬영 일정 선택/ }).click();
           await expectPath(page, '/s/demo-token/payment');
-          await page.getByRole('textbox', { name: '입금자명' }).waitFor();
+          await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
           await page.getByRole('button', { name: '뒤로가기', exact: true }).click();
           await expectPath(page, '/s/demo-token');
           await page.goForward();
@@ -444,6 +447,215 @@ test(
           assert.equal(await page.getByRole('heading', { name: '설문 제출 완료!' }).count(), 0);
         },
       );
+
+      await scenario(
+        'payment confirmation continues through all survey pages to the progress home',
+        async (page, requests) => {
+          Object.assign(requests.shoot, {
+            status: 'payment_pending',
+            stage: 2,
+            paymentState: 'pending',
+            holdExpiresAt: '2099-12-18T04:00:00Z',
+          });
+          await page.goto(`${appUrl}/s/demo-token/payment`);
+          await signIn(page);
+          await page.getByRole('button', { name: '입금했어요', exact: true }).click();
+          await page.getByRole('heading', { name: '입금 확인을 기다리고 있어요' }).waitFor();
+          assert.equal(requests.shoot.paymentState, 'pending');
+          assert.equal(
+            await page.getByRole('button', { name: '설문 작성하기', exact: true }).count(),
+            0,
+          );
+          Object.assign(requests.shoot, {
+            paymentState: 'confirmed',
+            status: 'survey_pending',
+            stage: 3,
+          });
+          await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
+          await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
+          assert.equal(await page.getByRole('textbox', { name: '입금자명' }).count(), 0);
+          assert.equal(await page.getByText(/남음|기한이 지나면/).count(), 0);
+          await page.screenshot({ path: `${screenshots}/payment-confirmed.png`, fullPage: true });
+          await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
+          for (let number = 1; number <= 4; number += 1) {
+            await expectPath(page, `/s/demo-token/survey/${number}`);
+            if (number === 4) {
+              await page.getByRole('checkbox', { name: '주의사항을 모두 확인했어요' }).uncheck();
+              await page.getByRole('checkbox', { name: '주의사항을 모두 확인했어요' }).check();
+              await page.screenshot({ path: `${screenshots}/survey-4-bottom-390.png` });
+              await page.evaluate(() => window.scrollTo(0, 0));
+            }
+            for (const width of [390, 1440]) {
+              await page.setViewportSize({ width, height: 900 });
+              await page.screenshot({
+                path: `${screenshots}/survey-${number}-${width}.png`,
+                fullPage: true,
+              });
+              assert.equal(
+                await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+                true,
+              );
+            }
+            await page.setViewportSize({ width: 390, height: 844 });
+            await page
+              .getByRole('button', { name: number === 4 ? '설문 제출하기' : '다음', exact: true })
+              .click();
+          }
+          await expectPath(page, '/s/demo-token/survey-complete');
+          assert.equal(
+            requests.actions.filter((action) => action.type === 'save_survey' && action.submit)
+              .length,
+            1,
+          );
+          assert.equal(requests.shoot.survey.answers.reviewParticipation, false);
+          await page.getByRole('button', { name: '나의 촬영 홈으로', exact: true }).click();
+          await expectPath(page, '/s/demo-token');
+          await page.getByRole('button', { name: '준비 안내 이어서 보기' }).waitFor();
+        },
+      );
+
+      await scenario(
+        'payment screen receives staff confirmation without a page reload',
+        async (page, requests) => {
+          Object.assign(requests.shoot, {
+            status: 'payment_pending',
+            stage: 2,
+            paymentState: 'pending',
+          });
+          await page.goto(`${appUrl}/s/demo-token/payment`);
+          await signIn(page);
+          await page.getByRole('textbox', { name: '입금자명' }).waitFor();
+          Object.assign(requests.shoot, {
+            paymentState: 'confirmed',
+            status: 'survey_pending',
+            stage: 3,
+          });
+          await page
+            .getByRole('button', { name: '설문 작성하기', exact: true })
+            .waitFor({ timeout: 22000 });
+          assert.ok(requests.shootReads >= 2);
+        },
+      );
+
+      await scenario(
+        'final survey submission returns to an invalid earlier page',
+        async (page, requests) => {
+          requests.shoot.survey.pageDone = [1, 2, 3];
+          requests.shoot.survey.answers.purposes = [];
+          await page.goto(`${appUrl}/s/demo-token/survey/4`);
+          await signIn(page);
+          await page.getByRole('button', { name: '설문 제출하기' }).click();
+          await expectPath(page, '/s/demo-token/survey/3');
+          await page
+            .getByRole('alert')
+            .getByText('사진을 사용할 곳을 한 가지 이상 선택해주세요.')
+            .waitFor();
+          assert.equal(
+            requests.actions.some((action) => action.submit),
+            false,
+          );
+          await page.getByRole('checkbox', { name: '비즈니스 프로필' }).check();
+          await page.getByRole('button', { name: '다음', exact: true }).click();
+          await page.getByRole('button', { name: '설문 제출하기' }).click();
+          await expectPath(page, '/s/demo-token/survey-complete');
+        },
+      );
+
+      await scenario(
+        'survey completion after shooting offers home instead of unavailable editing',
+        async (page, requests) => {
+          Object.assign(requests.shoot, { status: 'retouching', stage: 6 });
+          requests.shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
+          await page.goto(`${appUrl}/s/demo-token/survey-complete`);
+          await signIn(page);
+          await page.getByRole('heading', { name: '설문 제출 완료!' }).waitFor();
+          assert.equal(await page.getByRole('button', { name: '제출한 내용 수정하기' }).count(), 0);
+          await page.getByRole('button', { name: '나의 촬영 홈으로', exact: true }).click();
+          await expectPath(page, '/s/demo-token');
+        },
+      );
+
+      await scenario(
+        'home refresh synchronizes an untouched survey before resuming',
+        async (page, requests) => {
+          await page.goto(`${appUrl}/s/demo-token`);
+          await signIn(page);
+          await page.getByRole('navigation', { name: '나의 촬영 여정' }).waitFor();
+          requests.shoot.survey.answers.occupation = '다른 탭에서 저장한 직업';
+          const refreshed = page.waitForResponse((response) =>
+            response.url().endsWith(`/shoots/${requests.shoot.id}`),
+          );
+          await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+          await refreshed;
+          await page.getByRole('button', { name: '설문 이어서 작성하기', exact: true }).click();
+          await expectPath(page, '/s/demo-token/survey/1');
+          assert.equal(
+            await page.getByRole('textbox', { name: '직업' }).inputValue(),
+            '다른 탭에서 저장한 직업',
+          );
+        },
+      );
+
+      for (const [state, cta] of [
+        ['partial-survey', '설문 이어서 작성하기'],
+        ['prepared', '준비 안내 다시 보기'],
+        ['outfits-missing', '의상 사진 올리기'],
+        ['review-pending', '후기 진행상태 보기'],
+        ['review-rejected', '후기 다시 확인하기'],
+        ['originals-ready', '원본 사진 확인하기'],
+      ]) {
+        await scenario(
+          `progress home shows the actual next action: ${state}`,
+          async (page, requests) => {
+            const shoot = requests.shoot;
+            if (state === 'partial-survey') {
+              shoot.survey.pageDone = [1, 2];
+            } else {
+              shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
+              if (state === 'prepared' || state === 'outfits-missing') {
+                shoot.preparation.confirmedAt = '2026-11-16T04:00:00Z';
+                if (state === 'prepared') shoot.outfitPhotosRequired = 0;
+              } else {
+                Object.assign(shoot, { status: 'review_pending', stage: 7 });
+                shoot.requests = [
+                  {
+                    id: 'review',
+                    type: 'review',
+                    state: state === 'review-rejected' ? 'rejected' : 'new',
+                  },
+                ];
+                if (state === 'originals-ready')
+                  shoot.fileLinks = [
+                    { kind: 'original', url: 'https://example.com/originals', label: '원본' },
+                  ];
+              }
+            }
+            await page.goto(`${appUrl}/s/demo-token`);
+            await signIn(page);
+            await page.getByRole('button', { name: cta, exact: true }).waitFor();
+            for (const width of [320, 390, 1440]) {
+              await page.setViewportSize({ width, height: 900 });
+              assert.equal(
+                await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+                true,
+              );
+              await page.screenshot({
+                path: `${screenshots}/home-${state}-${width}.png`,
+                fullPage: true,
+              });
+            }
+            await page.getByRole('button', { name: cta, exact: true }).click();
+            await expectPath(
+              page,
+              state === 'partial-survey'
+                ? '/s/demo-token/survey/3'
+                : state === 'prepared' || state === 'outfits-missing'
+                  ? '/s/demo-token/preparation'
+                  : '/s/demo-token/review',
+            );
+          },
+        );
+      }
 
       await scenario('unknown booking and customer subpaths return 404', async (page, requests) => {
         for (const path of [

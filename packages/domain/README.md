@@ -24,6 +24,7 @@ const label = statusInfo(next).label;
 | `operations-policy.ts` | 신규 예약의 노출 주 수·기존 슬롯 노출·입금 유지/마감·설문/의상 제출 기준과 입력 검증 |
 | `catalog.ts`           | 원본 스팟·난이도·상품 별칭, 패키지별 옵션 수량·노출과 의상 합계 검증                 |
 | `preparation.ts`       | 필요한 의상 사진 수와 설문·의상 준비 마감                                            |
+| `survey.ts`            | 네 페이지 필수 응답·조건부 의상 정보·사진 유무와 결제·단계·제출 기한별 편집 허용     |
 | `dates.ts`             | 업무 규칙에서 사용하는 한국 날짜와 날짜 이동                                         |
 | `errors.ts`            | 오류 코드·메시지·상태를 담는 `DomainError`                                           |
 
