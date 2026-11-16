@@ -60,6 +60,7 @@ test(
       assert.equal(await page.locator('#faq-more').isVisible(), false);
       results.push('FAQ expand/collapse');
       await page.locator('.team-card[data-team="influencer"]').click();
+      await page.locator('#team-modal-grid img').nth(8).waitFor({ state: 'attached' });
       assert.equal(await page.locator('#team-modal').isVisible(), true);
       assert.equal(await page.locator('#team-modal-grid img').count(), 9);
       await page

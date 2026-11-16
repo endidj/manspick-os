@@ -9,7 +9,8 @@ export const metadata = pageMetadata({
   path: '/',
 });
 
-export const dynamic = 'force-dynamic';
+// 요청별 데이터가 추가되면 빌드에서 발견하도록 정적 생성 경계를 명시합니다.
+export const dynamic = 'error';
 
 export default function HomePage() {
   return (

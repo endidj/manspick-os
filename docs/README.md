@@ -26,6 +26,7 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/frontend-landing-page/AGENTS.md
 - [NestJS 마이그레이션](reference/21-nestjs-migration.md) · HTTP 계층 전환, Workers 런타임 제약, 회귀 검사와 배포 기록
 - [랜딩 사이트 마이그레이션](reference/23-landing-site-migration.md) · 운영 원본 화면·애니메이션 대조, 상담 상품, 전체 앱 검색 제외
 - [사진·폰트 최적화](reference/24-media-optimization.md) · 메타데이터 없는 반응형 이미지, 증분 생성, 폰트 로딩과 검증
+- [랜딩 정적 생성과 코드 분할](reference/25-landing-static-rendering.md) · SSG/SSR 경계, 지연 기능, Lighthouse SEO 69의 원인
 - [랜딩·고객 공개 테스트 배포](reference/22-public-test-deployment.md) · 기존 공개 테스트 환경과 배포 기록
 - [역할별 QA](reference/18-role-workflow-qa.md) · 고객과 직원의 수동 검증 시나리오
 
@@ -38,3 +39,4 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/frontend-landing-page/AGENTS.md
 - [초기 공수 추정](archive/08-scope-estimate.md) · 작업량과 일정 가정
 - [1차 구현과 검증 기록](archive/09-implementation-status.md) · 당시 구현 표, 검사 결과와 이후 변경 기록
 - [사진·폰트 최적화 계획](archive/24-media-optimization-plan.md) · 원본 보존과 화면 회귀 검사 범위
+- [랜딩 정적 생성 계획](archive/25-landing-static-plan.md) · 렌더링 전환과 선택 기능 분할 범위

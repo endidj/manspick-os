@@ -10,6 +10,7 @@ export default defineConfig({
     assets: {
       htmlHandling: 'none',
       notFoundHandling: 'none',
+      // /*는 비공개 /_vinext/static-cache/*도 포함해 원본 캐시 파일의 직접 접근을 막습니다.
       runWorkerFirst: ['/*', '!/_next/static/*', '!/*/_next/static/*'],
     },
     env: {

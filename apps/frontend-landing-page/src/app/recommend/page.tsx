@@ -30,13 +30,13 @@ export default async function RecommendPage({
     <div className={styles.shell}>
       <nav className={styles.navigation} aria-label="추천 페이지 탐색">
         <div className={styles.navInner}>
-          <Link href="/" aria-label="MANSPICK 홈" className={styles.brand}>
+          <Link href="/" prefetch={false} aria-label="MANSPICK 홈" className={styles.brand}>
             <span className={styles.camera}>
               <Icon name="solar/camera-bold" size={14} />
             </span>
             <span>MANSPICK</span>
           </Link>
-          <Link href="/" className={styles.homeLink}>
+          <Link href="/" prefetch={false} className={styles.homeLink}>
             <Icon name="solar/arrow-left-linear" size={16} /> 메인으로
           </Link>
         </div>
