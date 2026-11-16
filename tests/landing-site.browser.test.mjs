@@ -21,6 +21,19 @@ test(
       page.on('pageerror', (error) => errors.push(error.message));
       await page.goto(appUrl, { waitUntil: 'networkidle' });
       await page.waitForSelector('[data-motion-ready="true"]');
+      for (const selector of [
+        '#main-nav > div:first-child',
+        '#sticky-cta > div',
+        '#live-viewers-badge',
+      ]) {
+        assert.equal(
+          await page
+            .locator(selector)
+            .evaluate((element) => getComputedStyle(element).backdropFilter),
+          'blur(24px)',
+          selector + ' must retain the source glass effect after CSS minification',
+        );
+      }
       await page.locator('#why').scrollIntoViewIfNeeded();
       await page.waitForSelector('#analysisChart[data-ready="true"]', { timeout: 20000 });
       await page.locator('.selfcheck-chip').nth(1).click();
@@ -54,7 +67,7 @@ test(
         .evaluateAll(async (images) => Promise.all(images.map((image) => image.decode())));
       assert.match(
         await page.locator('#team-modal-grid img').nth(6).getAttribute('src'),
-        /7\.JPG|7-/,
+        /team-influencer-7(?:[.-][\w-]+)?\.JPG$/,
       );
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('#team-modal').isVisible(), false);
