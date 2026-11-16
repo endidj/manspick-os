@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 import type { Viewport } from 'next';
 import { semanticTokens } from '@manspick/design-system/tokens';
-import '@manspick/design-system/styles.css';
+import '@manspick/design-system/styles/landing.css';
 import { FontPreload, siteMetadata } from '../features/seo';
 
 export const metadata = siteMetadata;
@@ -16,9 +16,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" data-manspick-landing>
       <head>
-        <FontPreload family="pretendardCommon" />
+        <FontPreload family="body" />
       </head>
       <body>
         <a href="#main-content" className="skip-link">

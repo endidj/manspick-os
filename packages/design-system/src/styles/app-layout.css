@@ -56,18 +56,6 @@
   font-size: var(--mp-type-overline-size);
   letter-spacing: 0.01em;
 }
-.skip-link {
-  position: fixed;
-  top: -100px;
-  left: 20px;
-  z-index: 100;
-  background: var(--accent);
-  padding: 12px;
-  border-radius: 8px;
-}
-.skip-link:focus {
-  top: 12px;
-}
 .file-button {
   position: relative;
 }

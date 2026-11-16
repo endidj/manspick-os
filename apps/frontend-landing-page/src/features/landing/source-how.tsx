@@ -905,60 +905,66 @@ export function SourceHow() {
           </div>
           {'\n\n      '}
           {'\n      '}
-          <div
-            id="team-modal"
-            aria-labelledby="team-modal-title"
-            className="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8"
-            aria-hidden="true"
-          >
-            {'\n        '}
-            <div className="team-modal-backdrop absolute inset-0 bg-black/80 backdrop-blur-md"></div>
-            {'\n        '}
-            <div className="team-modal-panel relative glass-strong rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-              {'\n          '}
-              <div className="flex items-center justify-between p-6 border-b border-white/10">
-                {'\n            '}
-                <div>
-                  {'\n              '}
-                  <p
-                    id="team-modal-eyebrow"
-                    className="text-accent-400 text-xs font-semibold uppercase tracking-widest mb-1"
-                  >
-                    {'\n                Fashion'}
-                  </p>
-                  {'\n              '}
-                  <p id="team-modal-title" className="font-display text-2xl font-bold text-white">
-                    {'인플루언서팀'}
-                  </p>
-                  {'\n            '}
-                </div>
-                {'\n            '}
-                <button
-                  type="button"
-                  id="team-modal-close"
-                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors"
-                  aria-label="닫기"
-                >
-                  {'\n              '}
-                  <SourceIcon name="solar/close-circle-bold" className="text-2xl" />
-                  {'\n            '}
-                </button>
-                {'\n          '}
-              </div>
-              {'\n          '}
-              <div className="p-4 md:p-5 overflow-y-auto">
-                {'\n            '}
-                <div id="team-modal-grid" className="grid grid-cols-3 gap-1 md:gap-1.5"></div>
-                {'\n          '}
-              </div>
-              {'\n        '}
-            </div>
-            {'\n      '}
-          </div>
+
           {'\n\n    '}
         </div>
         {'\n  '}
       </section>
     </>
+  );
+}
+
+export function SourceTeamModal() {
+  return (
+    <div
+      id="team-modal"
+      aria-labelledby="team-modal-title"
+      className="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8"
+      aria-hidden="true"
+    >
+      {'\n        '}
+      <div className="team-modal-backdrop absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+      {'\n        '}
+      <div className="team-modal-panel relative glass-strong rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        {'\n          '}
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          {'\n            '}
+          <div>
+            {'\n              '}
+            <p
+              id="team-modal-eyebrow"
+              className="text-accent-400 text-xs font-semibold uppercase tracking-widest mb-1"
+            >
+              {'\n                Fashion'}
+            </p>
+            {'\n              '}
+            <p id="team-modal-title" className="font-display text-2xl font-bold text-white">
+              {'인플루언서팀'}
+            </p>
+            {'\n            '}
+          </div>
+          {'\n            '}
+          <button
+            type="button"
+            id="team-modal-close"
+            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors"
+            aria-label="닫기"
+          >
+            {'\n              '}
+            <SourceIcon name="solar/close-circle-bold" className="text-2xl" />
+            {'\n            '}
+          </button>
+          {'\n          '}
+        </div>
+        {'\n          '}
+        <div className="p-4 md:p-5 overflow-y-auto">
+          {'\n            '}
+          <div id="team-modal-grid" className="grid grid-cols-3 gap-1 md:gap-1.5"></div>
+          {'\n          '}
+        </div>
+        {'\n        '}
+      </div>
+      {'\n      '}
+    </div>
   );
 }

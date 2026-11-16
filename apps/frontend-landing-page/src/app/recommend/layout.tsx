@@ -5,7 +5,7 @@ import { FontPreload } from '../../features/seo';
 export default function RecommendationLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <FontPreload family="geist" />
+      <FontPreload family="display" />
       {children}
     </>
   );

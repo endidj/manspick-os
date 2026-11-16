@@ -1,0 +1,15 @@
+/* 원본 SVG 마스크의 고정 스타일을 공유하고 크기·색상·마스크 URL만 인자로 받습니다. */
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  background-color: currentColor;
+  -webkit-mask-image: var(--mp-icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: var(--mp-icon-mask);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}

@@ -10,6 +10,11 @@ const config: NextConfig = {
         source: '/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, noimageindex' }],
       },
+      // SSG는 배포별 ASSETS 캐시에서 재사용하고, 고정 페이지 URL은 최신 배포를 확인합니다.
+      ...['/', '/terms', '/privacy'].map((source) => ({
+        source,
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
+      })),
     ];
   },
 };

@@ -1,7 +1,7 @@
 /* recommend.html/style.css의 카드·글자·간격·모션을 이 추천 화면 안에서 그대로 재현합니다. */
 .quiz {
   color: #f4f4f5;
-  font-family: 'Pretendard', 'Geist', system-ui, sans-serif;
+  font-family: var(--mp-site-type-font-family-pretendard-geist-system-ui-sans-serif);
   font-size: 16px;
   line-height: 1.5;
   word-break: keep-all;
@@ -55,7 +55,7 @@
 }
 .questionHeading h1,
 .resultHeading h1 {
-  font-family: 'Geist', 'Pretendard', system-ui, sans-serif;
+  font-family: var(--mp-site-type-font-family-geist-pretendard-system-ui-sans-serif);
   font-size: 24px;
   font-weight: 700;
   line-height: 32px;
@@ -181,7 +181,7 @@
   margin-bottom: 16px;
 }
 .resultHeading .packageName {
-  font-family: 'Geist', 'Pretendard', system-ui, sans-serif;
+  font-family: var(--mp-site-type-font-family-geist-pretendard-system-ui-sans-serif);
   font-size: 36px;
   line-height: 40px;
   font-weight: 700;
@@ -497,7 +497,7 @@
 }
 .total strong {
   display: block;
-  font-family: 'Geist', 'Pretendard', system-ui, sans-serif;
+  font-family: var(--mp-site-type-font-family-geist-pretendard-system-ui-sans-serif);
   color: white;
   font-size: 20px;
   line-height: 28px;

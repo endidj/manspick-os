@@ -15,7 +15,7 @@ export const dynamic = 'error';
 export default function HomePage() {
   return (
     <>
-      <FontPreload family="geist" />
+      <FontPreload family="display" />
       <StructuredData />
       <LandingPage />
     </>
