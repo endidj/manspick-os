@@ -9,6 +9,8 @@
 - [랜딩·고객 공개 테스트 배포](reference/22-public-test-deployment.md)
 - [랜딩 사이트 마이그레이션](reference/23-landing-site-migration.md)
 - [사진·폰트 최적화](reference/24-media-optimization.md)
+- [랜딩 정적 생성과 코드 분할](reference/25-landing-static-rendering.md)
+- [랜딩 정적 생성 계획](archive/25-landing-static-plan.md)
 - [사진·폰트 최적화 계획](archive/24-media-optimization-plan.md)
 - [랜딩 마이그레이션 계획](archive/23-landing-migration-plan.md)
 - [NestJS 공통 API 전환](reference/21-nestjs-migration.md)

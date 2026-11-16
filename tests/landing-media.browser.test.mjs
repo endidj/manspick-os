@@ -110,6 +110,7 @@ test(
 
       await page.locator('.team-card[data-team="influencer"]').click();
       const gallery = page.locator('#team-modal-grid img');
+      await gallery.nth(8).waitFor({ state: 'attached' });
       assert.equal(await gallery.count(), 9);
       await gallery.evaluateAll(async (images) => {
         images.forEach((image) => {

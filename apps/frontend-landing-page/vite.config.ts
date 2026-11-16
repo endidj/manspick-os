@@ -1,5 +1,6 @@
 // 공개 사이트의 Vinext 개발 서버와 Workers 빌드를 설정합니다.
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { staticAssetsAdapter } from '@vinext/cloudflare/cache/static-assets-adapter';
 import { defineConfig } from 'vite';
 import vinext from 'vinext';
 
@@ -28,7 +29,11 @@ export default defineConfig(({ mode }) => ({
   // SSR과 브라우저에서 같은 아이콘 URL을 사용해 hydration 불일치를 막습니다.
   build: { assetsInlineLimit: 0 },
   plugins: [
-    vinext(),
+    vinext({
+      // 공개 고정 화면을 빌드 때 만들고 ASSETS에서 제공합니다. 동적 경로는 SSR을 유지합니다.
+      prerender: { routes: '*', concurrency: 1 },
+      cache: { cdn: staticAssetsAdapter() },
+    }),
     cloudflare({
       // 여러 Worker를 동시에 켤 때 OS가 디버거 포트를 각각 배정합니다.
       inspectorPort: 0,

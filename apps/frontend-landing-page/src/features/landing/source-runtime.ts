@@ -1,103 +1,7 @@
 // 원본 맨즈픽의 화면 동작을 React 화면 수명 안에서 실행하고 모두 정리합니다.
-import { sourceImages, type SourceImageName } from '@manspick/design-system/assets';
 import { semanticTokens } from '@manspick/design-system/tokens';
 import { attachSourceRadar } from './source-radar';
-import { sourceImageSizes } from './source-image-sizes';
-
-type Scope = ReturnType<typeof createScope>;
-
-function setImageSource(image: HTMLImageElement, name: SourceImageName, sizes: string) {
-  const asset = sourceImages[name];
-  image.dataset.sourceImage = name;
-  image.width = asset.width;
-  image.height = asset.height;
-  image.sizes = sizes;
-  image.srcset = asset.srcSet;
-  image.src = asset.src;
-}
-
-function createScope(root: HTMLElement) {
-  const cleanups: Array<() => void> = [];
-  const timeouts = new Set<number>();
-  const intervals = new Set<number>();
-  const frames = new Set<number>();
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let active = true;
-  const query = <T extends HTMLElement = HTMLElement>(selector: string) =>
-    root.querySelector<T>(selector);
-  const all = <T extends HTMLElement = HTMLElement>(selector: string) =>
-    Array.from(root.querySelectorAll<T>(selector));
-  const later = (callback: () => void, delay: number) => {
-    const id = window.setTimeout(() => {
-      timeouts.delete(id);
-      if (active) callback();
-    }, delay);
-    timeouts.add(id);
-    return id;
-  };
-  const every = (callback: () => void, delay: number) => {
-    const id = window.setInterval(callback, delay);
-    intervals.add(id);
-    return id;
-  };
-  const frame = (callback: FrameRequestCallback) => {
-    const id = requestAnimationFrame((now) => {
-      frames.delete(id);
-      if (active) callback(now);
-    });
-    frames.add(id);
-    return id;
-  };
-  const on = <T extends Event>(
-    target: EventTarget | null,
-    type: string,
-    callback: (event: T) => void,
-    options?: AddEventListenerOptions,
-  ) => {
-    const listener = callback as EventListener;
-    target?.addEventListener(type, listener, options);
-    cleanups.push(() => target?.removeEventListener(type, listener, options));
-  };
-  const observe = (
-    elements: HTMLElement[],
-    callback: (element: HTMLElement) => void,
-    options: IntersectionObserverInit,
-  ) => {
-    if (reduced) {
-      elements.forEach(callback);
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          callback(entry.target as HTMLElement);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, options);
-    elements.forEach((element) => observer.observe(element));
-    cleanups.push(() => observer.disconnect());
-  };
-  return {
-    root,
-    query,
-    all,
-    reduced,
-    later,
-    every,
-    frame,
-    on,
-    observe,
-    cleanup: (callback: () => void) => cleanups.push(callback),
-    dispose: () => {
-      active = false;
-      timeouts.forEach(window.clearTimeout);
-      intervals.forEach(window.clearInterval);
-      frames.forEach(cancelAnimationFrame);
-      cleanups.reverse().forEach((cleanup) => cleanup());
-    },
-  };
-}
+import { createScope, type Scope } from './source-scope';
 
 function attachReveals(scope: Scope) {
   scope.observe(scope.all('.reveal'), (element) => element.classList.add('in'), {
@@ -300,254 +204,93 @@ function attachNavigation(scope: Scope) {
   update();
 }
 
-function createModal(scope: Scope, id: string) {
-  const modal = scope.query(`#${id}`);
-  let previousFocus: HTMLElement | null = null;
-  let previousOverflow = '';
-  let open = false;
-  const close = () => {
-    if (!open || !modal) return;
-    open = false;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = previousOverflow;
-    previousFocus?.focus();
-  };
-  scope.on(scope.query(`#${id}-close`), 'click', close);
-  scope.on(scope.query(`.${id}-backdrop`), 'click', close);
-  scope.on<KeyboardEvent>(document, 'keydown', (event) => {
-    if (!open || !modal) return;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-    }
-    if (event.key !== 'Tab') return;
-    const focusables = Array.from(
-      modal.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex="0"]',
-      ),
-    ).filter((element) => element.getClientRects().length > 0);
-    const first = focusables[0];
-    const last = focusables.at(-1);
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last?.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first?.focus();
-    }
-  });
-  scope.cleanup(close);
-  return () => {
-    if (!modal || open) return;
-    previousFocus = document.activeElement as HTMLElement | null;
-    previousOverflow = document.body.style.overflow;
-    open = true;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    modal.setAttribute('aria-hidden', 'false');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    document.body.style.overflow = 'hidden';
-    scope.query(`#${id}-close`)?.focus({ preventScroll: true });
-  };
-}
-
 function attachModals(scope: Scope) {
-  const openLead = createModal(scope, 'lead-modal');
+  let request = 0;
+  let busy: HTMLElement | undefined;
+  let errorMessage: HTMLElement | undefined;
+  let modulePromise: Promise<typeof import('./source-modal-runtime')> | undefined;
+  let modals: ReturnType<typeof import('./source-modal-runtime').createSourceModals> | undefined;
+  const clearError = () => {
+    errorMessage?.remove();
+    errorMessage = undefined;
+  };
+  const cancel = () => {
+    request++;
+    busy?.removeAttribute('aria-busy');
+    busy = undefined;
+    clearError();
+  };
+  scope.cleanup(cancel);
+  scope.on<KeyboardEvent>(document, 'keydown', (event) => {
+    if (event.key === 'Escape') cancel();
+  });
+  const open = async (kind: 'lead' | 'team', trigger: HTMLElement) => {
+    cancel();
+    const currentRequest = request;
+    const isCurrent = () => scope.isActive() && request === currentRequest;
+    trigger.focus({ preventScroll: true });
+    trigger.setAttribute('aria-busy', 'true');
+    busy = trigger;
+    try {
+      modulePromise ??= import('./source-modal-runtime').catch((error: unknown) => {
+        modulePromise = undefined;
+        throw error;
+      });
+      const { createSourceModals } = await modulePromise;
+      if (!isCurrent()) return;
+      modals ??= createSourceModals(scope, cancel);
+      await modals.open(kind, trigger, isCurrent);
+    } catch {
+      if (!isCurrent()) return;
+      errorMessage = document.createElement('p');
+      errorMessage.dataset.sourceModuleError = 'true';
+      errorMessage.setAttribute('role', 'status');
+      errorMessage.className = 'text-sm text-red-400';
+      errorMessage.textContent = '내용을 불러오지 못했습니다. 다시 눌러 주세요.';
+      trigger.insertAdjacentElement('afterend', errorMessage);
+    } finally {
+      if (isCurrent()) {
+        trigger.removeAttribute('aria-busy');
+        busy = undefined;
+      }
+    }
+  };
   scope.all('#open-leadmodal-cta, [data-open-lead-modal]').forEach((trigger) =>
     scope.on(trigger, 'click', (event) => {
       event.preventDefault();
-      openLead();
+      void open('lead', trigger);
     }),
   );
-  const openTeam = createModal(scope, 'team-modal');
-  const teams = {
-    influencer: { eyebrow: 'Fashion', title: '인플루언서팀', prefix: 'team-influencer' },
-    retouch: { eyebrow: 'Retouching', title: '보정팀', prefix: 'team-retouch' },
-    hair: { eyebrow: 'Hair & Design', title: '헤어/패션디자이너팀', prefix: 'team-hair' },
-  };
-  scope.all('.team-card').forEach((card) => {
-    scope.on(card, 'click', () => {
-      const key = card.dataset.team as keyof typeof teams;
-      const team = teams[key];
-      const grid = scope.query('#team-modal-grid');
-      const title = scope.query('#team-modal-title');
-      const eyebrow = scope.query('#team-modal-eyebrow');
-      if (!team || !grid || !title || !eyebrow) return;
-      title.textContent = team.title;
-      eyebrow.textContent = team.eyebrow;
-      let sources = Array.from({ length: 9 }, (_, index) => {
-        const extension = key === 'influencer' && index === 6 ? 'JPG' : 'jpg';
-        return `${team.prefix}-${index + 1}.${extension}`;
-      });
-      if (key === 'retouch') {
-        const pool = Array.from(
-          { length: 12 },
-          (_, index) => `스타일링 포트폴리오 ${index + 1}.png`,
-        );
-        for (let index = pool.length - 1; index > 0; index -= 1) {
-          const random = Math.floor(Math.random() * (index + 1));
-          [pool[index], pool[random]] = [pool[random], pool[index]];
-        }
-        sources = pool.slice(0, 9);
-      }
-      grid.replaceChildren(
-        ...sources.map((filename, index) => {
-          const frame = document.createElement('div');
-          frame.className = 'relative aspect-square overflow-hidden bg-zinc-900';
-          const image = document.createElement('img');
-          image.alt = `${team.title} 작업물 ${index + 1}`;
-          image.className =
-            'w-full h-full object-cover transition-transform duration-500 hover:scale-105';
-          image.loading = 'lazy';
-          image.decoding = 'async';
-          setImageSource(image, filename as SourceImageName, sourceImageSizes.gallery);
-          frame.appendChild(image);
-          return frame;
-        }),
-      );
-      openTeam();
-    });
-  });
-}
-
-function attachLeadForm(scope: Scope) {
-  const form = scope.query<HTMLFormElement>('#lead-form');
-  const name = scope.query<HTMLInputElement>('#lead-name');
-  const phone = scope.query<HTMLInputElement>('#lead-phone');
-  const consent = scope.query<HTMLInputElement>('#privacy-agree');
-  const submit = scope.query<HTMLButtonElement>('#lead-submit-btn');
-  const thankyou = scope.query('#lead-thankyou');
-  if (!form || !name || !phone || !consent || !submit) return;
-  form.action =
-    'https://docs.google.com/forms/d/e/1FAIpQLSc90Wm3r2-JLs0ZUNT6BNJChr2zJv4ZKUJRZbKQCMoAKA1s6Q/formResponse';
-  form.method = 'post';
-  form.target = '_blank';
-  form.rel = 'noopener noreferrer';
-  name.required = true;
-  name.autocomplete = 'name';
-  name.maxLength = 60;
-  phone.required = true;
-  phone.autocomplete = 'tel';
-  consent.required = true;
-  scope.on(consent, 'change', () => {
-    submit.disabled = !consent.checked;
-  });
-  scope.on(phone, 'input', () => {
-    phone.setCustomValidity('');
-    const before = phone.value;
-    const caretAtEnd = phone.selectionEnd === before.length;
-    const digits = before.replace(/\D/g, '').slice(0, 11);
-    let formatted = digits;
-    if (digits.length >= 4 && digits.length < 7)
-      formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    else if (digits.length >= 7 && digits.length < 11)
-      formatted = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
-    else if (digits.length === 11)
-      formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-    if (formatted !== before) {
-      phone.value = formatted;
-      if (caretAtEnd) phone.setSelectionRange(formatted.length, formatted.length);
-    }
-  });
-  scope.on(name, 'input', () => name.setCustomValidity(''));
-  scope.on<SubmitEvent>(form, 'submit', (event) => {
-    const invalid = !name.value.trim()
-      ? name
-      : phone.value.replace(/\D/g, '').length < 10
-        ? phone
-        : !consent.checked
-          ? consent
-          : null;
-    if (invalid) {
-      event.preventDefault();
-      invalid.setCustomValidity(
-        invalid === phone ? '연락처를 정확하게 입력해 주세요.' : '필수 정보를 입력해 주세요.',
-      );
-      invalid.reportValidity();
-      invalid.focus();
-      invalid.classList.add('border-red-500');
-      scope.later(() => invalid.classList.remove('border-red-500'), 2000);
-      return;
-    }
-    name.value = name.value.trim();
-    // A cross-origin form cannot confirm receipt; the new tab owns its result.
-    if (thankyou) {
-      const heading = thankyou.querySelector('h3');
-      const description = thankyou.querySelector('p');
-      if (heading) heading.textContent = '신청 정보를 전송했습니다';
-      if (description)
-        description.textContent =
-          '새 탭의 Google 양식에서 접수 결과를 확인해 주세요. 접수가 어렵다면 카카오톡 상담을 이용해 주세요.';
-      form.classList.add('hidden');
-      thankyou.classList.remove('hidden');
-      thankyou.setAttribute('role', 'status');
-    }
-  });
+  scope
+    .all('.team-card')
+    .forEach((trigger) => scope.on(trigger, 'click', () => void open('team', trigger)));
 }
 
 function attachRotation(scope: Scope) {
   if (scope.reduced) return;
   const image = scope.query<HTMLImageElement>('#team-influencer-img');
   if (image) {
-    const sources: SourceImageName[] = [
-      'team-influencer-3.jpg',
-      'team-influencer-5.jpg',
-      'location-3.jpg',
-    ];
-    let index = 0;
-    let active = true;
-    let started = false;
-    let ready = false;
-    let nextImage: HTMLImageElement | null = null;
-    const prepareNext = () => {
-      ready = false;
-      const candidate = new Image();
-      nextImage = candidate;
-      candidate.decoding = 'async';
-      candidate.fetchPriority = 'low';
-      setImageSource(candidate, sources[(index + 1) % sources.length], sourceImageSizes.team);
-      void candidate.decode().then(
-        () => {
-          if (active && nextImage === candidate) ready = true;
-        },
-        () => {
-          if (active && nextImage === candidate) nextImage = null;
-        },
-      );
+    let tick: (() => void) | undefined;
+    let pending = false;
+    const prepare = async () => {
+      if (pending || tick || !scope.isActive()) return;
+      pending = true;
+      try {
+        const { createImageRotation } = await import('./source-media-runtime');
+        if (scope.isActive()) tick = createImageRotation(scope, image);
+      } catch {
+        // 현재 사진을 유지하고 화면에 있을 때 다음 주기에 다시 시도합니다.
+      } finally {
+        pending = false;
+      }
     };
-    scope.observe(
-      [image],
-      () => {
-        started = true;
-        prepareNext();
-      },
-      { rootMargin: '400px' },
-    );
+    scope.observe([image], () => void prepare(), { rootMargin: '400px' });
     scope.every(() => {
       const rect = image.getBoundingClientRect();
-      if (!started || rect.bottom < -400 || rect.top > window.innerHeight + 400) return;
-      if (!ready) {
-        if (!nextImage) prepareNext();
-        return;
-      }
-      index = (index + 1) % sources.length;
-      ready = false;
-      image.style.opacity = '0';
-      scope.later(() => {
-        setImageSource(image, sources[index], sourceImageSizes.team);
-        image.style.opacity = '1';
-        prepareNext();
-      }, 500);
+      if (rect.bottom < -400 || rect.top > window.innerHeight + 400) return;
+      if (tick) tick();
+      else void prepare();
     }, 4000);
-    scope.cleanup(() => {
-      active = false;
-      nextImage?.removeAttribute('srcset');
-      nextImage?.removeAttribute('src');
-      nextImage = null;
-    });
   }
   const cta = scope.query('#cta-toggle');
   if (cta) {
@@ -746,7 +489,6 @@ export function attachSourceInteractions(root: HTMLElement): () => void {
   attachPointerEffects(scope);
   attachNavigation(scope);
   attachModals(scope);
-  attachLeadForm(scope);
   attachRotation(scope);
   attachSourceIndicators(scope);
   scope.cleanup(attachSourceRadar(root, scope.reduced));

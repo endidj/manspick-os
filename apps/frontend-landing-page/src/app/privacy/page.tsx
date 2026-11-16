@@ -11,6 +11,8 @@ export const metadata = pageMetadata({
   path: '/privacy',
 });
 
+export const dynamic = 'error';
+
 export default function Page() {
   return (
     <main id="main-content" className={source.root + ' ' + styles.root}>
@@ -18,6 +20,7 @@ export default function Page() {
         {'\n    '}
         <Link
           href="/"
+          prefetch={false}
           className="inline-flex items-center gap-2 text-zinc-500 text-sm mb-10 hover:text-white transition"
         >
           {'← 메인으로 돌아가기'}
