@@ -40,4 +40,20 @@ landing/customer/admin/empty/Storybook 전체에 meta noindex와 HTTP `X-Robots-
 - 검색 정책 회귀: `tests/landing-seo.test.ts`, `tests/search-visibility.test.ts`.
 - 3개 SSR 앱 배포용 프리뷰 실제 GET의 루트·하위 경로·404·API·정적 파일에 전체 X-Robots-Tag 확인. Vinext dev 응답에는 이 설정이 생략되므로 빌드 프리뷰/배포 응답으로 판단한다.
 
-사용자가 커밋·푸시·배포를 요청하여 기존 공개 테스트 Workers에 반영한다. 배포 후 실제 URL의 메타·HTTP 헤더·정적 파일과 메인/추천 동작을 다시 확인한다. API·데이터베이스 배포나 초기화는 필요하지 않다.
+## 배포 검증 (2026-11-16)
+
+공개 저장소의 기존 이력을 유지한 `82f2b26`과 배포 CSS 보완 `204a7cc`를 `main`에 푸시하고 아래 기존 테스트 Workers에 배포했다. 공개본에서 TypeScript·ESLint·Prettier와 단위 검사 143개, 원본 사진 72개의 SHA-256 검사를 통과했다. 다섯 앱 빌드와 Wrangler dry-run도 통과했다. 격리 작업 폴더 외부의 의존성 연결을 Turbopack이 제한하여 empty 앱은 같은 Next.js의 `build --webpack`으로 빌드했다.
+
+| 앱        | 실제 배포 주소                                            | Worker 버전                            |
+| --------- | --------------------------------------------------------- | -------------------------------------- |
+| 랜딩      | <https://manspick-landing-test.winningant8.workers.dev>   | `e17ee510-4504-4013-90c9-cd159e772cf4` |
+| 고객      | <https://manspick-customer-test.winningant8.workers.dev>  | `59e7ac0d-a507-41be-ba16-d873652f2e0d` |
+| 관리자    | <https://manspick-admin-test.winningant8.workers.dev>     | `a2633ba6-a8ec-46a2-9ed7-cea1021c909d` |
+| Empty     | <https://manspick-empty-test.winningant8.workers.dev>     | `f48796f9-8cde-4902-b6dd-a3d8f6cc177a` |
+| Storybook | <https://manspick-storybook-test.winningant8.workers.dev> | `d112c69f-d9e6-4b7a-9952-64160dfd3c09` |
+
+실제 배포 주소의 HTML·정적 파일·robots·하위 경로·404/API 등 27개 응답에서 네 가지 X-Robots-Tag 지시어를 확인했다. 고객 개인 링크의 캐시·referrer 보호도 유지됐다. 배포된 랜딩의 메인/추천 브라우저 검사 7개를 다시 통과했고 페이지 JavaScript 오류는 없었다. 이미지 해시가 포함되는 배포 파일명도 검사하도록 회귀 검사를 보완했다. Google Form의 실제 전송은 가로챘으며 API·데이터베이스는 배포하거나 초기화하지 않았다.
+
+원본 비교는 390/1440px에서 이미지 로딩과 슬라이드 시점을 맞춰 수행했다. 메인 Hero/WHY/HOW/TEAM의 샘플 화면에서 RGB 채널 차이 16을 넘는 픽셀 비율은 0.088–0.833%였다. 이는 해당 브라우저·화면·시점의 비교 결과이며 모든 환경의 픽셀 동일성을 의미하지 않는다.
+
+배포 화면 비교에서 Lightning CSS가 뒤에 있던 WebKit 선언만 남기고 표준 `backdrop-filter`를 제거하는 문제를 발견했다. WebKit 선언을 먼저, 표준 선언을 마지막으로 배치해 압축 이후에도 원본의 흐림 효과를 유지했다. 수정 전 배포본에서 새 회귀 검사가 `none`으로 실패하는 것을 확인했고, 재배포 후 고정 메뉴·하단 CTA·알림 배지 모두 `blur(24px)`로 통과했다. 최종 27개 검색 제외 응답과 메인/추천 브라우저 검사도 재검증했다.
