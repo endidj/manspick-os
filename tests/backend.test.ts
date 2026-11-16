@@ -11,6 +11,7 @@ import {
   STATUS_DEFINITIONS,
 } from '../packages/domain/src/index.ts';
 import { handleRequest, testWorker } from './helpers/server.ts';
+import { publicTestWorker } from '../apps/server/src/runtime/public-test.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 import { hash } from '../apps/server/src/security/crypto.ts';
 import type {
@@ -1786,6 +1787,119 @@ test('the private test Worker accepts the admin proxy without a browser password
   assert.equal(response.headers.get('WWW-Authenticate'), null);
   assert.equal(((await response.json()) as { data: SessionDTO }).data.actor.id, 'demo-admin');
   assert.equal((await testWorker.fetch(request('user'), env)).status, 404);
+});
+
+test('shared test API connects customer bookings and admin-issued links while isolating surface sessions', async () => {
+  const { env, db } = setup('false');
+  const customerOrigin = 'https://customer-test.example.invalid';
+  const adminOrigin = 'https://admin-test.example.invalid';
+  const sharedEnv: Env = { ...env, CUSTOMER_APP_ORIGIN: customerOrigin };
+  const worker = publicTestWorker(handleRequest);
+  const request = (
+    surface: 'user' | 'admin',
+    path: string,
+    options: { method?: string; body?: unknown; cookie?: string; origin?: string } = {},
+  ) => {
+    const origin = surface === 'admin' ? adminOrigin : customerOrigin;
+    return worker.fetch(
+      new Request(`${origin}/api${path}`, {
+        method: options.method ?? 'GET',
+        headers: {
+          Origin: options.origin ?? origin,
+          'X-Manspick-Surface': surface,
+          ...(options.cookie ? { Cookie: options.cookie } : {}),
+          ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+      }),
+      sharedEnv,
+    );
+  };
+  try {
+    const booking = bookingInput(futureBookingDate(), '11:00', '01000002580');
+    const booked = await request('user', '/start', { method: 'POST', body: booking });
+    assert.equal(booked.status, 201, await booked.clone().text());
+    const accepted = (await booked.json()) as {
+      data: { accepted: boolean; localAccess?: unknown };
+    };
+    assert.equal(accepted.data.accepted, true);
+    assert.equal(accepted.data.localAccess, undefined);
+
+    const login = await request('admin', '/demo/session', {
+      method: 'POST',
+      body: { role: 'admin' },
+    });
+    assert.equal(login.status, 200, await login.clone().text());
+    const staff = login.headers.get('Set-Cookie')!.split(';')[0]!;
+    assert.equal(((await login.json()) as { data: SessionDTO }).data.actor.id, 'demo-admin');
+    const list = await request('admin', '/shoots', { cookie: staff });
+    assert.equal(list.status, 200);
+    const { data } = (await list.json()) as {
+      data: { shoots: { id: string; customerName: string }[] };
+    };
+    const shoot = data.shoots.find((item) => item.customerName === booking.name);
+    assert.ok(shoot, 'customer booking must appear in the admin API using the same storage');
+
+    const issued = await request('admin', `/auth/customer-link/${shoot.id}`, {
+      method: 'POST',
+      cookie: staff,
+    });
+    assert.equal(issued.status, 200, await issued.clone().text());
+    const link = (await issued.json()) as { data: { url: string; recipientPhone: string } };
+    assert.equal(link.data.recipientPhone, booking.phone);
+    const url = new URL(link.data.url);
+    assert.equal(url.origin, customerOrigin);
+    const token = url.pathname.split('/').at(-1)!;
+    const verified = await request('user', '/auth/customer', {
+      method: 'POST',
+      body: { token, last4: booking.phone.slice(-4) },
+    });
+    assert.equal(verified.status, 200, await verified.clone().text());
+    const customer = verified.headers.get('Set-Cookie')!.split(';')[0]!;
+    assert.equal(((await verified.json()) as { data: SessionDTO }).data.shootId, shoot.id);
+    const detail = await request('user', `/shoots/${shoot.id}`, { cookie: customer });
+    assert.equal(detail.status, 200);
+    assert.equal(
+      ((await detail.json()) as { data: { customerName: string } }).data.customerName,
+      booking.name,
+    );
+
+    await expectError(await request('user', '/session', { cookie: staff }), 401, 'UNAUTHENTICATED');
+    await expectError(
+      await request('admin', '/session', { cookie: customer }),
+      401,
+      'UNAUTHENTICATED',
+    );
+    for (const surface of ['user', 'admin'] as const) {
+      const session = await request(surface, '/session', { cookie: `${staff}; ${customer}` });
+      assert.equal(session.status, 200);
+      assert.equal(
+        ((await session.json()) as { data: SessionDTO }).data.actor.kind,
+        surface === 'admin' ? 'staff' : 'customer',
+      );
+    }
+    await expectError(
+      await request('user', '/demo/session', { method: 'POST', body: { role: 'admin' } }),
+      404,
+      'NOT_FOUND',
+    );
+    await expectError(
+      await request('user', '/shoots/demo-payment', { cookie: customer }),
+      404,
+      'NOT_FOUND',
+    );
+    await expectError(
+      await request('admin', `/auth/customer-link/${shoot.id}`, {
+        method: 'POST',
+        cookie: staff,
+        origin: customerOrigin,
+      }),
+      403,
+      'ORIGIN_DENIED',
+    );
+  } finally {
+    db.database.close();
+  }
 });
 
 test('admin test fixture images require a staff session and preserve normal file access', async () => {

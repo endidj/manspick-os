@@ -1,4 +1,4 @@
-// 랜딩·고객 테스트 앱만 연결하는 비공개 API와 전용 D1·R2를 설정합니다.
+// 랜딩·고객·관리자 테스트 앱이 공유하는 비공개 API와 D1·R2를 설정합니다.
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "manspick-public-api-test",

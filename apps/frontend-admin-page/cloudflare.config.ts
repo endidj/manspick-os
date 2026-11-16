@@ -17,7 +17,7 @@ export default defineConfig({
       env: {
         ASSETS: bindings.assets(),
         MANSPICK_API: bindings.worker({
-          worker: test ? 'manspick-api-test' : 'manspick-api-local',
+          worker: test ? 'manspick-public-api-test' : 'manspick-api-local',
         }),
       },
       ...(test && {

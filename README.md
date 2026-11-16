@@ -81,9 +81,9 @@ yarn deploy customer-page
 yarn deploy admin-page
 ```
 
-관리자 테스트는 `yarn deploy server-test` → `yarn deploy admin-page-test`, 랜딩·고객 테스트는 `yarn deploy public-server-test` → `yarn deploy landing-page-test` → `yarn deploy customer-page-test` 순서입니다. [공개 테스트 구성과 가상 고객 링크](docs/reference/22-public-test-deployment.md)를 참고합니다. Empty와 Storybook은 각각 `yarn deploy empty`, `yarn deploy storybook`으로 빌드·배포합니다. 배포 후 각 페이지의 `/api/health`로 서버 연결을 확인합니다.
+세 페이지의 통합 테스트는 `yarn deploy public-server-test` → `yarn deploy landing-page-test` → `yarn deploy customer-page-test` → `yarn deploy admin-page-test` 순서입니다. [공개 테스트 구성과 가상 고객 링크](docs/reference/22-public-test-deployment.md)를 참고합니다. Empty와 Storybook은 각각 `yarn deploy empty`, `yarn deploy storybook`으로 빌드·배포합니다. 배포 후 각 페이지의 `/api/health`와 고객 예약 → 관리자 목록 연결을 확인합니다.
 
-관리자는 비공개 `manspick-api-test`, 랜딩·고객 테스트는 별도 D1·R2를 가진 비공개 `manspick-public-api-test`에 Service Binding으로 접근합니다. 운영 서버 설정은 예시만 있으므로 `yarn deploy server`는 실제 `infra/wrangler.production.jsonc`를 준비한 뒤 사용합니다. Nest 전환 검증은 `yarn test`와 서버 빌드, Wrangler 로컬 D1·R2 검사 후 배포한 Worker의 상태·인증·파일 요청까지 확인합니다. [전환 계획과 검증 기록](docs/reference/21-nestjs-migration.md)
+랜딩·고객·관리자 테스트는 모두 비공개 `manspick-public-api-test`에 Service Binding으로 접근하고 `manspick-public-test-db`·`manspick-public-test-media`를 공유합니다. 고객 예약과 설문은 관리자 화면에 같은 데이터로 표시됩니다. 고객·직원 인증 쿠키와 접근 권한은 앱별로 분리합니다. 이전 `manspick-api-test`와 관리자 전용 DB·R2는 보존하지만 현재 세 페이지에는 연결하지 않습니다. 운영 서버 설정은 예시만 있으므로 `yarn deploy server`는 실제 `infra/wrangler.production.jsonc`를 준비한 뒤 사용합니다. [전환 계획과 검증 기록](docs/reference/21-nestjs-migration.md)
 
 DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 설정 안내](apps/server/README.md#환경과-검사)를 참고합니다.
 
@@ -126,7 +126,7 @@ DB 준비와 상세 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [서버 �
 
 **개발 도구.** TypeScript로 앱과 API가 주고받는 데이터의 타입을 공유합니다. Yarn Workspaces로 여러 앱과 공용 코드를 한 저장소에서 연결합니다. Storybook으로 버튼과 입력창 같은 공용 UI를 실제 예약 데이터 없이 확인합니다.
 
-로컬 개발에서도 세 화면은 같은 `MANSPICK_API` 연결로 로컬 API와 D1·R2를 사용합니다. 원격 관리자 테스트는 별도 API와 테스트 저장소에 연결됩니다. 환경별 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [배포 안내](#cloudflare-배포)에 있습니다.
+로컬 개발에서도 세 화면은 같은 `MANSPICK_API` 연결로 로컬 API와 D1·R2를 사용합니다. 원격 테스트 세 화면도 공통 API와 테스트 저장소를 사용합니다. 환경별 설정은 [DB와 아키텍처](docs/REVIEW.md)와 [배포 안내](#cloudflare-배포)에 있습니다.
 
 API는 독립 Node.js 프로세스가 아니라 Workers의 Node API 호환 환경에서 실행됩니다. Nest의 공식 지원 대상에는 Workers가 포함되지 않으므로 실제 Cloudflare 실행 검증을 유지하며, shutdown hook·WebSocket gateway·TCP microservice는 사용하지 않습니다. [서버 런타임 범위](apps/server/README.md#런타임과-배포-범위) · [Nest Workers 안내](https://docs.nestjs.com/faq/cloudflare-workers)
 

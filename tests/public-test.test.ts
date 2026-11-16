@@ -4,13 +4,13 @@ import test from 'node:test';
 import { publicTestWorker } from '../apps/server/src/runtime/public-test.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 
-test('public test API rejects missing, administrator, and unknown surfaces before routing', async () => {
+test('shared test API rejects missing and unknown surfaces before routing', async () => {
   let calls = 0;
   const worker = publicTestWorker(async () => {
     calls++;
     return new Response('unexpected');
   });
-  for (const surface of ['', 'admin', 'customer', 'unknown']) {
+  for (const surface of ['', 'customer', 'unknown']) {
     const response = await worker.fetch(
       new Request('https://customer.example/api/health', {
         headers: surface ? { 'X-Manspick-Surface': surface } : {},
@@ -44,4 +44,30 @@ test('public test requests preserve storage and body while disabling all demo pr
   }
   assert.equal(env.LOCAL_DEMO, 'true');
   assert.equal(env.ADMIN_TEST, true);
+});
+
+test('shared test API enables demo staff access only for the admin surface without mutating bindings', async () => {
+  const env = { DB: {}, BUCKET: {}, LOCAL_DEMO: 'true', ADMIN_TEST: false } as Env;
+  const surfaces: string[] = [];
+  const worker = publicTestWorker(async (request, bindings) => {
+    const surface = request.headers.get('X-Manspick-Surface')!;
+    surfaces.push(surface);
+    assert.equal(bindings.DB, env.DB);
+    assert.equal(bindings.BUCKET, env.BUCKET);
+    assert.equal(bindings.LOCAL_DEMO, 'false');
+    assert.equal(bindings.ADMIN_TEST, surface === 'admin');
+    return new Response('ok');
+  });
+  for (const surface of ['admin', 'user', 'landing', 'admin']) {
+    const response = await worker.fetch(
+      new Request('https://app.example/api/session', {
+        headers: { 'X-Manspick-Surface': surface },
+      }),
+      env,
+    );
+    assert.equal(response.status, 200);
+    assert.equal(env.LOCAL_DEMO, 'true');
+    assert.equal(env.ADMIN_TEST, false);
+  }
+  assert.deepEqual(surfaces, ['admin', 'user', 'landing', 'admin']);
 });

@@ -1,14 +1,16 @@
-# 랜딩·고객 공개 테스트
+# 랜딩·고객·관리자 통합 테스트
 
-2026-11-12. 기존 관리자 테스트와 분리한 공개 테스트 환경이다. 실제 고객·발송·결제 시스템을 연결하지 않고 기존 가상 데이터만 사용한다.
+2026-11-16. 세 페이지가 같은 API·DB·사진 저장소를 사용하는 공개 테스트 환경이다. 실제 고객·발송·결제 시스템을 연결하지 않고 테스트 데이터만 사용한다. 관리자 테스트 로그인은 비밀번호 없는 역할 선택 방식이므로 실제 고객 정보를 입력하지 않는다.
 
 ## 연결과 데이터 경계
 
 - 랜딩: https://manspick-landing-test.winningant8.workers.dev
 - 고객: https://manspick-customer-test.winningant8.workers.dev
-- API: 비공개 `manspick-public-api-test`. workers.dev와 preview URL을 비활성화하고 랜딩·고객 Service Binding 요청만 허용한다.
-- D1: `manspick-public-test-db`, R2: `manspick-public-test-media`. 관리자 테스트와 바인딩·데이터를 공유하지 않는다.
-- 로컬 시연과 관리자 테스트 권한은 강제로 비활성화한다. 고객 링크·뒤 4자리·세션·촬영 소유권·파일 공개 여부를 기존 Nest 가드와 업무 함수가 검사한다.
+- 관리자: https://manspick-admin-test.winningant8.workers.dev
+- API: 비공개 `manspick-public-api-test`. workers.dev와 preview URL을 비활성화하고 세 앱의 Service Binding 요청만 허용한다.
+- D1: `manspick-public-test-db`, R2: `manspick-public-test-media`. 세 앱이 공유하므로 고객에서 만든 예약과 저장한 설문을 관리자에서 확인한다.
+- 로컬 시연은 강제로 비활성화하고 관리자 테스트 권한은 admin surface에만 적용한다. 각 프런트 프록시는 surface 헤더를 고정한다. 고객 링크·뒤 4자리·세션·촬영 소유권·파일 공개 여부는 기존 Nest 가드와 업무 함수가 검사하며 고객과 관리자 쿠키는 서로 사용할 수 없다.
+- 이전 `manspick-api-test`·`manspick-admin-test-db`·`manspick-admin-test-media`는 삭제하거나 초기화하지 않고 보존한다. 현재 관리자 화면은 공통 DB를 사용하므로 이전 세션은 다시 로그인해야 한다.
 - test 모드의 Vite 설정에서 앱 간 주소를 지정한다. 고객 홈은 test 모드에서만 `/start`로 이동하며 로컬 시연 홈은 유지한다.
 
 ## 배포와 최초 데이터 준비
@@ -22,6 +24,7 @@ yarn db:public-test:media
 yarn deploy public-server-test
 yarn deploy landing-page-test
 yarn deploy customer-page-test
+yarn deploy admin-page-test
 ```
 
 사진 준비 명령은 기존 seed의 `demo/` 키 15개에 1,000바이트 SVG 가상 사진을 저장한다. 반복하면 같은 가상 사진만 덮어쓴다. 고객의 일반 업로드 파일은 건드리지 않는다.
@@ -37,9 +40,9 @@ yarn deploy customer-page-test
 | 사진 선택 | [가상 셀렉](https://manspick-customer-test.winningant8.workers.dev/s/demo-selection-access)   | 1003              |
 | 보정 결과 | [가상 결과](https://manspick-customer-test.winningant8.workers.dev/s/demo-result-access)      | 1004              |
 
-새 예약은 접수되지만 자동 알림톡은 연결하지 않았다. 개인 링크를 신규 예약 응답에 공개하는 로컬 우회도 열지 않았다. 관리자 테스트에서 만든 세션·예약은 이 환경에서 사용할 수 없다.
+새 예약은 관리자 고객 목록에 표시된다. 관리자는 고객 상세에서 개인 링크를 발급해 직접 안내할 수 있다. 고객은 발급된 고객 앱 주소와 전화번호 뒤 4자리로 접속한다. 자동 알림톡은 연결하지 않았고 개인 링크를 신규 예약 응답에 공개하는 로컬 우회도 열지 않았다. 고객·관리자 세션 쿠키는 각 앱에서만 사용한다.
 
-## 배포 검증 결과
+## 배포 후 CSS 확인
 
 정적 CSS 응답이 200이어도 페이지 HTML에 연결되지 않으면 화면이 깨질 수 있다. 배포 후 아래 명령으로 실제 stylesheet 링크에 공통 토큰·리셋·폰트 선언이 포함됐는지 확인하고, 브라우저에서 데스크톱·모바일의 계산된 스타일과 배치를 함께 검사한다.
 
@@ -49,6 +52,8 @@ node scripts/check-frontend-styles.mjs https://manspick-landing-test.winningant8
 
 Vinext의 서버 CSS 감지가 import 경로 확장자를 사용하므로 루트 layout은 `@manspick/design-system/styles.css`를 가져온다. 확장자가 없는 `/styles`는 빌드 파일만 생성하고 HTML 연결을 누락할 수 있다.
 
+## 이전 분리 환경 검증 기록 (2026-11-12)
+
 - 전체 테스트 113개, typecheck, ESLint, Prettier 통과. 네 프런트엔드 빌드와 새 API의 Wrangler dry-run을 확인했다.
 - 실제 Cloudflare 주소에서 69개 확인 통과: 페이지·정적 자산, 예약 화면 이동·상품·달력, D1 상태, 네 가상 고객 로그인·소유 촬영 목록·다른 촬영 차단, 관리자 DB와의 세션 격리, R2 바이트·공개 여부, 로그아웃과 세션 폐기.
 - 검사에서 생성한 고객 세션은 모두 로그아웃으로 폐기했다.
@@ -56,3 +61,19 @@ Vinext의 서버 CSS 감지가 import 경로 확장자를 사용하므로 루트
 - 랜딩 버전: `06cd0a32-50b6-4c9e-8e65-f876df019a60`
 - 고객 버전: `93870bd4-99c5-4dd4-8e38-26a38cd30c8b`
 - 기존 관리자·Empty도 새 폴더의 빌드로 갱신했다. 각각 `e77b27af-1f60-4698-ab83-715af5be22b4`, `51daceef-e5a4-4323-8f74-86d9e3c5aa6b`다.
+
+## 통합 배포 검증 (2026-11-16)
+
+- 고객 테스트의 기존 예약 5건(가상 샘플 4건과 사용자가 테스트 데이터로 확인한 예약 1건)을 공통 DB에서 유지했다. 이전 관리자 전용 DB·R2는 삭제하거나 초기화하지 않았다.
+- 전체 회귀 127개, TypeScript·ESLint·Prettier, Storybook 상호작용·접근성 78개, 실제 고객 빌드의 브라우저 경로·설문 검사 23개가 통과했다.
+- 세 프런트의 test 빌드와 공통 API dry-run을 확인하고 기존 Wrangler 인증으로 배포했다. 생성된 worker.config.json과 배포 설정의 Worker 이름·API 바인딩·assets 설정을 대조했다.
+- 실제 Cloudflare에서 104개 확인 통과: 고객 예약 → 관리자 목록 → 고객 링크 발급·인증 → 관리자 입금 확인 → 고객 상태 변경 → 고객 설문 임시 저장 → 관리자 동일 응답 조회.
+- 고객 경로의 관리자 헤더 위조·교차 쿠키·다른 고객 촬영·파일 접근·잘못된 Origin 차단과 기존 R2 파일을 확인했다. 배포된 6개 화면의 실제 CSS·공통 폰트 연결도 통과했다.
+- 브라우저의 관리자 고객 보드에서 기존 고객 예약이 샘플들과 함께 표시되는 것을 확인했다.
+- 검증용으로 새로 만든 예약만 '연동 검증 완료' 사유로 취소해 슬롯을 해제했다. 원래 5건의 내용이 유지됨을 확인하고 검증 스크립트가 생성한 3개 세션을 모두 폐기했다.
+- API 버전: `7dcf350a-7ae6-44f8-b1fa-671ec7e63b62`
+- 랜딩 버전: `e75cc1b9-e897-46a6-9487-f6f9b43beb05`
+- 고객 버전: `d95102fb-74ee-4548-a41a-921ae4acd801`
+- 관리자 버전: `4dd97be2-42f5-4d84-bca8-c4a23c00f07a`
+
+관리자 테스트 로그인과 자동 알림 미연결은 그대로다. 실제 운영 전에는 직원 인증·발송 설정을 별도로 완료해야 한다.
