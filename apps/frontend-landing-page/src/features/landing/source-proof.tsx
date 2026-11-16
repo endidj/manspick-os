@@ -1,8 +1,8 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
-import { sourceImageUrls } from '@manspick/design-system/assets';
+import { SourceImage } from './source-image';
+import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
-/* eslint-disable @next/next/no-img-element -- 원본 사진 비율·자르기·해상도를 그대로 보존합니다. */
 
 export function SourceProof() {
   return (
@@ -239,8 +239,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-1.png']}
+                  <SourceImage
+                    name="hero-before-1.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="이지원 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -253,8 +254,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-1.png']}
+                  <SourceImage
+                    name="hero-after-1.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="이지원 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -293,8 +295,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-2.png']}
+                  <SourceImage
+                    name="hero-before-2.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="강준호 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -307,8 +310,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-2.png']}
+                  <SourceImage
+                    name="hero-after-2.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="강준호 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -347,8 +351,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-3.png']}
+                  <SourceImage
+                    name="hero-before-3.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="박도현 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -361,8 +366,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-3.png']}
+                  <SourceImage
+                    name="hero-after-3.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="박도현 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -401,8 +407,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-4.png']}
+                  <SourceImage
+                    name="hero-before-4.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="윤태훈 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -415,8 +422,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-4.png']}
+                  <SourceImage
+                    name="hero-after-4.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="윤태훈 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -455,8 +463,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-5.png']}
+                  <SourceImage
+                    name="hero-before-5.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="임민우 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -469,8 +478,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-5.png']}
+                  <SourceImage
+                    name="hero-after-5.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="임민우 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -509,8 +519,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-before-6.png']}
+                  <SourceImage
+                    name="hero-before-6.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="정현우 비포"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -523,8 +534,9 @@ export function SourceProof() {
                 {'\n            '}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['hero-after-6.png']}
+                  <SourceImage
+                    name="hero-after-6.png"
+                    sizes={sourceImageSizes.beforeAfter}
                     alt="정현우 애프터"
                     className="w-full h-full object-cover"
                     loading="lazy"

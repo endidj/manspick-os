@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { Viewport } from 'next';
 import { semanticTokens } from '@manspick/design-system/tokens';
 import '@manspick/design-system/styles.css';
-import { siteMetadata } from '../features/seo';
+import { FontPreload, siteMetadata } from '../features/seo';
 
 export const metadata = siteMetadata;
 
@@ -17,6 +17,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <FontPreload family="pretendardCommon" />
+      </head>
       <body>
         <a href="#main-content" className="skip-link">
           본문으로 바로가기

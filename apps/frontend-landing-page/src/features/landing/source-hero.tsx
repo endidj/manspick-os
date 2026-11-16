@@ -1,8 +1,8 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
-import { sourceImageUrls } from '@manspick/design-system/assets';
+import { SourceImage } from './source-image';
+import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
-/* eslint-disable @next/next/no-img-element -- 원본 사진 비율·자르기·해상도를 그대로 보존합니다. */
 
 export function SourceHero() {
   return (
@@ -106,35 +106,43 @@ export function SourceHero() {
               {'\n          '}
               <div className="flex -space-x-2.5 sm:-space-x-3">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['hero-after-1.png']}
+                <SourceImage
+                  name="hero-after-1.png"
+                  sizes={sourceImageSizes.avatar}
+                  thumbnail
                   alt="후기 작성자"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-zinc-950 object-cover object-top"
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['hero-after-2.png']}
+                <SourceImage
+                  name="hero-after-2.png"
+                  sizes={sourceImageSizes.avatar}
+                  thumbnail
                   alt="후기 작성자"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-zinc-950 object-cover object-top"
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['hero-after-3.png']}
+                <SourceImage
+                  name="hero-after-3.png"
+                  sizes={sourceImageSizes.avatar}
+                  thumbnail
                   alt="후기 작성자"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-zinc-950 object-cover object-top"
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['hero-after-4.png']}
+                <SourceImage
+                  name="hero-after-4.png"
+                  sizes={sourceImageSizes.avatar}
+                  thumbnail
                   alt="후기 작성자"
                   className="hidden sm:block w-10 h-10 rounded-full border-2 border-zinc-950 object-cover object-top"
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                 />
                 {'\n          '}

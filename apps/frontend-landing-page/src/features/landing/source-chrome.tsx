@@ -1,9 +1,9 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
-import { sourceImageUrls } from '@manspick/design-system/assets';
+import { SourceImage } from './source-image';
+import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
-/* eslint-disable @next/next/no-img-element -- 원본 사진 비율·자르기·해상도를 그대로 보존합니다. */
 
 export function SourceBackdrop() {
   return (
@@ -15,51 +15,63 @@ export function SourceBackdrop() {
       >
         {'\n    '}
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 1.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 1.png"
+          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, (min-width: 640px) 208px, 144px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="absolute top-[3vh] left-[-10%] sm:left-[-2%] w-36 sm:w-52 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-6deg] opacity-[0.18] sm:opacity-[0.32] shadow-2xl"
         />
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 6.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 6.png"
+          sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 176px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="hidden sm:block absolute top-[36vh] left-[3%] w-44 md:w-52 lg:w-60 aspect-[4/5] object-cover rounded-2xl rotate-[5deg] opacity-[0.28] shadow-2xl"
         />
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 9.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 9.png"
+          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, (min-width: 640px) 224px, 160px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="absolute top-[70vh] left-[-12%] sm:left-[-1%] w-40 sm:w-56 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-4deg] opacity-[0.16] sm:opacity-[0.30] shadow-2xl"
         />
         {'\n\n    '}
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 4.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 4.png"
+          sizes="(min-width: 1024px) 256px, (min-width: 768px) 224px, (min-width: 640px) 192px, 144px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="absolute top-[6vh] right-[-10%] sm:right-[-1%] w-36 sm:w-48 md:w-56 lg:w-64 aspect-[4/5] object-cover rounded-2xl rotate-[6deg] opacity-[0.18] sm:opacity-[0.30] shadow-2xl"
         />
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 7.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 7.png"
+          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, 224px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="hidden sm:block absolute top-[40vh] right-[2%] w-56 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-5deg] opacity-[0.32] shadow-2xl"
         />
         {'\n    '}
-        <img
-          src={sourceImageUrls['스타일링 포트폴리오 12.png']}
+        <SourceImage
+          name="스타일링 포트폴리오 12.png"
+          sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, (min-width: 640px) 176px, 160px"
           alt=""
           loading="lazy"
+          fetchPriority="low"
           decoding="async"
           className="absolute top-[74vh] right-[-12%] sm:right-[-2%] w-40 sm:w-44 md:w-52 lg:w-60 aspect-[4/5] object-cover rounded-2xl rotate-[4deg] opacity-[0.16] sm:opacity-[0.28] shadow-2xl"
         />
@@ -331,8 +343,9 @@ export function SourceOverlays() {
                   }
                 >
                   {'\n              '}
-                  <img
-                    src={sourceImageUrls['grooming-guide.jpg']}
+                  <SourceImage
+                    name="grooming-guide.jpg"
+                    sizes={sourceImageSizes.guide}
                     alt="MEN'S GROOMING GUIDE"
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"

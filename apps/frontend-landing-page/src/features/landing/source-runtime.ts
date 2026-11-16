@@ -1,9 +1,20 @@
 // 원본 맨즈픽의 화면 동작을 React 화면 수명 안에서 실행하고 모두 정리합니다.
-import { sourceImageUrls, type SourceImageName } from '@manspick/design-system/assets';
+import { sourceImages, type SourceImageName } from '@manspick/design-system/assets';
 import { semanticTokens } from '@manspick/design-system/tokens';
 import { attachSourceRadar } from './source-radar';
+import { sourceImageSizes } from './source-image-sizes';
 
 type Scope = ReturnType<typeof createScope>;
+
+function setImageSource(image: HTMLImageElement, name: SourceImageName, sizes: string) {
+  const asset = sourceImages[name];
+  image.dataset.sourceImage = name;
+  image.width = asset.width;
+  image.height = asset.height;
+  image.sizes = sizes;
+  image.srcset = asset.srcSet;
+  image.src = asset.src;
+}
 
 function createScope(root: HTMLElement) {
   const cleanups: Array<() => void> = [];
@@ -387,12 +398,12 @@ function attachModals(scope: Scope) {
           const frame = document.createElement('div');
           frame.className = 'relative aspect-square overflow-hidden bg-zinc-900';
           const image = document.createElement('img');
-          image.src = sourceImageUrls[filename as SourceImageName];
           image.alt = `${team.title} 작업물 ${index + 1}`;
           image.className =
             'w-full h-full object-cover transition-transform duration-500 hover:scale-105';
           image.loading = 'lazy';
           image.decoding = 'async';
+          setImageSource(image, filename as SourceImageName, sourceImageSizes.gallery);
           frame.appendChild(image);
           return frame;
         }),
@@ -481,16 +492,62 @@ function attachRotation(scope: Scope) {
   if (scope.reduced) return;
   const image = scope.query<HTMLImageElement>('#team-influencer-img');
   if (image) {
-    const sources = ['team-influencer-3.jpg', 'team-influencer-5.jpg', 'location-3.jpg'];
+    const sources: SourceImageName[] = [
+      'team-influencer-3.jpg',
+      'team-influencer-5.jpg',
+      'location-3.jpg',
+    ];
     let index = 0;
+    let active = true;
+    let started = false;
+    let ready = false;
+    let nextImage: HTMLImageElement | null = null;
+    const prepareNext = () => {
+      ready = false;
+      const candidate = new Image();
+      nextImage = candidate;
+      candidate.decoding = 'async';
+      candidate.fetchPriority = 'low';
+      setImageSource(candidate, sources[(index + 1) % sources.length], sourceImageSizes.team);
+      void candidate.decode().then(
+        () => {
+          if (active && nextImage === candidate) ready = true;
+        },
+        () => {
+          if (active && nextImage === candidate) nextImage = null;
+        },
+      );
+    };
+    scope.observe(
+      [image],
+      () => {
+        started = true;
+        prepareNext();
+      },
+      { rootMargin: '400px' },
+    );
     scope.every(() => {
+      const rect = image.getBoundingClientRect();
+      if (!started || rect.bottom < -400 || rect.top > window.innerHeight + 400) return;
+      if (!ready) {
+        if (!nextImage) prepareNext();
+        return;
+      }
       index = (index + 1) % sources.length;
+      ready = false;
       image.style.opacity = '0';
       scope.later(() => {
-        image.src = sourceImageUrls[sources[index] as SourceImageName];
+        setImageSource(image, sources[index], sourceImageSizes.team);
         image.style.opacity = '1';
+        prepareNext();
       }, 500);
     }, 4000);
+    scope.cleanup(() => {
+      active = false;
+      nextImage?.removeAttribute('srcset');
+      nextImage?.removeAttribute('src');
+      nextImage = null;
+    });
   }
   const cta = scope.query('#cta-toggle');
   if (cta) {

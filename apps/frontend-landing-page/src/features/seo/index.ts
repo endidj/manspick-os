@@ -9,3 +9,4 @@ export {
 } from './metadata';
 export { StructuredData } from './structured-data';
 export { legacyRedirect } from './legacy-redirect';
+export { FontPreload } from './font-preload';

@@ -1,6 +1,6 @@
 // 원본 사이트를 React 서버 화면으로 제공하고 검색 메타데이터를 연결합니다.
 import { LandingPage } from '../features/landing';
-import { pageMetadata, StructuredData } from '../features/seo';
+import { FontPreload, pageMetadata, StructuredData } from '../features/seo';
 
 export const metadata = pageMetadata({
   title: '남자 프로필사진·소개팅사진·이미지컨설팅',
@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 export default function HomePage() {
   return (
     <>
+      <FontPreload family="geist" />
       <StructuredData />
       <LandingPage />
     </>

@@ -65,9 +65,13 @@ test(
       await page
         .locator('#team-modal-grid img')
         .evaluateAll(async (images) => Promise.all(images.map((image) => image.decode())));
+      assert.equal(
+        await page.locator('#team-modal-grid img').nth(6).getAttribute('data-source-image'),
+        'team-influencer-7.JPG',
+      );
       assert.match(
         await page.locator('#team-modal-grid img').nth(6).getAttribute('src'),
-        /team-influencer-7(?:[.-][\w-]+)?\.JPG$/,
+        /\.webp$/,
       );
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('#team-modal').isVisible(), false);
