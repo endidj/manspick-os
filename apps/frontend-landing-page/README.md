@@ -1,51 +1,42 @@
 # @manspick/frontend-landing-page
 
-맨즈픽 서비스 소개·맞춤 추천·로컬 이용 안내를 제공하는 Next.js 앱이다. 실제 상담 채널·결제·리드 저장을 연결하지 않으며 기존 고객/직원 앱 이동을 유지한다.
+[운영 맨즈픽](https://www.manspick.co.kr/)과 [원본 저장소](https://github.com/JeongWhale/manspick-site/tree/54f4a375b5c3babe9f9bb82ac423c4be6686fb60)를 React·TypeScript·Next App Router·Vinext/Vite·Cloudflare Workers로 포팅한 앱이다. 관리자·고객 앱과 같은 기술 스택을 사용한다.
 
-## 화면과 파일
+## 화면과 책임
 
-| 경로·폴더                              | 역할                                                                                                                                                                    |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/` · `features/landing`               | Hero → Featured In → Problem & Solution → Before & After → Real Impact → 5 HOWs → Team → Reviews → Bridge CTA → Process → Pricing → FAQ → Final CTA, 이후 사이트 Footer |
-| `/recommend` · `features/package-quiz` | 원본의 모바일 앱 셸과 5단계 질문·패키지/옵션 비교·합계 안내                                                                                                             |
-| `/legal`                               | 기존 서비스·이용·개인정보 안내. 정식 약관으로 표시하지 않음                                                                                                             |
-| `features/site`                        | 서버에서 렌더하는 사이트 메뉴·푸터, 작은 Client Component인 상담 안내, 상품 표시 스냅샷                                                                                 |
-| `app/api/[...path]`                    | 기존 `@manspick/web/proxy` 연결. 공개 API 범위를 유지                                                                                                                   |
+- `features/landing/source-{hero,proof,how,reviews,offer,chrome}.tsx`: 원본 마크업·문구·이미지 비율을 보존하는 서버 컴포넌트.
+- `source-experience.tsx`, `source-runtime.ts`: React 수명에 연결한 스크롤·모달·폼·슬라이드 효과. 이벤트·타이머·관찰자를 해제하고 움직임 줄이기 설정을 지원한다.
+- `source-radar.ts`: 원본 Chart.js 4.6.1의 곡선·툴팁·애니메이션. 원본에서 사용하던 라이브러리를 버전·MIT 라이선스와 함께 자체 호스팅한다.
+- `features/package-quiz`: 원본 5단계 추천·7옵션·상담 견적. `marketing-offers.ts`에 원본 상담 상품을 분리한다. 관리자·고객 앱의 예약 상품이나 데이터를 변경하지 않는다.
+- `/terms`, `/privacy`: 원본 정책 문서와 배치. 구형 `/legal`은 `/terms`로 이동한다.
+- `features/seo`: canonical·OG·JSON-LD·강제 noindex. 구형 `.html` 주소는 query를 보존하며 308 이동한다.
+- `/api/[...path]`: 기존 `@manspick/web/proxy`의 공개 API 권한 경계.
 
-페이지는 기능 폴더의 공개 `index.ts`로 진입한다. `index.ts`는 재수출만 담당한다. 앱 스타일은 CSS Modules로 제한하며 토큰·기본 스타일·폰트는 루트 layout에서 한 번 가져온다.
+전체 HTML 삽입이나 원본 전역 스크립트 실행은 사용하지 않는다. 원본 CSS·정적으로 추출한 Tailwind utility는 `source.module.css` 안으로 범위를 제한한다. 공용 디자인 시스템의 폰트·SVG·타입·색상 토큰을 재사용하고 원본 전용 값은 `/styles/site-tokens.css`로 제공한다. 공용 UI의 기존 모양을 원본 화면에 강제하지 않는다.
 
-## 기존 패키지 재사용
+사진 72개는 운영 사이트와 바이트 단위로 대조한 원본이다. `@manspick/design-system/assets`의 `sourceImageUrls`와 [출처 기록](../../packages/design-system/src/assets/site/README.md)을 사용한다. CDN Tailwind·Iconify·폰트 요청은 필요하지 않으며 npm 의존성을 추가하지 않았다.
 
-- `@manspick/design-system/components`: Brand, AppBar, Button, StepHeader, PriceCard, Accordion, Notice.
-- `/patterns`: SectionHeader, ChoiceCard, InfoRow, StickyActionBar. 선택·예산·옵션 수량은 앱이 소유한다.
-- `/assets`: `brandImages`와 `BrandImageName`. 공개 검토용 SVG를 Next Image로 표시하고 기존 이미지 크기를 유지한다. 브랜드 이미지는 공용 패키지에, 고객 비공개 업로드는 기존 서버/R2 경계에 둔다.
-- `/icons`·`/styles`: 원본 아이콘·자체 호스팅 폰트·semantic/component 토큰. 별도 아이콘·스타일 라이브러리를 추가하지 않는다.
-- `@manspick/web/format`: 원화 표시. API 프록시는 기존 web 패키지를 사용한다.
+## 원본 동작과 명시적 차이
 
-새로 만든 표현은 랜딩에만 필요한 섹션·브랜드 사진 배치와 추천 흐름이다. 공통 입력·선택·가격·FAQ UI는 다시 구현하지 않았다. 사이트 탐색은 실제 링크를 사용하고 모바일 메뉴는 native details로 동작한다.
+상담 견적은 원본의 ONE 85,000원·HYBRID 160,000원·ALL DAY 500,000원이다. 카카오 상담으로 연결되며 예약·결제로 자동 전달하지 않는다. 원본의 잔여석·열람자·최근 신청 표시는 시뮬레이션으로, 실제 예약 재고나 API에 쓰지 않는다.
 
-## 출처와 정책
+원본의 깨진 `team-influencer-7.jpg` 참조를 실제 `7.JPG`로 고쳤다. 의류 관심 선택 시 수량 0으로 금액만 더하던 원본 계산 오류는 수량 1로 일관되게 처리한다. 원본에서 로드되지 않는 아이콘 3개의 빈 공간은 그대로 유지한다.
 
-상단 탐색, 중앙 Hero와 모서리 이미지, 사진과 설명이 교차하는 5 HOWs 등 화면 구조를 확인할 수 있습니다.
+상담 폼은 개인정보 동의와 이름·전화번호 확인 후 원본 Google Forms에 native POST한다. 새 탭에서 접수 결과를 확인하도록 안내하며 접수 성공을 추정하지 않는다. GA/GTM 추적은 이식하지 않았다. 모달 포커스·Escape·스크롤 복구와 JavaScript 없는 본문 가독성을 보완했다.
 
-사진 자리는 인물이 없는 동일한 시연 이미지로 표시합니다.
+## 검색 제외와 환경
 
-추천 질문은 촬영 목적·고민·규모·예산·추가 관심의 5단계다. 1/2는 복수 선택 후 다음, 3/4는 단일 선택 즉시 이동, 5는 선택 없이 결과를 볼 수 있다. 이전 답변으로 돌아가도 선택을 보존한다. 원본에 있는 DSLR·AI 프로필·사진 강의는 현재 판매 catalog에 없어 제외했고, 헤어·의상·코디·쇼핑만 안내한다.
+사용자가 공개를 다시 요청하기 전까지 **모든 앱·모든 환경에서 검색 제외**다. `NEXT_PUBLIC_SITE_INDEXABLE=true`도 색인을 켜지 못한다. HTML meta와 HTTP `X-Robots-Tag`에 `noindex, nofollow, noarchive, noimageindex`를 넣는다. robots.txt는 `Allow: /`로 noindex 지시를 읽게 하며 sitemap은 비어 있다. 정적 파일은 `_headers`로 보호한다. Storybook manager·preview·정적 파일도 포함한다.
 
-추천 상품은 기존 의상 수 기준을 촬영 규모 ONE/HYBRID/ALL DAY에 연결한다. 목적·고민을 점수화한 전문가 추천이나 검증된 알고리즘으로 표현하지 않는다. 예산은 선택 구성이 범위를 넘을 때 참고 문구를 보여준다. 메인과 추천 화면은 예약과 같은 공개 상품 API에서 판매 중인 상품의 구성과 가격을 가져온다. 최종 구성·일정·가격은 예약에서 다시 확인한다.
+`NEXT_PUBLIC_SITE_ORIGIN`은 canonical·공유 주소를 정하며 기본값은 원본 canonical인 `https://manspick.kr`이다. 이 값은 검색 허용 스위치가 아니다.
 
-답변·옵션은 저장되지 않는다. 배포 빌드에는 `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`에 고객 앱 주소를 설정한다. 예약 링크는 그 주소의 `/start`로 이동하고, 설정이 없는 로컬 기본값은 `http://localhost:3001/start`다. 직원 앱 링크의 주소는 `NEXT_PUBLIC_ADMIN_APP_ORIGIN`으로 설정할 수 있다. 결과 선택을 예약 데이터로 넘기지 않는다. 보정 평균1~3일·수정 최대3회·후기 확인 후 원본 공개를 유지한다.
+## 검증
 
-## 로컬 확인
+루트에서 `yarn typecheck`, `yarn lint`, `yarn test`, `yarn build`를 실행한다. 추천 단위 검사는 `yarn tsx --test apps/frontend-landing-page/src/features/package-quiz/recommendation.test.ts`다.
 
-```sh
-yarn workspace @manspick/frontend-landing-page dev
-node node_modules/typescript/bin/tsc --noEmit -p apps/frontend-landing-page/tsconfig.json
-node node_modules/eslint/bin/eslint.js apps/frontend-landing-page/src --max-warnings 0
-node node_modules/prettier/bin/prettier.cjs --check apps/frontend-landing-page/src apps/frontend-landing-page/README.md
-node --test apps/frontend-landing-page/src/features/package-quiz/recommendation.test.ts
+```powershell
+$env:LANDING_APP_URL = 'http://127.0.0.1:3000'
+node --test tests/landing.browser.test.mjs tests/landing-site.browser.test.mjs
 ```
 
-각 명령은 저장소 루트에서 실행한다. 추천 규칙 테스트는 촬영 규모의 상품 연결·예산 상한 경계를 확인한다. 실제 브라우저에서는 390/1440px 및 작은 모바일의 넘침, 메뉴·FAQ·상담 안내·5단계 왕복·옵션 합계·예약/법률 링크를 확인한다. 관련 전체 회귀·최종3앱 빌드는 root 통합 검증에서 수행한다.
-
-원본의 모든 텍스트·속성·화면 상태와 픽셀 일치 검증은 별도다. 아직 검증되지 않은 후기·언론 정보는 준비 상태로 표시하고, 구형 약관·가격·원본 전달 문구를 실제 정책으로 되살리지 않는다. 원격 Cloudflare 리소스나 배포를 변경하지 않는다.
+브라우저 검사는 실제 제출을 가로채 외부 고객 정보를 보내지 않는다. 원본 대조·예외·배포 검증은 [마이그레이션 기록](../../docs/reference/23-landing-site-migration.md)에 기록한다. Vinext 개발 서버에서는 next.config의 응답 헤더가 생략되는 현상이 있으므로 검색 제외 HTTP 헤더는 배포용 빌드 프리뷰와 실제 배포에서도 검증한다.

@@ -16,6 +16,7 @@ export default defineConfig([
     '.yarn/**',
     'apps/frontend-empty-page/out/**',
     '**/next-env.d.ts',
+    'apps/frontend-landing-page/public/vendor/chartjs/chart.umd.min.js',
   ]),
   {
     settings: {

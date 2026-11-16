@@ -23,6 +23,7 @@ src/
   assets/
     icons/, fonts/          # 변경하지 않은 원본과 라이선스
     brand/                  # 시연용 브랜드 이미지·Storybook
+    site/                   # manspick-site 원본 사진72개·URL 목록·SHA-256 manifest
     manifest.ts             # 자산 수량·출처·로컬 보관 상태
     index.ts
   styles/
@@ -130,6 +131,8 @@ import { Icon } from '@manspick/design-system/icons';
 - 브랜드 이미지 47개 항목은 540×720 시연 SVG를 공유합니다. /assets의 brandImages·BrandImageName으로 참조하고, Storybook에서 각 이미지 항목의 로딩과 크기를 확인합니다. [브랜드 이미지](src/assets/brand/README.md)
 
 ## 소비자가 지켜야 할 계약
+
+랜딩 포팅의 `sourceImageUrls`·`SourceImageName`은 `JeongWhale/manspick-site` 커밋 `54f4a375b5c3babe9f9bb82ac423c4be6686fb60`의 원본 사진 72개를 제공한다. 운영 사이트와 해시가 모두 일치하며 픽셀·자르기를 변경하지 않는다. 경로·SHA-256과 용도는 [사이트 자산 기록](src/assets/site/README.md)에 있다. 기존 `brandImages` 계약은 유지한다. 원본 전용 색상·타입 값은 `/styles/site-tokens.css`로 제공한다.
 
 Button의 기본 type은 button이다. 폼 제출에는 `type="submit"`을 지정한다. 아이콘만 넣는 버튼에는 aria-label을 준다. DateCell은 aria-label에 보이는 day를 접두사로 보존한다. PhotoTile의 label은 footer의 보이는 컷 번호를 포함해야 한다.
 

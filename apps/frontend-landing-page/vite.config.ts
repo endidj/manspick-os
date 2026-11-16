@@ -4,8 +4,17 @@ import { defineConfig } from 'vite';
 import vinext from 'vinext';
 
 export default defineConfig(({ mode }) => ({
-  define:
-    mode === 'test'
+  define: {
+    'process.env.NEXT_PUBLIC_CUSTOMER_APP_ORIGIN': JSON.stringify(
+      process.env.NEXT_PUBLIC_CUSTOMER_APP_ORIGIN || '',
+    ),
+    'process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN': JSON.stringify(
+      process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN || '',
+    ),
+    'process.env.NEXT_PUBLIC_SITE_ORIGIN': JSON.stringify(
+      process.env.NEXT_PUBLIC_SITE_ORIGIN || 'https://manspick.kr',
+    ),
+    ...(mode === 'test'
       ? {
           'process.env.NEXT_PUBLIC_CUSTOMER_APP_ORIGIN': JSON.stringify(
             'https://manspick-customer-test.winningant8.workers.dev',
@@ -14,7 +23,10 @@ export default defineConfig(({ mode }) => ({
             'https://manspick-admin-test.winningant8.workers.dev',
           ),
         }
-      : {},
+      : {}),
+  },
+  // SSR과 브라우저에서 같은 아이콘 URL을 사용해 hydration 불일치를 막습니다.
+  build: { assetsInlineLimit: 0 },
   plugins: [
     vinext(),
     cloudflare({

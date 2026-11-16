@@ -1,6 +1,9 @@
 // 아이콘 이름과 기존 별칭을 변경하지 않은 로컬 SVG 파일에 연결합니다.
 import mdiInstagram from '../assets/icons/mdi/instagram.svg?url';
+import siteInstagram from '../assets/icons/site/instagram.svg?url';
+import solarGalleryWideBoldDuotone from '../assets/icons/site/gallery-wide-bold-duotone.svg?url';
 import riKakaoTalkFill from '../assets/icons/ri/kakao-talk-fill.svg?url';
+import siteKakaoTalkFill from '../assets/icons/site/kakao-talk-fill.svg?url';
 import solarAltArrowDownLinear from '../assets/icons/solar/alt-arrow-down-linear.svg?url';
 import solarArrowDownLinear from '../assets/icons/solar/arrow-down-linear.svg?url';
 import solarArrowLeftLinear from '../assets/icons/solar/arrow-left-linear.svg?url';
@@ -118,6 +121,13 @@ export const figmaIconManifest = {
 export type FigmaIconName = keyof typeof figmaIconManifest;
 export const FIGMA_ICON_NAMES = Object.freeze(Object.keys(figmaIconManifest) as FigmaIconName[]);
 
+// 공개 운영 사이트에서 별도로 보존한 아이콘은 기존 Figma/데모 자산 계약과 구분합니다.
+export const siteIconManifest = {
+  'site/instagram': siteInstagram,
+  'site/kakao-talk-fill': siteKakaoTalkFill,
+  'solar/gallery-wide-bold-duotone': solarGalleryWideBoldDuotone,
+} as const;
+
 // Compatibility artwork has no matching asset in the 53-icon Figma export.
 export const compatibilityIconManifest = {
   'compat/clock': compatClock,
@@ -150,11 +160,12 @@ export const iconAliases = {
   chevron: 'solar/double-alt-arrow-right-bold',
 } as const satisfies Record<string, FigmaIconName | keyof typeof compatibilityIconManifest>;
 export type IconAlias = keyof typeof iconAliases;
-export type IconName = FigmaIconName | IconAlias;
+export type IconName = FigmaIconName | IconAlias | keyof typeof siteIconManifest;
 
 const sourceManifest = { ...figmaIconManifest, ...compatibilityIconManifest };
 export const iconManifest: Readonly<Record<IconName, string>> = Object.freeze({
   ...figmaIconManifest,
+  ...siteIconManifest,
   ...Object.fromEntries(
     Object.entries(iconAliases).map(([alias, original]) => [alias, sourceManifest[original]]),
   ),

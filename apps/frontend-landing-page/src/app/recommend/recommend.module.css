@@ -1,29 +1,72 @@
-/* 추천 흐름을 원본 390px 앱처럼 좁고 읽기 편한 너비에 배치합니다. */
+/* recommend.html의 768px 틀·56px 전용 탐색과 원본 Tailwind 수치를 보존합니다. */
 .shell {
-  width: min(480px, 100%);
-  min-height: 100svh;
-  margin-inline: auto;
-  border-inline: 1px solid var(--mp-color-border-subtle);
-  background: var(--mp-color-bg-base);
+  min-height: 100dvh;
+  background: #0a0a0a;
+  color: #f4f4f5;
+  font-family: 'Pretendard', 'Geist', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  border-bottom: 1px solid rgb(255 255 255 / 5%);
+  background: rgb(9 9 11 / 80%);
+  backdrop-filter: blur(24px);
+}
+.navInner {
+  max-width: 768px;
+  height: 56px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-family: 'Geist', 'Pretendard', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.05em;
+}
+.camera {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2d76f6;
 }
 .homeLink {
-  color: var(--mp-color-text-secondary);
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #71717a;
+  font-size: 14px;
+  line-height: 20px;
+  transition: color 150ms;
 }
 .homeLink:hover {
-  color: var(--mp-color-text-primary);
+  color: white;
 }
 .main {
-  padding: 28px 24px 48px;
+  max-width: 768px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 96px 16px 128px;
 }
-@media (max-width: 480px) {
-  .shell {
-    border-inline: 0;
-  }
+@media (min-width: 640px) {
+  .navInner,
   .main {
-    padding-inline: 20px;
-  }
-  .appBar {
-    padding-inline: 20px;
+    padding-left: 24px;
+    padding-right: 24px;
   }
 }

@@ -6,7 +6,7 @@ import '@manspick/design-system/styles';
 
 export const metadata: Metadata = {
   title: '맨즈픽 Empty',
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, noarchive: true, noimageindex: true },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -4,6 +4,7 @@ export type { IconProps } from './icons';
 export {
   FIGMA_ICON_NAMES,
   figmaIconManifest,
+  siteIconManifest,
   compatibilityIconManifest,
   iconAliases,
   iconManifest,

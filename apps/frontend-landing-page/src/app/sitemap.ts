@@ -1,0 +1,16 @@
+// 검색에 공개할 대표 페이지의 정규 주소만 사이트맵에 제공합니다.
+import type { MetadataRoute } from 'next';
+import { isSiteIndexable, siteOrigin } from '../features/seo';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  if (!isSiteIndexable) return [];
+  return [
+    {
+      url: `${siteOrigin}/`,
+      changeFrequency: 'weekly',
+      priority: 1,
+      images: [`${siteOrigin}/images/og-image.jpg`],
+    },
+    { url: `${siteOrigin}/recommend`, changeFrequency: 'monthly', priority: 0.8 },
+  ];
+}
