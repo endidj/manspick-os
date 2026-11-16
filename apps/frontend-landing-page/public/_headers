@@ -1,3 +1,6 @@
 # 모든 정적 자산도 검색 결과에서 제외합니다.
 /*
   X-Robots-Tag: noindex, nofollow, noarchive, noimageindex
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

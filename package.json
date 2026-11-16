@@ -31,6 +31,8 @@
     "lint": "eslint apps packages tests scripts --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "images:generate": "node scripts/generate-site-images.mjs",
+    "images:check": "node scripts/generate-site-images.mjs --check",
     "test": "tsx --tsconfig apps/server/tsconfig.json --test tests/*.test.ts tests/package-lint.test.mjs",
     "test:admin": "node --test tests/*.browser.test.mjs",
     "test:local": "node --test tests/local.integration.test.mjs",
@@ -54,6 +56,7 @@
     "eslint-config-next": "16.4.3",
     "light-my-request": "^6.8.0",
     "prettier": "3.9.10",
+    "sharp": "0.35.5",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "wrangler": "4.156.1"

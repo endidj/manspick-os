@@ -1,8 +1,8 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
-import { sourceImageUrls } from '@manspick/design-system/assets';
+import { SourceImage } from './source-image';
+import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
-/* eslint-disable @next/next/no-img-element -- 원본 사진 비율·자르기·해상도를 그대로 보존합니다. */
 
 export function SourceReviews() {
   return (
@@ -57,8 +57,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 1.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 1.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   alt="고개든떡갈나무6551"
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
@@ -98,8 +100,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 3.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 3.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   alt="ksh125"
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
@@ -138,8 +142,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 5.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 5.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   alt="일찍오는한밤1651"
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
@@ -178,8 +184,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 2.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 2.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   alt="상냥한고래8226"
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
@@ -218,8 +226,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 4.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 4.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   alt="빠른사랑꾼4022"
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
@@ -262,8 +272,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 1.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 1.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -306,8 +318,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 3.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 3.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -349,8 +363,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 5.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 5.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -392,8 +408,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 2.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 2.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -435,8 +453,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 4.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 4.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -484,8 +504,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 8.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 8.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -524,8 +546,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 9.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 9.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -564,8 +588,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 6.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 6.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -604,8 +630,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 7.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 7.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -644,8 +672,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 10.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 10.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -688,8 +718,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 8.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 8.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -731,8 +763,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 9.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 9.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -774,8 +808,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 6.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 6.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -817,8 +853,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 7.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 7.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
@@ -860,8 +898,10 @@ export function SourceReviews() {
               {'\n          '}
               <div className="flex items-center gap-3 mt-auto">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 10.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 10.png"
+                  sizes={sourceImageSizes.reviewAvatar}
+                  thumbnail
                   className="w-10 h-10 rounded-full object-cover object-top"
                   loading="lazy"
                   decoding="async"

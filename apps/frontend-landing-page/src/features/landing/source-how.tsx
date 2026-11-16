@@ -1,8 +1,8 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
-import { sourceImageUrls } from '@manspick/design-system/assets';
+import { SourceImage } from './source-image';
+import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
-/* eslint-disable @next/next/no-img-element -- 원본 사진 비율·자르기·해상도를 그대로 보존합니다. */
 
 export function SourceHow() {
   return (
@@ -75,24 +75,27 @@ export function SourceHow() {
             {'\n        '}
             <div className="lg:col-span-7 grid grid-cols-3 gap-3">
               {'\n          '}
-              <img
-                src={sourceImageUrls['location-1.jpg']}
+              <SourceImage
+                name="location-1.jpg"
+                sizes={sourceImageSizes.location}
                 alt="감성 스팟 촬영 사례 1"
                 className="rounded-2xl aspect-[3/4] object-cover"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['location-2.jpg']}
+              <SourceImage
+                name="location-2.jpg"
+                sizes={sourceImageSizes.location}
                 alt="감성 스팟 촬영 사례 2"
                 className="rounded-2xl aspect-[3/4] object-cover translate-y-6"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['location-3.jpg']}
+              <SourceImage
+                name="location-3.jpg"
+                sizes={sourceImageSizes.location}
                 alt="감성 스팟 촬영 사례 3"
                 className="rounded-2xl aspect-[3/4] object-cover"
                 loading="lazy"
@@ -110,96 +113,108 @@ export function SourceHow() {
               {'\n          '}
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 1.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 1.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 1"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 2.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 2.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 2"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 3.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 3.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 3"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 4.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 4.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 4"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 5.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 5.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 5"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 6.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 6.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 6"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 7.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 7.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 7"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 8.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 8.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 8"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 9.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 9.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 9"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 10.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 10.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 10"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 11.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 11.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 11"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
                   decoding="async"
                 />
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['스타일링 포트폴리오 12.png']}
+                <SourceImage
+                  name="스타일링 포트폴리오 12.png"
+                  sizes={sourceImageSizes.styling}
                   alt="스타일링 포트폴리오 12"
                   className="w-full aspect-[4/5] object-cover object-center rounded-xl"
                   loading="lazy"
@@ -319,8 +334,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-before-1.jpg']}
+                <SourceImage
+                  name="retouch-before-1.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 전 1"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -333,8 +349,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass lg:translate-y-8">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-before-2.jpg']}
+                <SourceImage
+                  name="retouch-before-2.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 전 2"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -347,8 +364,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-before-3.jpg']}
+                <SourceImage
+                  name="retouch-before-3.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 전 3"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -361,8 +379,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-after-1.jpg']}
+                <SourceImage
+                  name="retouch-after-1.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 후 1"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -373,8 +392,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass lg:translate-y-8">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-after-2.jpg']}
+                <SourceImage
+                  name="retouch-after-2.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 후 2"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -385,8 +405,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="relative aspect-square rounded-2xl overflow-hidden glass">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['retouch-after-3.jpg']}
+                <SourceImage
+                  name="retouch-after-3.jpg"
+                  sizes={sourceImageSizes.retouch}
                   alt="보정 후 3"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -406,8 +427,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="absolute bottom-0 left-0 w-[62%] aspect-[4/5] rounded-3xl overflow-hidden glass shadow-2xl rotate-[-4deg]">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['cross-check-1.jpg']}
+                <SourceImage
+                  name="cross-check-1.jpg"
+                  sizes={sourceImageSizes.crossCheck}
                   alt="20대 여성 보정가 교차검증 1"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -418,8 +440,9 @@ export function SourceHow() {
               {'\n          '}
               <div className="absolute top-0 right-0 w-[62%] aspect-[4/5] rounded-3xl overflow-hidden glass shadow-2xl rotate-[4deg]">
                 {'\n            '}
-                <img
-                  src={sourceImageUrls['cross-check-2.jpg']}
+                <SourceImage
+                  name="cross-check-2.jpg"
+                  sizes={sourceImageSizes.crossCheck}
                   alt="20대 여성 보정가 교차검증 2"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -542,64 +565,72 @@ export function SourceHow() {
             {'\n        '}
             <div className="lg:col-span-7 grid grid-cols-4 gap-x-3 gap-y-10 items-start">
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-1.jpg']}
+              <SourceImage
+                name="props-1.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 1"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:translate-y-10"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-2.jpg']}
+              <SourceImage
+                name="props-2.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 2"
                 className="rounded-2xl aspect-[3/4] object-cover w-full"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-3.jpg']}
+              <SourceImage
+                name="props-3.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 3"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:translate-y-14"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-4.jpg']}
+              <SourceImage
+                name="props-4.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 4"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:translate-y-4"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-5.jpg']}
+              <SourceImage
+                name="props-5.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 5"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:translate-y-6"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-6.jpg']}
+              <SourceImage
+                name="props-6.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 6"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:-translate-y-2"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-7.jpg']}
+              <SourceImage
+                name="props-7.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 7"
                 className="rounded-2xl aspect-[3/4] object-cover w-full lg:translate-y-10"
                 loading="lazy"
                 decoding="async"
               />
               {'\n          '}
-              <img
-                src={sourceImageUrls['props-8.jpg']}
+              <SourceImage
+                name="props-8.jpg"
+                sizes={sourceImageSizes.props}
                 alt="소품 8"
                 className="rounded-2xl aspect-[3/4] object-cover w-full"
                 loading="lazy"
@@ -648,8 +679,9 @@ export function SourceHow() {
               data-team="influencer"
             >
               {'\n          '}
-              <img
-                src={sourceImageUrls['team-influencer-3.jpg']}
+              <SourceImage
+                name="team-influencer-3.jpg"
+                sizes={sourceImageSizes.team}
                 alt="인플루언서팀 작업물"
                 id="team-influencer-img"
                 className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 group-hover:scale-105"
@@ -724,8 +756,9 @@ export function SourceHow() {
               style={{ transitionDelay: '100ms' } as CSSProperties}
             >
               {'\n          '}
-              <img
-                src={sourceImageUrls['cross-check-2.jpg']}
+              <SourceImage
+                name="cross-check-2.jpg"
+                sizes={sourceImageSizes.team}
                 alt="보정팀 작업물"
                 className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
@@ -800,8 +833,9 @@ export function SourceHow() {
               style={{ transitionDelay: '200ms' } as CSSProperties}
             >
               {'\n          '}
-              <img
-                src={sourceImageUrls['peace.jpg']}
+              <SourceImage
+                name="peace.jpg"
+                sizes={sourceImageSizes.team}
                 alt="헤어팀 작업물"
                 className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"

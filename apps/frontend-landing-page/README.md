@@ -14,7 +14,11 @@
 
 전체 HTML 삽입이나 원본 전역 스크립트 실행은 사용하지 않는다. 원본 CSS·정적으로 추출한 Tailwind utility는 `source.module.css` 안으로 범위를 제한한다. 공용 디자인 시스템의 폰트·SVG·타입·색상 토큰을 재사용하고 원본 전용 값은 `/styles/site-tokens.css`로 제공한다. 공용 UI의 기존 모양을 원본 화면에 강제하지 않는다.
 
-사진 72개는 운영 사이트와 바이트 단위로 대조한 원본이다. `@manspick/design-system/assets`의 `sourceImageUrls`와 [출처 기록](../../packages/design-system/src/assets/site/README.md)을 사용한다. CDN Tailwind·Iconify·폰트 요청은 필요하지 않으며 npm 의존성을 추가하지 않았다.
+사진 72개의 원본은 운영 사이트와 바이트 단위로 대조해 보존한다. 화면은 `@manspick/design-system/assets`의 `sourceImages`에 등록한 WebP 파생본과 `srcset`·`sizes`를 사용한다. EXIF·GPS·XMP·IPTC·ICC·주석은 파생본에서 제거하고 방향·투명도는 유지한다. [출처와 변환 방법](../../packages/design-system/src/assets/site/README.md)을 참고한다. CDN Tailwind·Iconify·폰트 요청은 필요하지 않다.
+
+사진을 추가하거나 수정한 경우 루트에서 `yarn images:generate`를 실행하고 생성 결과를 함께 커밋한다. 소스·변환 설정·도구 버전·출력 해시가 같은 파일은 재사용하며, 일반 앱 빌드에서는 이미지를 변환하지 않는다. `yarn images:check`는 인코딩 없이 생성 결과와 메타데이터 제거 상태를 검사한다. 기존 Sharp 버전을 개발 의존성으로 고정했다.
+
+첫 화면 아바타는 작은 썸네일을 사용하고, 갤러리는 열 때 이미지를 만든다. 화면에 가까워진 슬라이드만 다음 사진을 미리 디코딩한다. 폰트는 기존 WOFF2·한글 서브셋을 유지하며 공통 Pretendard 조각 하나, 메인·추천 화면의 Geist만 preload한다. 글자 범위나 서체를 바꾸지 않는다.
 
 ## 원본 동작과 명시적 차이
 
@@ -36,7 +40,7 @@
 
 ```powershell
 $env:LANDING_APP_URL = 'http://127.0.0.1:3000'
-node --test tests/landing.browser.test.mjs tests/landing-site.browser.test.mjs
+node --test --test-concurrency=1 tests/landing.browser.test.mjs tests/landing-site.browser.test.mjs tests/landing-media.browser.test.mjs tests/landing-fonts.browser.test.mjs
 ```
 
 브라우저 검사는 실제 제출을 가로채 외부 고객 정보를 보내지 않는다. 원본 대조·예외·배포 검증은 [마이그레이션 기록](../../docs/reference/23-landing-site-migration.md)에 기록한다. Vinext 개발 서버에서는 next.config의 응답 헤더가 생략되는 현상이 있으므로 검색 제외 HTTP 헤더는 배포용 빌드 프리뷰와 실제 배포에서도 검증한다.

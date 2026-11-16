@@ -5757,6 +5757,7 @@ __metadata:
     eslint-config-next: "npm:16.4.3"
     light-my-request: "npm:^6.8.0"
     prettier: "npm:3.9.10"
+    sharp: "npm:0.35.5"
     tsx: "npm:^4.23.15"
     typescript: "npm:~5.9.3"
     wrangler: "npm:4.156.1"
