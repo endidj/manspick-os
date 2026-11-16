@@ -8,9 +8,10 @@ import { ChoiceCard, TextField, RadioPills, Dialog } from '@manspick/design-syst
 import { Icon } from '@manspick/design-system/icons';
 import { api } from '@manspick/web/client';
 import { money } from '@manspick/web/format';
-import type { AddonDTO, PackageDTO } from '@manspick/contracts';
+import type { AddonDTO, BookingResultDTO, PackageDTO } from '@manspick/contracts';
 import { CustomerShell, SceneFooter } from '../shell';
 import { packageName } from '../customer/presentation';
+import { customerPath } from '../customer/routes';
 import { addonQuantityLimit, validateCatalogQuantities } from '@manspick/domain';
 import type { OperationsPolicy } from '@manspick/domain';
 import { BookingCalendar, type CalendarDay } from './booking-calendar';
@@ -55,10 +56,8 @@ export function Booking() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [result, setResult] = useState<{
-    message: string;
-    localAccess?: { token: string; last4: string };
-  }>();
+  const [result, setResult] = useState<BookingResultDTO>();
+  const bookingToken = result?.bookingAccess?.token ?? result?.localAccess?.token;
   const detailsReady = Boolean(
     name.trim() && phone.replace(/\D/g, '').length >= 10 && privacy && notifications,
   );
@@ -235,15 +234,21 @@ export function Booking() {
           <p className={layout.overline}>RESERVATION</p>
           <h1>예약 요청을 접수했어요</h1>
           <p>{result.message}</p>
+          <p>입금 확인이 끝나면 설문을 작성할 수 있어요.</p>
           {result.localAccess && (
-            <>
-              <Notice>
-                확인 번호: <strong>{result.localAccess.last4}</strong>
-              </Notice>
-              <Link href={`/s/${result.localAccess.token}`} className={styles.primaryLink}>
-                나의 촬영에서 입금 안내 확인하기 <Icon name="arrow" size={18} />
-              </Link>
-            </>
+            <Notice>
+              확인 번호: <strong>{result.localAccess.last4}</strong>
+            </Notice>
+          )}
+          {bookingToken ? (
+            <Link href={customerPath(bookingToken, 'payment')} className={styles.primaryLink}>
+              입금 안내 확인하고 계속하기 <Icon name="arrow" size={18} />
+            </Link>
+          ) : (
+            <Notice>
+              이미 안내받은 개인 촬영 링크가 있다면 그 링크에서 이어서 진행해주세요. 링크를 찾을 수
+              없다면 예약 상담을 진행한 채널로 문의해주세요.
+            </Notice>
           )}
           <Link className={layout.textLink} href="/">
             맨즈픽 홈으로

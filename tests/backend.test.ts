@@ -15,6 +15,7 @@ import { publicTestWorker } from '../apps/server/src/runtime/public-test.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 import { hash } from '../apps/server/src/security/crypto.ts';
 import type {
+  BookingResultDTO,
   OperationsSettingsDTO,
   ScheduleDTO,
   SessionDTO,
@@ -1819,11 +1820,42 @@ test('shared test API connects customer bookings and admin-issued links while is
     const booking = bookingInput(futureBookingDate(), '11:00', '01000002580');
     const booked = await request('user', '/start', { method: 'POST', body: booking });
     assert.equal(booked.status, 201, await booked.clone().text());
-    const accepted = (await booked.json()) as {
-      data: { accepted: boolean; localAccess?: unknown };
-    };
+    const accepted = (await booked.json()) as { data: BookingResultDTO };
     assert.equal(accepted.data.accepted, true);
     assert.equal(accepted.data.localAccess, undefined);
+    const access = accepted.data.bookingAccess;
+    assert.ok(access, 'new test booking must continue without an operator issuing another link');
+    assert.match(access.token, /^[A-Za-z0-9]{10}$/);
+    assert.deepEqual(Object.keys(access), ['token']);
+    const initialLogin = await request('user', '/auth/customer', {
+      method: 'POST',
+      body: { token: access.token, last4: booking.phone.slice(-4) },
+    });
+    assert.equal(initialLogin.status, 200);
+    const initialSession = initialLogin.headers.get('Set-Cookie')!.split(';')[0]!;
+    const initialShootId = ((await initialLogin.json()) as { data: SessionDTO }).data.shootId!;
+    const survey = { type: 'save_survey', answers: { age: 30 }, pageDone: [] };
+    await expectError(
+      await request('user', `/shoots/${initialShootId}/actions`, {
+        method: 'POST',
+        cookie: initialSession,
+        body: survey,
+      }),
+      409,
+      'SURVEY_CLOSED',
+    );
+    const duplicate = await request('user', '/start', {
+      method: 'POST',
+      body: { ...booking, time: '15:00' },
+    });
+    assert.equal(duplicate.status, 201);
+    const repeated = ((await duplicate.json()) as { data: BookingResultDTO }).data;
+    assert.equal(
+      repeated.bookingAccess,
+      undefined,
+      'existing bookings never reveal or reissue a link',
+    );
+    assert.equal(repeated.localAccess, undefined);
 
     const login = await request('admin', '/demo/session', {
       method: 'POST',
@@ -1839,6 +1871,23 @@ test('shared test API connects customer bookings and admin-issued links while is
     };
     const shoot = data.shoots.find((item) => item.customerName === booking.name);
     assert.ok(shoot, 'customer booking must appear in the admin API using the same storage');
+    assert.equal(shoot.id, initialShootId);
+    const payment = db.database
+      .prepare("SELECT id FROM payments WHERE shoot_id=? AND kind='base'")
+      .get(shoot.id);
+    const confirmed = await request('admin', `/shoots/${shoot.id}/actions`, {
+      method: 'POST',
+      cookie: staff,
+      body: { type: 'confirm_payment', paymentId: payment!.id },
+    });
+    assert.equal(confirmed.status, 200, await confirmed.clone().text());
+    const saved = await request('user', `/shoots/${shoot.id}/actions`, {
+      method: 'POST',
+      cookie: initialSession,
+      body: survey,
+    });
+    assert.equal(saved.status, 200, await saved.clone().text());
+    await request('user', '/auth/logout', { method: 'POST', cookie: initialSession });
 
     const issued = await request('admin', `/auth/customer-link/${shoot.id}`, {
       method: 'POST',

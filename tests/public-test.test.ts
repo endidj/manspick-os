@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { publicTestWorker } from '../apps/server/src/runtime/public-test.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
+import { isCustomerTestRequest } from '../apps/server/src/runtime/env.ts';
 
 test('shared test API rejects missing and unknown surfaces before routing', async () => {
   let calls = 0;
@@ -37,6 +38,7 @@ test('public test requests preserve storage and body while disabling all demo pr
       assert.equal(bindings.BUCKET, env.BUCKET);
       assert.equal(bindings.LOCAL_DEMO, 'false');
       assert.equal(bindings.ADMIN_TEST, false);
+      assert.equal(bindings.CUSTOMER_TEST, surface === 'user');
       assert.equal(await incoming.text(), 'original body');
       return new Response('ok');
     });
@@ -56,6 +58,7 @@ test('shared test API enables demo staff access only for the admin surface witho
     assert.equal(bindings.BUCKET, env.BUCKET);
     assert.equal(bindings.LOCAL_DEMO, 'false');
     assert.equal(bindings.ADMIN_TEST, surface === 'admin');
+    assert.equal(bindings.CUSTOMER_TEST, surface === 'user');
     return new Response('ok');
   });
   for (const surface of ['admin', 'user', 'landing', 'admin']) {
@@ -70,4 +73,20 @@ test('shared test API enables demo staff access only for the admin surface witho
     assert.equal(env.ADMIN_TEST, false);
   }
   assert.deepEqual(surfaces, ['admin', 'user', 'landing', 'admin']);
+});
+
+test('booking continuation is disabled without the server test flag and a secure customer surface', () => {
+  for (const enabled of [true, false, undefined]) {
+    for (const surface of ['user', 'admin', 'landing']) {
+      for (const protocol of ['http:', 'https:']) {
+        const request = new Request(`${protocol}//customer.example/api/start`, {
+          headers: { 'X-Manspick-Surface': surface, 'X-Customer-Test': 'true' },
+        });
+        assert.equal(
+          isCustomerTestRequest(request, { CUSTOMER_TEST: enabled } as Env),
+          enabled === true && surface === 'user' && protocol === 'https:',
+        );
+      }
+    }
+  }
 });
