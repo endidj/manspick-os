@@ -146,6 +146,39 @@
   backdrop-filter: blur(24px);
 }
 
+/* 화면 밖 본문은 HTML에 유지하고 레이아웃·페인트만 필요할 때 계산합니다. */
+.root :global(main > section:not(#hero)) {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 1000px;
+}
+.root :global(#before-after),
+.root :global(#pricing) {
+  contain-intrinsic-block-size: auto 2900px;
+}
+.root :global(#how) {
+  contain-intrinsic-block-size: auto 4300px;
+}
+.root :global(#team) {
+  contain-intrinsic-block-size: auto 1800px;
+}
+@media (min-width: 768px) {
+  .root :global(#before-after),
+  .root :global(#pricing) {
+    contain-intrinsic-block-size: auto 1500px;
+  }
+  .root :global(#how) {
+    contain-intrinsic-block-size: auto 3500px;
+  }
+  .root :global(#team) {
+    contain-intrinsic-block-size: auto 1000px;
+  }
+}
+@media print {
+  .root :global(main > section:not(#hero)) {
+    content-visibility: visible;
+  }
+}
+
 .root :global(.reveal) {
   opacity: 0;
   transform: translateY(2rem);

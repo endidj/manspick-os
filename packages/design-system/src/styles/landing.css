@@ -1,0 +1,6 @@
+/* 공개 랜딩은 공용 토큰·폰트·기본 요소와 실제 쓰는 필수 스타일만 가져옵니다. */
+@import './tokens.css';
+@import './landing-fonts.css';
+@import './foundation.css';
+@import './essentials.css';
+@import './responsive.css';

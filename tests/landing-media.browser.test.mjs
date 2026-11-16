@@ -145,3 +145,79 @@ test(
     }
   },
 );
+
+test(
+  'three-column gallery selects appropriately sized images at mobile and desktop DPR2',
+  { skip: !appUrl, timeout: 120000 },
+  async () => {
+    process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
+      new URL('../.local/playwright', import.meta.url),
+    );
+    const { chromium } = await import('playwright');
+    const browser = await chromium.launch();
+    try {
+      for (const width of [390, 1440]) {
+        const context = await browser.newContext({
+          viewport: { width, height: 1000 },
+          deviceScaleFactor: 2,
+          reducedMotion: 'reduce',
+        });
+        const page = await context.newPage();
+        await page.goto(appUrl, { waitUntil: 'networkidle' });
+        await page.waitForSelector('[data-motion-ready="true"]');
+        const card = page.locator('.team-card[data-team="influencer"]');
+        await card.scrollIntoViewIfNeeded();
+        await page.locator('#team-influencer-img').evaluate((image) => image.decode());
+        const cached = await page.evaluate(() =>
+          performance.getEntriesByType('resource').map((entry) => entry.name),
+        );
+        await card.click();
+        const gallery = page.locator('#team-modal-grid img');
+        await gallery.nth(8).waitFor({ state: 'attached' });
+        await gallery.evaluateAll(async (images) => {
+          images.forEach((image) => {
+            image.loading = 'eager';
+          });
+          await Promise.all(images.map((image) => image.decode()));
+        });
+        const images = await gallery.evaluateAll((images) =>
+          images.map((image) => {
+            const candidates = image.srcset.split(',').map((part) => part.trim().split(/\s+/));
+            const selected = candidates.find(
+              ([url]) => new URL(url, location.href).href === image.currentSrc,
+            );
+            const resources = performance
+              .getEntriesByType('resource')
+              .filter((entry) => entry.name === image.currentSrc);
+            return {
+              url: image.currentSrc,
+              width: image.getBoundingClientRect().width,
+              selectedWidth: Number(selected?.[1].replace('w', '')),
+              bytes: Math.max(0, ...resources.map((entry) => entry.encodedBodySize)),
+            };
+          }),
+        );
+        assert.equal(images.length, 9);
+        for (const image of images) {
+          assert.ok(Math.abs(image.width - (width === 390 ? 105.333 : 238)) < 1);
+          assert.ok(image.selectedWidth >= Math.ceil(image.width * 2));
+          // The browser may reuse a larger photo already decoded for the team card.
+          assert.ok(image.selectedWidth <= 480 || cached.includes(image.url));
+        }
+        const bytes = images.reduce((sum, image) => sum + image.bytes, 0);
+        assert.ok(bytes > 0 && bytes < 600000, `${width}px gallery selected ${bytes}B`);
+        console.log(
+          JSON.stringify({
+            galleryViewport: width,
+            dpr: 2,
+            selectedBytes: bytes,
+            selectedWidths: images.map((image) => image.selectedWidth),
+          }),
+        );
+        await context.close();
+      }
+    } finally {
+      await browser.close();
+    }
+  },
+);

@@ -2,12 +2,14 @@
 
 공식 저장소의 버전 고정 WOFF2를 수정하지 않고 보관한다. 앱은 공용 `styles/fonts.css`를 통해 Pretendard 공식 dynamic subset과 기존 Geist 가변 파일을 사용하며 외부 폰트 CDN을 요청하지 않는다. 기존 전체 Pretendard 파일은 원본으로 보존하며 앱 CSS에서 참조하지 않는다.
 
+랜딩만 [별도 파생본](landing/README.md)을 우선 사용하며, 새 글자는 위 원본 폰트로 폴백한다. 일반 앱 빌드에서 폰트 변환을 실행하지 않는다.
+
 | 파일                     | 원본                                                                                                                                                      |    바이트 | SHA-256                                                            |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------: | ------------------------------------------------------------------ |
 | PretendardVariable.woff2 | [Pretendard v1.3.9](https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/web/variable/woff2/PretendardVariable.woff2) | 2,057,688 | `9599f12fd42fc0bce1cd50b47a0c022e108d7aa64dd0d1bb0ed44f3282d900b4` |
 | GeistVariable.woff2      | [Geist Sans v1.8.2](https://raw.githubusercontent.com/vercel/geist-font/v1.8.2/fonts/Geist/webfonts/Geist%5Bwght%5D.woff2)                                |    69,760 | `2ffebe993e969069a9789d15164b7715d42491b5835516c5e3b935d5f81b05f1` |
 
-Pretendard의 공식 가변 범위는 45–920, Geist Sans는 100–900이다. Figma에서 확인한 사용 굵기는 Pretendard 400/500/600/700, Geist 600/700이다. 파일 헤더 `wOF2`와 위 해시를 다운로드 후 확인했다.
+Pretendard의 공식 CSS 등록 범위는 45–920, Geist Sans는 100–900이다. Pretendard 원본 파일의 `fvar` 축은 45–930이며 CSS는 기존 등록 범위를 유지한다. Figma에서 확인한 사용 굵기는 Pretendard 400/500/600/700, Geist 600/700이다. 파일 헤더 `wOF2`와 위 해시를 다운로드 후 확인했다.
 
 ## Pretendard dynamic subset
 

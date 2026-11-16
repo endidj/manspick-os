@@ -28,6 +28,7 @@ test(
         const response = await get(url, { headers: rsc ? { RSC: '1' } : {} });
         assert.equal(response.status, 200, url);
         assert.equal(response.headers.get('x-vinext-cache'), 'HIT', url);
+        assert.equal(response.headers.get('cache-control'), 'public, max-age=0, must-revalidate');
         assert.match(response.headers.get('x-robots-tag'), /noindex/);
         const body = await response.text();
         const generated = await readFile(
@@ -42,6 +43,16 @@ test(
       }
     }
     const recommendation = manifest.routes.find((route) => route.route === '/recommend');
+    const home = await (await get('/')).text();
+    for (const extension of ['woff2', 'webp', 'ico']) {
+      const asset = home.match(new RegExp(`/_next/static/media/[^"<>\\s]+\\.${extension}`))?.[0];
+      assert.ok(asset, `home references a versioned ${extension} asset`);
+      const response = await get(asset);
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+    }
+    const fallbackIcon = await get('/favicon.ico');
+    assert.match(fallbackIcon.headers.get('cache-control'), /max-age=0.*must-revalidate/);
     assert.equal(recommendation.status, 'skipped');
     assert.equal(recommendation.reason, 'dynamic');
     for (const pkg of ['one', 'hybrid', 'allday']) {

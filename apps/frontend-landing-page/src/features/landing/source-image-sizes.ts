@@ -16,6 +16,6 @@ export const sourceImageSizes = {
     '(min-width: 1280px) 162px, (min-width: 1024px) 14vw, (min-width: 640px) calc((100vw - 84px) / 4), calc((100vw - 68px) / 4)',
   team: '(min-width: 1280px) 390px, (min-width: 768px) calc((100vw - 112px) / 3), calc(100vw - 32px)',
   gallery:
-    '(min-width: 1024px) 336px, (min-width: 640px) calc((100vw - 64px) / 3), calc((100vw - 48px) / 2)',
+    '(min-width: 832px) 238px, (min-width: 768px) calc((100vw - 118px) / 3), calc((100vw - 74px) / 3)',
   guide: '(min-width: 768px) 320px, calc(100vw - 48px)',
 } as const;

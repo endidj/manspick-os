@@ -1,0 +1,37 @@
+# 랜딩 추가 성능 최적화와 캐시
+
+## 변경 내용
+
+기존 React/Next App Router/Vinext와 Cloudflare 배포 구성을 유지한다. 디자인 시스템의 자산·폰트·아이콘·토큰을 재사용하며, 사진의 화질과 화면에 보이는 애니메이션을 일괄 낮추지 않는다.
+
+- favicon의 원본 256px ICO(270,398B)를 보존하고 16/32/48px PNG 프레임 ICO(6,721B)를 생성했다. 별도 180px Apple 아이콘과 256px PNG도 제공한다. 일반 Chromium 탭은 DPR 1/2에서 작은 ICO만 받는 것을 확인했다.
+- 랜딩 고정 문구에 필요한 가변 폰트를 원본에서 추출했다. 본문 136,896B와 표시용 24,552B이며, 원본의 윤곽·글자 폭·가변 축을 검증하고 OFL에 따라 파생본 이름을 구분했다. 새 한글은 원본 unicode 폰트 조각으로 폴백한다. Chart.js도 현재 화면의 폰트 설정을 재사용한다.
+- 팀 갤러리 `sizes`를 실제 3열 너비에 맞췄다. 1440px DPR2에서 선택하는 사진 합계가 1,323,048B에서 459,150B로 약 65.3% 감소했다. 이미 카드에서 받은 큰 사진은 브라우저가 재사용할 수 있다. 390px DPR2는 기존 459,150B를 유지한다.
+- 공용 안내·본문 바로가기 스타일을 `essentials.css`에 모으고 랜딩은 업무 앱 레이아웃 CSS를 가져오지 않는다. 약관·개인정보는 홈 전체 스타일 대신 실제 사용하는 규칙만 가져온다.
+- 공용 Icon의 반복 고정 스타일을 CSS Module로 옮겨 HTML/RSC를 줄였다. 크기·색·접근성·사용자 style 우선순위는 유지한다.
+- 화면 밖 섹션에 `content-visibility: auto`를 적용한다. 본문은 SSG HTML에 그대로 있으며, 화면에 접근할 때 레이아웃과 페인트를 수행한다. 팀 모달은 같은 기능 scope 안에서 섹션 밖으로 옮겨 viewport 위치를 유지한다. 인쇄는 전체 본문을 렌더한다.
+
+이미지·아이콘·폰트 생성은 일반 앱 빌드에 연결하지 않는다. 변경된 원본이나 글리프 집합이 있을 때 명시적으로 생성하고 결과를 커밋한다. Node의 `--check` 검사는 재인코딩 없이 현재 상태를 검증한다. 도구와 원본 정보는 [사진 최적화](24-media-optimization.md), [폰트 README](../../packages/design-system/src/assets/fonts/landing/README.md), [아이콘 README](../../apps/frontend-landing-page/src/features/seo/icons/README.md)를 참고한다.
+
+## 캐시가 있어도 새 배포를 받는 구조
+
+| 대상                                    | 브라우저·외부 HTTP 캐시               | Cloudflare에서의 재사용과 갱신                                                                                                       |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 해시 주소의 이미지·폰트·아이콘·CSS·JS   | `public, max-age=31536000, immutable` | Static Assets로 제공. 파일 내용 변경 시 빌드가 새 해시 URL을 만들어 새 HTML/CSS에서 참조한다.                                        |
+| `/`, `/terms`, `/privacy` HTML/RSC      | `public, max-age=0, must-revalidate`  | `staticAssetsAdapter`가 빌드 ID·경로·응답 종류별 사전 생성 파일을 ASSETS에서 읽는다. 새 Worker 배포는 새 manifest와 파일을 사용한다. |
+| `/favicon.ico` 등 고정 public 자산 경로 | 재검증                                | 새 배포의 ASSETS manifest에 해당하는 파일을 사용한다.                                                                                |
+| `/recommend`와 API                      | 기존 `no-store`                       | 요청별 처리와 접근 제어 유지. 공용 장기 캐시를 추가하지 않는다.                                                                      |
+
+SSG의 `X-Vinext-Cache: HIT`는 사전 생성 응답을 재사용한다는 뜻이며 Worker 실행을 완전히 건너뛴다는 의미는 아니다. 브라우저에 보내는 HTML을 1년 동안 고정하지 않아도 Cloudflare 내부의 버전별 정적 자산 캐시를 사용할 수 있다. 배포 시 모든 자산을 purge할 필요가 없고, 변경 없는 파일의 캐시도 유지할 수 있다. Cloudflare가 모든 지역에서 파일을 반드시 1년 보관한다고 보장하는 것은 아니다.
+
+예를 들어 `photo.ABC.webp`를 받았던 사용자는 사진 수정 배포 후 HTML이 가리키는 `photo.DEF.webp`를 받는다. 이전 파일의 캐시가 새 파일을 덮어쓰지 않는다. 이미 열려 있는 탭은 자동으로 새 화면으로 바뀌지 않으며 새로고침·새 방문에서 최신 배포를 확인한다.
+
+근거: [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/), [ASSETS binding](https://developers.cloudflare.com/workers/static-assets/binding/), [Vinext static assets response cache](https://github.com/cloudflare/vinext/blob/main/docs/caching.mdx#static-assets-response-cache), [content-visibility](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/content-visibility).
+
+## 검증 범위
+
+변경 전 배포를 기준으로 390px·1440px에서 홈·약관·개인정보·추천의 주요 좌표와 서체 크기·굵기·색을 비교한다. 모달의 viewport 위치, 앵커 진입, 축소 모션, 인쇄, 갤러리 선택량, 폰트 preload·희귀 한글 폴백을 검사한다. 원본 사진 메타데이터 제거와 검색 제외도 유지한다.
+
+Lighthouse 모바일 성능은 변경 전 두 번에 40/62로 호스트 부하에 따른 편차가 컸다. 단일 점수로 고정된 성능 개선을 보장하지 않는다. React 런타임의 코드 커버리지나 이미지 압축 추정치만 보고 필수 코드를 제거하거나 사진 품질을 낮추지 않았다. 측정 원본은 로컬 `.local/performance-audit/`에 보존한다.
+
+최종 배포 수치와 검증 결과는 배포 확인 뒤 아래에 기록한다.

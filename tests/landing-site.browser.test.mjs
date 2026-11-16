@@ -36,6 +36,14 @@ test(
       }
       await page.locator('#why').scrollIntoViewIfNeeded();
       await page.waitForSelector('#analysisChart[data-ready="true"]', { timeout: 20000 });
+      assert.match(
+        await page.evaluate(
+          () =>
+            window.Chart.getChart(document.querySelector('#analysisChart')).options.scales.r
+              .pointLabels.font.family,
+        ),
+        /Manspick Landing Sans/,
+      );
       await page.locator('.selfcheck-chip').nth(1).click();
       assert.match(
         await page.locator('#selfcheck-solution').innerText(),
@@ -136,7 +144,13 @@ test(
             elements.filter((element) => getComputedStyle(element).opacity === '0').length,
         );
       assert.equal(hiddenReveals, 0);
-      assert.equal(await reducedPage.locator('.count-up').first().innerText(), '1,127');
+      const count = reducedPage.locator('.count-up').first();
+      assert.equal(await count.textContent(), '1,127');
+      await count.scrollIntoViewIfNeeded();
+      await reducedPage.waitForFunction(
+        () => document.querySelector('.count-up').innerText === '1,127',
+      );
+      assert.equal(await count.innerText(), '1,127');
       results.push('reduced motion retains readable content and final counts');
       for (const width of [320, 390, 768, 1440]) {
         await reducedPage.setViewportSize({ width, height: 900 });
@@ -155,7 +169,7 @@ test(
       assert.equal(await reducedPage.locator('#before-after .ba-tag').count(), 6);
       assert.equal(await reducedPage.locator('#before-after img').count(), 12);
       assert.equal(await reducedPage.locator('#faq details').count(), 11);
-      assert.match(await reducedPage.locator('#pricing').innerText(), /85,000/);
+      assert.match(await reducedPage.locator('#pricing').textContent(), /85,000/);
       await reducedPage.locator('img').evaluateAll(async (images) => {
         images.forEach((image) => {
           image.loading = 'eager';

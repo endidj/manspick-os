@@ -2,7 +2,6 @@
 import { pageMetadata } from '../../features/seo';
 import Link from 'next/link';
 import '@manspick/design-system/styles/site-tokens.css';
-import source from '../../features/landing/source.module.css';
 import styles from '../../features/legal/source-legal.module.css';
 
 export const metadata = pageMetadata({
@@ -15,7 +14,7 @@ export const dynamic = 'error';
 
 export default function Page() {
   return (
-    <main id="main-content" className={source.root + ' ' + styles.root}>
+    <main id="main-content" className={styles.root}>
       <div className="max-w-3xl mx-auto px-6 py-16 md:py-24">
         {'\n    '}
         <Link

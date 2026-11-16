@@ -138,7 +138,7 @@ function radarConfiguration(
           pointLabels: {
             color: text,
             font: {
-              family: semanticTokens.font.body,
+              family: tokens.fontFamily,
               size: parseFloat(token('--mp-site-type-font-size-12px')),
               weight: token('--mp-site-type-font-weight-500'),
             },
@@ -152,7 +152,7 @@ function radarConfiguration(
           labels: {
             color: white,
             font: {
-              family: semanticTokens.font.body,
+              family: tokens.fontFamily,
               size: parseFloat(token('--mp-site-type-font-size-13px')),
             },
             padding: 18,

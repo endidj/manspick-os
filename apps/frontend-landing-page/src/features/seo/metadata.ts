@@ -1,6 +1,9 @@
 // 페이지별 검색·공유 메타데이터를 동일한 운영 주소와 색인 정책으로 만듭니다.
 import type { Metadata } from 'next';
 import { brandedPageTitle, resolveSiteSettings } from './settings';
+import faviconUrl from './icons/favicon.ico?url';
+import appleTouchIconUrl from './icons/apple-touch-icon.png?url';
+import largeIconUrl from './icons/icon-256.png?url';
 
 const settings = resolveSiteSettings(process.env.NEXT_PUBLIC_SITE_ORIGIN);
 
@@ -66,7 +69,14 @@ export const siteMetadata: Metadata = {
   applicationName: '맨즈픽 MANSPICK',
   authors: [{ name: 'MANSPICK' }],
   formatDetection: { telephone: false },
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: [
+      { url: largeIconUrl, type: 'image/png', sizes: '256x256' },
+      { url: faviconUrl, type: 'image/vnd.microsoft.icon', sizes: '16x16 32x32 48x48' },
+    ],
+    shortcut: faviconUrl,
+    apple: { url: appleTouchIconUrl, type: 'image/png', sizes: '180x180' },
+  },
   verification: {
     other: { 'naver-site-verification': '3a8644c743cbd24fbda9a9fe605e5c9f156b3e09' },
   },

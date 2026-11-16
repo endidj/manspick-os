@@ -3,7 +3,7 @@ import { SourceExperience } from './source-experience';
 import { SourceBackdrop, SourceNavigation, SourceOverlays, SourceFooter } from './source-chrome';
 import { SourceHero } from './source-hero';
 import { SourceProof } from './source-proof';
-import { SourceHow } from './source-how';
+import { SourceHow, SourceTeamModal } from './source-how';
 import { SourceReviews } from './source-reviews';
 import { SourceOffer } from './source-offer';
 
@@ -19,6 +19,7 @@ export function LandingPage() {
         <SourceReviews />
         <SourceOffer />
       </main>
+      <SourceTeamModal />
       <SourceOverlays />
       <SourceFooter />
     </SourceExperience>

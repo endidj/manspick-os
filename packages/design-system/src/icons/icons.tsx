@@ -2,6 +2,7 @@
 import type { CSSProperties, HTMLAttributes } from 'react';
 import { iconManifest } from './manifest';
 import type { IconName } from './manifest';
+import styles from './icons.module.css';
 
 export interface IconProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children' | 'color'> {
   name: IconName;
@@ -10,7 +11,7 @@ export interface IconProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'childr
   label?: string;
 }
 
-export function Icon({ name, size = 24, color, label, style, ...props }: IconProps) {
+export function Icon({ name, size = 24, color, label, style, className, ...props }: IconProps) {
   const accessibleLabel = label ?? props['aria-label'];
   const labelled = Boolean(accessibleLabel || props['aria-labelledby']);
   const mask = 'url("' + iconManifest[name] + '")';
@@ -21,22 +22,12 @@ export function Icon({ name, size = 24, color, label, style, ...props }: IconPro
       aria-hidden={labelled ? undefined : true}
       aria-label={accessibleLabel}
       data-icon={name}
+      className={`${styles.icon}${className ? ` ${className}` : ''}`}
       style={{
-        display: 'inline-block',
         width: size,
         height: size,
-        flexShrink: 0,
-        verticalAlign: 'middle',
         color,
-        backgroundColor: 'currentColor',
-        maskImage: mask,
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-        maskSize: 'contain',
-        WebkitMaskImage: mask,
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        WebkitMaskSize: 'contain',
+        ...({ '--mp-icon-mask': mask } as CSSProperties),
         ...style,
       }}
     />

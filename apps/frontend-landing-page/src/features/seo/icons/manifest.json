@@ -1,0 +1,24 @@
+{
+  "sourceSha256": "98963b29d8487c66ba5a5a43e79169970c5ec34c1919a20213ad93bafe9442c9",
+  "options": {
+    "version": 1,
+    "sharp": "0.35.5",
+    "sizes": [16, 32, 48, 180, 256],
+    "compressionLevel": 9,
+    "adaptiveFiltering": true
+  },
+  "files": {
+    "favicon.ico": {
+      "bytes": 6721,
+      "sha256": "d797752f667f1a1a1e36a98bde7debfa44fa1c51d280c3eb15ee89b16129a7da"
+    },
+    "apple-touch-icon.png": {
+      "bytes": 33089,
+      "sha256": "33ccc125196a4b5aeb56715de8184e4c1875ea81b366b4c13e0f4e5bfd0d5bf6"
+    },
+    "icon-256.png": {
+      "bytes": 54953,
+      "sha256": "ad1e6665d9a07ee74158e71ca4d668bc7b286f8a8c169f18df91f46a35d2cd2f"
+    }
+  }
+}

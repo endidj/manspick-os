@@ -129,6 +129,37 @@ export const SizesAndColors: Story = {
       ))}
     </div>
   ),
+
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const size of [16, 20, 24, 32, 48]) {
+      const icon = canvas.getByRole('img', { name: `${size}px 촬영` });
+      const style = getComputedStyle(icon);
+      await expect(style.width).toBe(`${size}px`);
+      await expect(style.height).toBe(`${size}px`);
+      await expect(style.backgroundColor).toBe(style.color);
+      await expect(style.maskImage).toContain('svg');
+      await expect(style.maskSize).toBe('contain');
+    }
+  },
+};
+
+export const StyleOverride: Story = {
+  args: {
+    label: '스타일 재정의',
+    className: 'custom-icon',
+    style: { width: '32px', height: '20px', verticalAlign: '0px', opacity: 0.5 },
+  },
+
+  play: async ({ canvasElement }) => {
+    const icon = within(canvasElement).getByRole('img', { name: '스타일 재정의' });
+    const style = getComputedStyle(icon);
+    await expect(icon).toHaveClass('custom-icon');
+    await expect(style.width).toBe('32px');
+    await expect(style.height).toBe('20px');
+    await expect(style.verticalAlign).toBe('0px');
+    await expect(style.opacity).toBe('0.5');
+  },
 };
 
 export const Decorative: Story = {
