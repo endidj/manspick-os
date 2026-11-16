@@ -5,7 +5,7 @@ import '@manspick/design-system/styles.css';
 export const metadata: Metadata = {
   title: '맨즈픽 · 나의 촬영',
   description: '촬영 준비부터 가장 나다운 사진을 만나는 순간까지.',
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, noarchive: true, noimageindex: true },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

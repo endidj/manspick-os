@@ -1,0 +1,367 @@
+{
+  "source": "https://github.com/JeongWhale/manspick-site",
+  "commit": "54f4a375b5c3babe9f9bb82ac423c4be6686fb60",
+  "live": "https://www.manspick.co.kr/",
+  "files": [
+    {
+      "file": "cross-check-1.jpg",
+      "bytes": 3818436,
+      "sha256": "bcd7aabb0a2c08ed183eab1f4b6db8446ded4542a0ab1388d39f019b42942b30"
+    },
+    {
+      "file": "cross-check-2.jpg",
+      "bytes": 378436,
+      "sha256": "9ad300e935ee6fb2fc8f81bdcd1aa9a7d2f0145479ae1b69983ca2e47cf1d539"
+    },
+    {
+      "file": "grooming-guide.jpg",
+      "bytes": 68902,
+      "sha256": "489f1756432b9cd1fb94f2325a9502c9105e137fe8dc2133600cba45a94d64da"
+    },
+    {
+      "file": "hero-after-1.png",
+      "bytes": 282885,
+      "sha256": "c4594ccbd00b39afb65db21db0e932f3feaf4dec81bcf2f2b29bf77b06ef9315"
+    },
+    {
+      "file": "hero-after-2.png",
+      "bytes": 329125,
+      "sha256": "aede77a8dcd8a0f110cfa989dd360173da01c99580242704bf34bbb9566c0001"
+    },
+    {
+      "file": "hero-after-3.png",
+      "bytes": 300537,
+      "sha256": "df0b441df11268384b044706f75eb46c775260dd7c5adba3aab0c42a849d39e1"
+    },
+    {
+      "file": "hero-after-4.png",
+      "bytes": 268600,
+      "sha256": "5b20c0368ef339f078074acdfd1976c057ff66c01616b2c08173d5f6c1f9a911"
+    },
+    {
+      "file": "hero-after-5.png",
+      "bytes": 262751,
+      "sha256": "f99ff3824d4fbf86eb1cd813218b645aef4402dba57975189634856c6188ef32"
+    },
+    {
+      "file": "hero-after-6.png",
+      "bytes": 287114,
+      "sha256": "3a3a0b418ed7438bd38173056848c6eb2e16043b536fb6ba6e9fab6552c40bea"
+    },
+    {
+      "file": "hero-before-1.png",
+      "bytes": 195968,
+      "sha256": "a4b9ea7b4b16cca5245cf06576e91227178fffd795c5e096122629674c1c9395"
+    },
+    {
+      "file": "hero-before-2.png",
+      "bytes": 137182,
+      "sha256": "26faf93cd7355f37ed828ec6bb113313c7132e87d4125f23cd625c2411511109"
+    },
+    {
+      "file": "hero-before-3.png",
+      "bytes": 118374,
+      "sha256": "99445476aef1022ccf30e8bb16265847df5e063b1bb9bef83c251703bc13084e"
+    },
+    {
+      "file": "hero-before-4.png",
+      "bytes": 167174,
+      "sha256": "7892196ce9cdcf5a233401216be215c38eb5bc21ce72cc105b13926b270cddd1"
+    },
+    {
+      "file": "hero-before-5.png",
+      "bytes": 215310,
+      "sha256": "4adde9a8db3c046cbd6f79ddfbe733ca6c41ee156b76c8863944018d25fa1495"
+    },
+    {
+      "file": "hero-before-6.png",
+      "bytes": 157413,
+      "sha256": "b713a00d0cf8002d1be7a280954abb2e6540822e79543262ba01e951a99e9971"
+    },
+    {
+      "file": "location-1.jpg",
+      "bytes": 1728202,
+      "sha256": "f53a9842a7bb1a134e9743732a7344528788b50836f0ea7a82d9cfbe7f3a9bed"
+    },
+    {
+      "file": "location-2.jpg",
+      "bytes": 598231,
+      "sha256": "317ca458c298bae541aa026b726624d275e71ad9be35a178d0e8381c092c0b4c"
+    },
+    {
+      "file": "location-3.jpg",
+      "bytes": 465372,
+      "sha256": "e78b2777b554b742b61dbbbf0773537a1efc41b8b54f1ea4bc671b97217ae8b1"
+    },
+    {
+      "file": "peace.jpg",
+      "bytes": 264421,
+      "sha256": "d8ad23cf9ecb41d08cc177c0558ac57cf614dee13a946ef9dee355d1c42eaa2b"
+    },
+    {
+      "file": "props-1.jpg",
+      "bytes": 606227,
+      "sha256": "c68929c828aa21da4a93477255efea3bd40eb88ee9e1d75d7110e92173d70d06"
+    },
+    {
+      "file": "props-2.jpg",
+      "bytes": 727835,
+      "sha256": "c0277635fcb5c629f0a7e2696b6643a0d028ed4859953f06ce226f7861f5f919"
+    },
+    {
+      "file": "props-3.jpg",
+      "bytes": 261100,
+      "sha256": "b06fb938129674d2180bfd0f8e9bc778d0f6ae709b440e2d5813a127676d2d80"
+    },
+    {
+      "file": "props-4.jpg",
+      "bytes": 283816,
+      "sha256": "61ae90b41201e5ccaa68b2ca35d9ef3f5c9165dc30457b6a38e5f9552f405563"
+    },
+    {
+      "file": "props-5.jpg",
+      "bytes": 8087074,
+      "sha256": "a5d48d3bb1dcd4d98d9a9c3d9d17e8107c841ab87a3fa64903c4673236922ebb"
+    },
+    {
+      "file": "props-6.jpg",
+      "bytes": 434478,
+      "sha256": "4cc2b402b0bf59ae1005c8e88f57ff1cf413363640b94468bb996889c24c472c"
+    },
+    {
+      "file": "props-7.jpg",
+      "bytes": 83061,
+      "sha256": "85b43a4eb32a2ea6195feda1fdce76a9327b6459917cfb66ead961df079c35f7"
+    },
+    {
+      "file": "props-8.jpg",
+      "bytes": 204484,
+      "sha256": "19d6c70cac52010ad86af4a084d569491a303872a409b8d1f39242a64b88d0a6"
+    },
+    {
+      "file": "retouch-after-1.jpg",
+      "bytes": 155665,
+      "sha256": "5a67c88add8c69eb50c181a073a4ab1373a5f8d3ff87d1a9870d01f13b69e2b1"
+    },
+    {
+      "file": "retouch-after-2.jpg",
+      "bytes": 176117,
+      "sha256": "d7cd4770aae2819b4d2598721195ae4ebe3c6525826f58a75f7601064367b334"
+    },
+    {
+      "file": "retouch-after-3.jpg",
+      "bytes": 174524,
+      "sha256": "30817822eca249dd54c1a2f82e6ef87f43b84102fa8422522ac9ae0cde85cfd7"
+    },
+    {
+      "file": "retouch-before-1.jpg",
+      "bytes": 157698,
+      "sha256": "4bbe432f63e59ca3243a010d1b7f2437811b10c14940444c7ef90cdfdb7a9f43"
+    },
+    {
+      "file": "retouch-before-2.jpg",
+      "bytes": 190491,
+      "sha256": "f04bde8845ce7078141f946a5bfe292a02bd6aa934b44339ef2d513e41b1873c"
+    },
+    {
+      "file": "retouch-before-3.jpg",
+      "bytes": 177617,
+      "sha256": "21760201656957ec85cc0a71b151f206cf38458edab4e34e11362bca09e98c2f"
+    },
+    {
+      "file": "team-hair-1 2.jpg",
+      "bytes": 271107,
+      "sha256": "41559dc5ba8d45be50ed75d021295df045034cc29db5b9b639098a9e964639a5"
+    },
+    {
+      "file": "team-hair-1.jpg",
+      "bytes": 510085,
+      "sha256": "5ea8ab9f36cd703ba4b12ffa9995c7c4f475ecd929b3d2c27b4b7d828aaf37e7"
+    },
+    {
+      "file": "team-hair-2 2.jpg",
+      "bytes": 416422,
+      "sha256": "f3e05bf6d7e959d565289e054b05ee73f44e66d64645bf1c93f3fe21af780c49"
+    },
+    {
+      "file": "team-hair-2.jpg",
+      "bytes": 744123,
+      "sha256": "7aa31d49a32a8183fdb6691069ebd14736261b2573783685d024273ff0f61734"
+    },
+    {
+      "file": "team-hair-3 2.jpg",
+      "bytes": 624950,
+      "sha256": "3d276f9771d467a4b2ee9053fa36b9c890106116ec2176988f3ae309e74ac3b9"
+    },
+    {
+      "file": "team-hair-3.jpg",
+      "bytes": 1037254,
+      "sha256": "0edc166dd06dea3ae12ba26332c2172a0eb01ee1a1c99f3d80d652bc866be9c4"
+    },
+    {
+      "file": "team-hair-4 2.jpg",
+      "bytes": 832328,
+      "sha256": "185cb501d2857113d9ac1cdc284c56ddd7d85cd94b16f016481ec54c7daa308e"
+    },
+    {
+      "file": "team-hair-4.jpg",
+      "bytes": 1393861,
+      "sha256": "8d1fda023a798848ee1ea10b7d0b72cad367e8cd1359fc83e1d4413644fc0e68"
+    },
+    {
+      "file": "team-hair-5 2.jpg",
+      "bytes": 725525,
+      "sha256": "fc0205ce5f4effae8c3cab117e0d970509883e0e0bb5568b932f9e990546f3f5"
+    },
+    {
+      "file": "team-hair-5.jpg",
+      "bytes": 1167447,
+      "sha256": "88c18e23ff3abf56e6fc19dd73cb4d80a1bbf702d1d541901056332065da527f"
+    },
+    {
+      "file": "team-hair-6 2.jpg",
+      "bytes": 223192,
+      "sha256": "c35678040fe5b3c3ce4d55b2ab8c3797a585ee415f4964f78526478c830bf080"
+    },
+    {
+      "file": "team-hair-6.jpg",
+      "bytes": 490063,
+      "sha256": "34849cf3d36d8116f01e1ce32d2b2ecf34b3d94296044ed7b96fe71737c0e794"
+    },
+    {
+      "file": "team-hair-7 2.jpg",
+      "bytes": 217237,
+      "sha256": "973bbbc6b29b58afcbe2caf6abd7f1ed329eb0c77667b0cb68e7f119b7cdf143"
+    },
+    {
+      "file": "team-hair-7.jpg",
+      "bytes": 503854,
+      "sha256": "22a8381a12a518df7d19d050d24f6842371ef06fffcb6d203307a499a2da8e93"
+    },
+    {
+      "file": "team-hair-8 2.jpg",
+      "bytes": 7454303,
+      "sha256": "cdee03917bfa1f3c92a3980ce64490a2add0d7b37227b90b7bfcf0bc0068e577"
+    },
+    {
+      "file": "team-hair-8.jpg",
+      "bytes": 5264101,
+      "sha256": "640c351e499bb657f03d2c44f971cc8f9c3d360c8c44c6469739b10a15cdec6c"
+    },
+    {
+      "file": "team-hair-9 2.jpg",
+      "bytes": 209163,
+      "sha256": "3846391b3f306279a7bd693d9fc634ea5868f9ac0f9801d18beb0a36e2ac9a18"
+    },
+    {
+      "file": "team-hair-9.jpg",
+      "bytes": 382488,
+      "sha256": "82bbf2b2914d48bf1a513d221db086af8c9fde3c368869edf8245e245f6a5ef4"
+    },
+    {
+      "file": "team-influencer-1.jpg",
+      "bytes": 1581333,
+      "sha256": "69d454cda6f277e90e1004a0b8239324d8a8aa2bcaa9be6597cbf8b228933bd4"
+    },
+    {
+      "file": "team-influencer-2.jpg",
+      "bytes": 535648,
+      "sha256": "13d692a6a3c19eb6043c4565cc113d51a78d1efeeb651cb20efca01d2e0c76c5"
+    },
+    {
+      "file": "team-influencer-3.jpg",
+      "bytes": 436289,
+      "sha256": "d7518ae7ef294df2b0fb71efd9c54b6717fd5f7749b2783c5d90ffc00c83d6d0"
+    },
+    {
+      "file": "team-influencer-4.jpg",
+      "bytes": 2440378,
+      "sha256": "dd3f28d3f11abac4693ddf7d2c23cfc7bf8d38496fad12fa046fc36a5e96332a"
+    },
+    {
+      "file": "team-influencer-5.jpg",
+      "bytes": 2611425,
+      "sha256": "843e8d45d50082adcd50c453e0ffd362d410a471db7e9d1e5d77a4ffaabf699b"
+    },
+    {
+      "file": "team-influencer-6.jpg",
+      "bytes": 1474545,
+      "sha256": "6f9eba21d9540a6b6071f0787e27a8d423583ea87b521b9e1bd2b91ba3df72d4"
+    },
+    {
+      "file": "team-influencer-7.JPG",
+      "bytes": 4869815,
+      "sha256": "0981313c28d6e4a022ceea89b13dccc22f764241b55e720a27cdc08907a3c1ff"
+    },
+    {
+      "file": "team-influencer-8.jpg",
+      "bytes": 5846960,
+      "sha256": "e13eafb8aaf45a7a18a065b6e509286d465cbe3493160d878a3df9d424c2b74b"
+    },
+    {
+      "file": "team-influencer-9.jpg",
+      "bytes": 8511439,
+      "sha256": "2dab8ca90acff955769c4d7b1b7131422b8d857aa2b8bbaa67e698bfd1371746"
+    },
+    {
+      "file": "스타일링 포트폴리오 1.png",
+      "bytes": 134169,
+      "sha256": "30a35dda043959a2fa80cfcf681cb1c81a065bb01f940b762be1ca8525cd5305"
+    },
+    {
+      "file": "스타일링 포트폴리오 10.png",
+      "bytes": 159379,
+      "sha256": "23b1efeb5251fbfa8f62e442eed7dc47d795967bdcc309bd1b384ec8eee7325c"
+    },
+    {
+      "file": "스타일링 포트폴리오 11.png",
+      "bytes": 149849,
+      "sha256": "1003071202d037ae885cde51e414b74aa187cbfd2a0e4f2e246bf04d93aadd5a"
+    },
+    {
+      "file": "스타일링 포트폴리오 12.png",
+      "bytes": 124466,
+      "sha256": "fd0d74f85dd3f8e3ae467e99d31ab19510c4d8924c87b1aeba0bc3b7059edd95"
+    },
+    {
+      "file": "스타일링 포트폴리오 2.png",
+      "bytes": 144879,
+      "sha256": "dde0b8a6e57296c237d1737bffefbd6ba5b3ba718332e11c5bb9f0d2e0823966"
+    },
+    {
+      "file": "스타일링 포트폴리오 3.png",
+      "bytes": 144637,
+      "sha256": "ab214680a7fc0eee1989d77ead5e315a5ad3cd50b7f3e84db738447ccfa4a888"
+    },
+    {
+      "file": "스타일링 포트폴리오 4.png",
+      "bytes": 114607,
+      "sha256": "37f476a682fd17ce983e7862c830fd33be738c0cc9b56bffbf153b514ff1b33e"
+    },
+    {
+      "file": "스타일링 포트폴리오 5.png",
+      "bytes": 140095,
+      "sha256": "0c34fc3414579d2ff37363ba523fd7149073e6157c1d1547b3b104da517eec55"
+    },
+    {
+      "file": "스타일링 포트폴리오 6.png",
+      "bytes": 143027,
+      "sha256": "71e55b04bf0815ce026f5f1cdc1e8fdec299b08e06b36becd4e505161b9748c9"
+    },
+    {
+      "file": "스타일링 포트폴리오 7.png",
+      "bytes": 139559,
+      "sha256": "e6666032f5a08e296172316d475eb90a89c6e6314132c6fc8e8ac1ab455dca7e"
+    },
+    {
+      "file": "스타일링 포트폴리오 8.png",
+      "bytes": 130525,
+      "sha256": "3a4f31f2c83522d4a2cdc8c9d84753f6160c8a5733568c26ddb967202eb98ee5"
+    },
+    {
+      "file": "스타일링 포트폴리오 9.png",
+      "bytes": 79695,
+      "sha256": "a737b86316e6ce99ed81836459c3f3ded7dc7c94432323f5007fb49b93f73973"
+    }
+  ]
+}

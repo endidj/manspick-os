@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import '@manspick/design-system/styles.css';
 export const metadata: Metadata = {
   title: '맨즈픽 OS · 운영',
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, noarchive: true, noimageindex: true },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

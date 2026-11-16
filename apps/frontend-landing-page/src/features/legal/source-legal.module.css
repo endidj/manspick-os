@@ -1,0 +1,44 @@
+/* 원본 약관 화면에서만 쓰는 목록·본문 간격을 공용 토큰으로 보완합니다. */
+.root {
+  font-family: var(--mp-site-type-font-family-pretendard-geist-system-ui-sans-serif);
+}
+
+.root :global(.py-16) {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.root :global(.mt-16) {
+  margin-top: 4rem;
+}
+
+@media (min-width: 768px) {
+  .root :global(.md\:py-24) {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+.root :global(.leading-\[1\.9\]) {
+  line-height: var(--mp-site-type-line-height-1-9);
+}
+
+.root :global(.list-disc) {
+  list-style-type: disc;
+}
+
+.root :global(.list-decimal) {
+  list-style-type: decimal;
+}
+
+.root :global(.list-none) {
+  list-style-type: none;
+}
+
+.root :global(.pl-5) {
+  padding-left: 1.25rem;
+}
+
+.root :global(.space-y-10 > :not([hidden]) ~ :not([hidden])) {
+  margin-top: 2.5rem;
+}

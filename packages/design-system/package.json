@@ -18,7 +18,8 @@
     "./styles": "./src/styles/base.css",
     "./styles.css": "./src/styles/base.css",
     "./styles/tokens.css": "./src/styles/tokens.css",
-    "./styles/fonts.css": "./src/styles/fonts.css"
+    "./styles/fonts.css": "./src/styles/fonts.css",
+    "./styles/site-tokens.css": "./src/styles/site-tokens.css"
   },
   "peerDependencies": {
     "react": "^19.0.0"

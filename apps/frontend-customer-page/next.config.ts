@@ -7,10 +7,13 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        source: '/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, noimageindex' }],
+      },
+      {
         source: '/s/:path*',
         headers: [
           { key: 'Referrer-Policy', value: 'no-referrer' },
-          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
           { key: 'Cache-Control', value: 'private, no-store' },
         ],
       },

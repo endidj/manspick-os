@@ -1,13 +1,17 @@
 // 공개 페이지에 공통 메타데이터·폰트·기본 스타일을 적용합니다.
-import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import type { Viewport } from 'next';
+import { semanticTokens } from '@manspick/design-system/tokens';
 import '@manspick/design-system/styles.css';
+import { siteMetadata } from '../features/seo';
 
-export const metadata: Metadata = {
-  title: { default: '맨즈픽 — 자연스러운 나의 매력', template: '%s | 맨즈픽' },
-  description:
-    '남성을 위한 스타일링과 프로필 사진. 나에게 맞는 스타일을 찾고, 자연스러운 나의 매력을 담습니다.',
-  robots: { index: false, follow: false },
+export const metadata = siteMetadata;
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: semanticTokens.color.background.base,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

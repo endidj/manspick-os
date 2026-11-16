@@ -23,6 +23,7 @@ src/
   assets/
     icons/, fonts/          # 변경하지 않은 원본과 라이선스
     brand/                  # 브랜드 PNG 원본47개·WebP·manifest·Storybook
+    site/                   # manspick-site 원본 사진72개·URL 목록·SHA-256 manifest
     manifest.ts             # 자산 수량·출처·로컬 보관 상태
     index.ts
   styles/
@@ -130,6 +131,8 @@ import { Icon } from '@manspick/design-system/icons';
 - 브랜드 사진 **47개**를 Figma `99 Assets`(12:4)에서 PNG 3x로 가져왔다. 540×720px 원본 22,612,477바이트를 보존하고 같은 크기의 WebP 47개·2,300,354바이트를 앱에서 사용한다. 이전 38개 목록에 styling 2~9·12를 더한 실제 수량이다. [브랜드 README](src/assets/brand/README.md)와 [내보내기 manifest](src/assets/brand/figma-export-manifest.json)에 원본·압축본 해시와 출처를 기록하며, `/assets`의 `brandImages`·`BrandImageName`으로 참조한다. `Foundations/Brand images` Storybook은 47개 로딩을 확인한다. 고객 사진·설문·보정본은 공용 패키지에 저장하지 않는다.
 
 ## 소비자가 지켜야 할 계약
+
+랜딩 포팅의 `sourceImageUrls`·`SourceImageName`은 `JeongWhale/manspick-site` 커밋 `54f4a375b5c3babe9f9bb82ac423c4be6686fb60`의 원본 사진 72개를 제공한다. 운영 사이트와 해시가 모두 일치하며 픽셀·자르기를 변경하지 않는다. 경로·SHA-256과 용도는 [사이트 자산 기록](src/assets/site/README.md)에 있다. 기존 `brandImages` 계약은 유지한다. 원본 전용 색상·타입 값은 `/styles/site-tokens.css`로 제공한다.
 
 Button의 기본 type은 button이다. 폼 제출에는 `type="submit"`을 지정한다. 아이콘만 넣는 버튼에는 aria-label을 준다. DateCell은 aria-label에 보이는 day를 접두사로 보존한다. PhotoTile의 label은 footer의 보이는 컷 번호를 포함해야 한다.
 

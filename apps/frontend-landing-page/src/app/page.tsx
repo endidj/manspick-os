@@ -1,17 +1,21 @@
-// 피그마의 섹션 순서대로 맨즈픽 서비스 소개 화면을 보여줍니다.
+// 원본 사이트를 React 서버 화면으로 제공하고 검색 메타데이터를 연결합니다.
 import { LandingPage } from '../features/landing';
-import { SiteFooter, SiteHeader } from '../features/site';
-import { loadPublicCatalog } from '../features/site/catalog';
+import { pageMetadata, StructuredData } from '../features/seo';
+
+export const metadata = pageMetadata({
+  title: '남자 프로필사진·소개팅사진·이미지컨설팅',
+  description:
+    '남성 전문 프로필 사진과 이미지 컨설팅. 의상·공간·보정·디렉팅까지 맨즈픽에서 나다운 첫인상을 준비하세요.',
+  path: '/',
+});
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
-  const catalog = await loadPublicCatalog();
+export default function HomePage() {
   return (
     <>
-      <SiteHeader />
-      <LandingPage catalog={catalog} />
-      <SiteFooter />
+      <StructuredData />
+      <LandingPage />
     </>
   );
 }
