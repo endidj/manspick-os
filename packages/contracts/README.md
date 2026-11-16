@@ -10,4 +10,6 @@ import type { ShootDetail, SessionDTO, ShootAction } from '@manspick/contracts';
 
 계약 변경은 `src/contracts.ts`에서 하고, 서버와 앱의 타입 검사 및 관련 HTTP 회귀 검사를 함께 실행합니다. 새 타입을 만들기 전 기존 DTO와 도메인 타입을 먼저 확인합니다.
 
+`BookingResultDTO`는 예약 접수 결과를 공유합니다. `bookingAccess`는 공개 테스트의 신규 예약을 개인 촬영 화면으로 연결하며, `localAccess`는 로컬 시연 확인 정보입니다. 일반 운영·기존 예약의 링크 조회 권한을 추가하지 않습니다.
+
 상품 DTO의 스팟·난이도·별칭·옵션 수량 규칙은 기존 예약 스냅샷과 호환되도록 선택 항목입니다. 관리자 설정의 `policy`는 도메인의 `OperationsPolicy` 타입을 참조합니다. 촬영 상세의 `retouchUnitPrice`·`extraRetouchAvailable`은 현재 추가 주문의 단가·판매 상태이며, 이미 접수한 주문 금액은 결제 DTO에 저장한 값을 사용합니다.

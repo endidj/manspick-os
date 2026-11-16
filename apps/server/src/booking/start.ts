@@ -9,10 +9,10 @@ import {
   validateCatalogQuantities,
   additionalDifficultyWeight,
 } from '@manspick/domain';
-import type { AddonDTO } from '@manspick/contracts';
+import type { AddonDTO, BookingResultDTO } from '@manspick/contracts';
 import { batch, first, statement } from '../database/statements.ts';
 import { requiredText } from '../http/input.ts';
-import { localDemo } from '../runtime/env.ts';
+import { isCustomerTestRequest, localDemo } from '../runtime/env.ts';
 import type { Env } from '../runtime/env.ts';
 import { hash, id } from '../security/crypto.ts';
 import { newCustomerToken } from '../security/customer-token.ts';
@@ -34,7 +34,11 @@ async function activeBooking(env: Env, phone: string) {
   );
 }
 
-export async function start(request: Request, env: Env, body: Record<string, unknown>) {
+export async function start(
+  request: Request,
+  env: Env,
+  body: Record<string, unknown>,
+): Promise<BookingResultDTO> {
   const name = requiredText(body, 'name', 40);
   const phone = normalizePhone(requiredText(body, 'phone', 20));
   let packageId = requiredText(body, 'packageId', 80);
@@ -70,6 +74,7 @@ export async function start(request: Request, env: Env, body: Record<string, unk
   if (rate && rate.count > 20)
     throw new DomainError('RATE_LIMITED', '잠시 후 다시 시도해주세요.', 429);
   const demo = localDemo(request, env);
+  const customerTest = isCustomerTestRequest(request, env);
   const accepted = {
     accepted: true as const,
     message: demo
@@ -279,7 +284,9 @@ export async function start(request: Request, env: Env, body: Record<string, unk
         shootId,
         demo
           ? '로컬 접수 안내: 외부 발송 없음'
-          : '신규 접수: 고객용 접속 링크를 발급해 등록한 번호로 직접 안내해주세요.',
+          : customerTest
+            ? '테스트 신규 접수: 고객이 완료 화면의 개인 링크로 입금 안내를 확인합니다. 입금 확인 후 설문을 작성할 수 있습니다.'
+            : '신규 접수: 고객용 접속 링크를 발급해 등록한 번호로 직접 안내해주세요.',
         now.toISOString(),
       ),
       statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard),
@@ -288,6 +295,13 @@ export async function start(request: Request, env: Env, body: Record<string, unk
       await batch(env, statements);
       return {
         ...accepted,
+        ...(customerTest
+          ? {
+              message:
+                '아래 버튼에서 입금 안내와 진행상태를 확인해주세요. 입금 확인이 끝나면 설문을 작성할 수 있어요.',
+              bookingAccess: { token },
+            }
+          : {}),
         ...(demo ? { localAccess: { token, last4: phone.slice(-4), shootId } } : {}),
       };
     } catch (error) {

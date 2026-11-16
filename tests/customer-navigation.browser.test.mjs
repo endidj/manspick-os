@@ -91,6 +91,7 @@ async function mockApi(page) {
   const requests = {
     authentication: [],
     bookings: [],
+    bookingResult: { accepted: true, message: '예약 확인을 기다려주세요.' },
     actions: [],
     shootReads: 0,
     shoot,
@@ -105,7 +106,7 @@ async function mockApi(page) {
       data = { days: [{ date: '2099-12-20', slots: [{ time: '13:00', available: true }] }] };
     } else if (path === '/api/start') {
       requests.bookings.push(route.request().postDataJSON());
-      data = { message: '예약 확인을 기다려주세요.' };
+      data = requests.bookingResult;
     } else if (path === '/api/auth/customer') {
       requests.authentication.push(route.request().postDataJSON());
       data = { shootId: shoot.id, actor: { kind: 'customer', shootId: shoot.id } };
@@ -263,6 +264,11 @@ test(
           await page.getByRole('button', { name: '이 시간으로 예약하기' }).click();
           await expectPath(page, '/start/complete');
           await page.getByRole('heading', { name: '예약 요청을 접수했어요' }).waitFor();
+          await page.getByText(/이미 안내받은 개인 촬영 링크가 있다면/).waitFor();
+          assert.equal(
+            await page.getByRole('link', { name: '입금 안내 확인하고 계속하기' }).count(),
+            0,
+          );
           assert.equal(requests.bookings.length, 1);
           await page.goBack();
           await expectPath(page, '/start/complete');
@@ -271,6 +277,76 @@ test(
         },
         { width: 1280, height: 900 },
       );
+
+      for (const access of ['public-test', 'local']) {
+        await scenario(
+          `${access} booking completion connects to payment authentication and survey`,
+          async (page, requests) => {
+            requests.bookingResult = {
+              accepted: true,
+              message: '예약 확인을 기다려주세요.',
+              ...(access === 'local'
+                ? {
+                    localAccess: {
+                      token: 'new-booking-token',
+                      last4: '1234',
+                      shootId: requests.shoot.id,
+                    },
+                  }
+                : { bookingAccess: { token: 'new-booking-token' } }),
+            };
+            Object.assign(requests.shoot, {
+              status: 'payment_pending',
+              stage: 2,
+              paymentState: 'pending',
+            });
+            await page.goto(`${appUrl}/start`);
+            await page.getByRole('button', { name: '다음: 기본정보 남기기' }).click();
+            await fillBookingDetails(page);
+            await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
+            await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
+            await page.getByRole('button', { name: '13:00', exact: true }).click();
+            await page.getByRole('button', { name: '이 시간으로 예약하기' }).click();
+            await expectPath(page, '/start/complete');
+            await page.getByText('입금 확인이 끝나면 설문을 작성할 수 있어요.').waitFor();
+            assert.equal(await page.getByText(/확인 번호:/).count(), access === 'local' ? 1 : 0);
+            const continueLink = page.getByRole('link', { name: '입금 안내 확인하고 계속하기' });
+            assert.equal(await continueLink.getAttribute('href'), '/s/new-booking-token/payment');
+            await page.screenshot({
+              path: `${screenshots}/booking-complete-${access}.png`,
+              fullPage: true,
+            });
+            await continueLink.click();
+            await expectPath(page, '/s/new-booking-token/payment');
+            await page.getByRole('heading', { name: '고객님이 맞으신가요?' }).waitFor();
+            assert.equal(await page.getByRole('button', { name: '입금했어요' }).count(), 0);
+            await signIn(page);
+            assert.equal(requests.authentication.at(-1).token, 'new-booking-token');
+            await page.getByRole('button', { name: '입금했어요', exact: true }).click();
+            await page.getByRole('heading', { name: '입금 확인을 기다리고 있어요' }).waitFor();
+            assert.equal(requests.shoot.paymentState, 'pending');
+            assert.equal(
+              await page.getByRole('button', { name: '설문 작성하기', exact: true }).count(),
+              0,
+            );
+            assert.equal(
+              requests.actions.some((action) => action.type === 'save_survey'),
+              false,
+            );
+            Object.assign(requests.shoot, {
+              status: 'survey_pending',
+              stage: 3,
+              paymentState: 'confirmed',
+            });
+            await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
+            await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
+            await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
+            await expectPath(page, '/s/new-booking-token/survey/1');
+            await page.getByRole('heading', { name: '먼저 고객님을 알려주세요' }).waitFor();
+            assert.equal(requests.bookings.length, 1);
+          },
+        );
+      }
 
       await scenario(
         'fresh booking deep links require details and a real completion result',

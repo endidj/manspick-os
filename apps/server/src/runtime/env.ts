@@ -13,6 +13,8 @@ export interface Env {
   CUSTOMER_APP_ORIGIN?: string;
   // 비공개 테스트 Worker가 관리자 앱의 요청에만 설정합니다.
   ADMIN_TEST?: boolean;
+  // 비공개 테스트 Worker가 고객 앱의 신규 예약 연결에만 설정합니다.
+  CUSTOMER_TEST?: boolean;
 }
 
 export function appOrigin(value: string | undefined, allowLocal = false) {
@@ -43,6 +45,14 @@ export function isAdminTestRequest(request: Request, env: Env) {
   return (
     env.ADMIN_TEST === true &&
     request.headers.get('X-Manspick-Surface') === 'admin' &&
+    new URL(request.url).protocol === 'https:'
+  );
+}
+
+export function isCustomerTestRequest(request: Request, env: Env) {
+  return (
+    env.CUSTOMER_TEST === true &&
+    request.headers.get('X-Manspick-Surface') === 'user' &&
     new URL(request.url).protocol === 'https:'
   );
 }

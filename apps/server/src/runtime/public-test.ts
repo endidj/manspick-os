@@ -7,7 +7,12 @@ export function publicTestWorker(handler: (request: Request, env: Env) => Promis
       const surface = request.headers.get('X-Manspick-Surface') ?? '';
       if (!['landing', 'user', 'admin'].includes(surface))
         return new Response(null, { status: 404 });
-      return handler(request, { ...env, LOCAL_DEMO: 'false', ADMIN_TEST: surface === 'admin' });
+      return handler(request, {
+        ...env,
+        LOCAL_DEMO: 'false',
+        ADMIN_TEST: surface === 'admin',
+        CUSTOMER_TEST: surface === 'user',
+      });
     },
   };
 }
