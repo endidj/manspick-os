@@ -11,7 +11,9 @@ import {
   STATUS_DEFINITIONS,
 } from '../packages/domain/src/index.ts';
 import { handleRequest, testWorker } from './helpers/server.ts';
+import { publicTestWorker } from '../apps/server/src/runtime/public-test.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
+import { hash } from '../apps/server/src/security/crypto.ts';
 import type {
   OperationsSettingsDTO,
   ScheduleDTO,
@@ -310,7 +312,7 @@ test('operator reissues a customer link and revokes both the old token and activ
   const url = new URL(data.url);
   assert.equal(url.origin, 'http://localhost:3001');
   const token = url.pathname.split('/').at(-1)!;
-  assert.equal(token.length, 64);
+  assert.match(token, /^[A-Za-z0-9]{10}$/);
   await expectError(await api('/api/session', { cookie: customer }), 401, 'UNAUTHENTICATED');
   await expectError(
     await api('/api/auth/customer', {
@@ -336,6 +338,134 @@ test('operator reissues a customer link and revokes both the old token and activ
       .get()?.n,
     1,
   );
+});
+
+test('new bookings use ten-character customer links while sessions and legacy links remain valid', async () => {
+  const { api, db } = setup();
+  const created = await api('/api/start', {
+    method: 'POST',
+    body: bookingInput(futureBookingDate(), '11:00', '01000002501'),
+  });
+  assert.equal(created.status, 201);
+  const access = (await bookingResponse(created)).localAccess!;
+  assert.match(access.token, /^[A-Za-z0-9]{10}$/);
+  const stored = db.database
+    .prepare('SELECT access_token_hash FROM shoots WHERE id=?')
+    .get(access.shootId);
+  assert.equal(stored?.access_token_hash, await hash(access.token));
+  const cookie = await customerLogin(api, access.token, access.last4);
+  assert.match(cookie.split('=')[1]!, /^[a-f0-9]{64}$/);
+  assert.equal((await api(`/api/shoots/${access.shootId}`, { cookie })).status, 200);
+  assert.equal((await api('/api/shoots/demo-payment', { cookie })).status, 404);
+
+  const legacy = 'ab'.repeat(32);
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(legacy));
+  const legacyCookie = await customerLogin(api, legacy, '1001');
+  assert.equal((await api('/api/shoots/demo-payment', { cookie: legacyCookie })).status, 200);
+});
+
+test('customer link reissue skips existing tokens including its own old token', async (context) => {
+  const { api, db } = setup();
+  const staff = await login(api, 'staff');
+  const oldToken = '0000000000';
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(oldToken));
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-selection'")
+    .run(await hash('1111111111'));
+  let attempt = 0;
+  const rng = context.mock.method(crypto, 'getRandomValues', (bytes: Uint8Array) => {
+    bytes.fill(attempt++);
+    return bytes;
+  });
+  const response = await api('/api/auth/customer-link/demo-payment', {
+    method: 'POST',
+    cookie: staff,
+  });
+  rng.mock.restore();
+  assert.equal(response.status, 200);
+  const token = new URL(((await response.json()) as { data: { url: string } }).data.url).pathname
+    .split('/')
+    .at(-1)!;
+  assert.equal(token, '2222222222');
+  assert.equal(attempt, 3);
+  await expectError(
+    await api('/api/auth/customer', { method: 'POST', body: { token: oldToken, last4: '1001' } }),
+    401,
+    'AUTH_FAILED',
+  );
+  assert.equal(
+    (await api('/api/shoots/demo-payment', { cookie: await customerLogin(api, token, '1001') }))
+      .status,
+    200,
+  );
+});
+
+test('exhausted customer token collisions preserve the old link, session and history', async (context) => {
+  const { api, db } = setup();
+  const staff = await login(api, 'staff');
+  const token = '0000000000';
+  db.database
+    .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+    .run(await hash(token));
+  const customer = await customerLogin(api, token, '1001');
+  const before = db.database
+    .prepare("SELECT access_token_hash,version,token_version FROM shoots WHERE id='demo-payment'")
+    .get();
+  const historyBefore = db.database
+    .prepare("SELECT COUNT(*) AS n FROM timeline WHERE shoot_id='demo-payment'")
+    .get()?.n;
+  const rng = context.mock.method(crypto, 'getRandomValues', (bytes: Uint8Array) => bytes.fill(0));
+  await expectError(
+    await api('/api/auth/customer-link/demo-payment', { method: 'POST', cookie: staff }),
+    503,
+    'CUSTOMER_LINK_UNAVAILABLE',
+  );
+  assert.equal(rng.mock.callCount(), 5);
+  rng.mock.restore();
+  assert.deepEqual(
+    db.database
+      .prepare("SELECT access_token_hash,version,token_version FROM shoots WHERE id='demo-payment'")
+      .get(),
+    before,
+  );
+  assert.equal(
+    db.database.prepare("SELECT COUNT(*) AS n FROM timeline WHERE shoot_id='demo-payment'").get()
+      ?.n,
+    historyBefore,
+  );
+  assert.equal((await api('/api/shoots/demo-payment', { cookie: customer })).status, 200);
+});
+
+test('a customer token collision during booking rolls back without reporting a sold-out slot', async (context) => {
+  const { api, db } = setup();
+  const batch = db.batch.bind(db);
+  const originalCount = db.database.prepare('SELECT COUNT(*) AS n FROM shoots').get()?.n;
+  context.mock.method(db, 'batch', async (statements: LocalStatement[]) => {
+    const insert = statements.find((statement) => statement.sql.includes('INSERT INTO shoots('));
+    if (insert)
+      db.database
+        .prepare("UPDATE shoots SET access_token_hash=? WHERE id='demo-payment'")
+        .run(insert.values[2]!);
+    return batch(statements);
+  });
+  await expectError(
+    await api('/api/start', {
+      method: 'POST',
+      body: bookingInput(futureBookingDate(), '11:00', '01000002502'),
+    }),
+    503,
+    'CUSTOMER_LINK_UNAVAILABLE',
+  );
+  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM shoots').get()?.n, originalCount);
+  assert.equal(
+    db.database.prepare("SELECT COUNT(*) AS n FROM customers WHERE phone='01000002502'").get()?.n,
+    0,
+  );
+  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM mutation_guards').get()?.n, 0);
 });
 
 class LocalStatement {
@@ -1659,6 +1789,119 @@ test('the private test Worker accepts the admin proxy without a browser password
   assert.equal((await testWorker.fetch(request('user'), env)).status, 404);
 });
 
+test('shared test API connects customer bookings and admin-issued links while isolating surface sessions', async () => {
+  const { env, db } = setup('false');
+  const customerOrigin = 'https://customer-test.example.invalid';
+  const adminOrigin = 'https://admin-test.example.invalid';
+  const sharedEnv: Env = { ...env, CUSTOMER_APP_ORIGIN: customerOrigin };
+  const worker = publicTestWorker(handleRequest);
+  const request = (
+    surface: 'user' | 'admin',
+    path: string,
+    options: { method?: string; body?: unknown; cookie?: string; origin?: string } = {},
+  ) => {
+    const origin = surface === 'admin' ? adminOrigin : customerOrigin;
+    return worker.fetch(
+      new Request(`${origin}/api${path}`, {
+        method: options.method ?? 'GET',
+        headers: {
+          Origin: options.origin ?? origin,
+          'X-Manspick-Surface': surface,
+          ...(options.cookie ? { Cookie: options.cookie } : {}),
+          ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+      }),
+      sharedEnv,
+    );
+  };
+  try {
+    const booking = bookingInput(futureBookingDate(), '11:00', '01000002580');
+    const booked = await request('user', '/start', { method: 'POST', body: booking });
+    assert.equal(booked.status, 201, await booked.clone().text());
+    const accepted = (await booked.json()) as {
+      data: { accepted: boolean; localAccess?: unknown };
+    };
+    assert.equal(accepted.data.accepted, true);
+    assert.equal(accepted.data.localAccess, undefined);
+
+    const login = await request('admin', '/demo/session', {
+      method: 'POST',
+      body: { role: 'admin' },
+    });
+    assert.equal(login.status, 200, await login.clone().text());
+    const staff = login.headers.get('Set-Cookie')!.split(';')[0]!;
+    assert.equal(((await login.json()) as { data: SessionDTO }).data.actor.id, 'demo-admin');
+    const list = await request('admin', '/shoots', { cookie: staff });
+    assert.equal(list.status, 200);
+    const { data } = (await list.json()) as {
+      data: { shoots: { id: string; customerName: string }[] };
+    };
+    const shoot = data.shoots.find((item) => item.customerName === booking.name);
+    assert.ok(shoot, 'customer booking must appear in the admin API using the same storage');
+
+    const issued = await request('admin', `/auth/customer-link/${shoot.id}`, {
+      method: 'POST',
+      cookie: staff,
+    });
+    assert.equal(issued.status, 200, await issued.clone().text());
+    const link = (await issued.json()) as { data: { url: string; recipientPhone: string } };
+    assert.equal(link.data.recipientPhone, booking.phone);
+    const url = new URL(link.data.url);
+    assert.equal(url.origin, customerOrigin);
+    const token = url.pathname.split('/').at(-1)!;
+    const verified = await request('user', '/auth/customer', {
+      method: 'POST',
+      body: { token, last4: booking.phone.slice(-4) },
+    });
+    assert.equal(verified.status, 200, await verified.clone().text());
+    const customer = verified.headers.get('Set-Cookie')!.split(';')[0]!;
+    assert.equal(((await verified.json()) as { data: SessionDTO }).data.shootId, shoot.id);
+    const detail = await request('user', `/shoots/${shoot.id}`, { cookie: customer });
+    assert.equal(detail.status, 200);
+    assert.equal(
+      ((await detail.json()) as { data: { customerName: string } }).data.customerName,
+      booking.name,
+    );
+
+    await expectError(await request('user', '/session', { cookie: staff }), 401, 'UNAUTHENTICATED');
+    await expectError(
+      await request('admin', '/session', { cookie: customer }),
+      401,
+      'UNAUTHENTICATED',
+    );
+    for (const surface of ['user', 'admin'] as const) {
+      const session = await request(surface, '/session', { cookie: `${staff}; ${customer}` });
+      assert.equal(session.status, 200);
+      assert.equal(
+        ((await session.json()) as { data: SessionDTO }).data.actor.kind,
+        surface === 'admin' ? 'staff' : 'customer',
+      );
+    }
+    await expectError(
+      await request('user', '/demo/session', { method: 'POST', body: { role: 'admin' } }),
+      404,
+      'NOT_FOUND',
+    );
+    await expectError(
+      await request('user', '/shoots/demo-payment', { cookie: customer }),
+      404,
+      'NOT_FOUND',
+    );
+    await expectError(
+      await request('admin', `/auth/customer-link/${shoot.id}`, {
+        method: 'POST',
+        cookie: staff,
+        origin: customerOrigin,
+      }),
+      403,
+      'ORIGIN_DENIED',
+    );
+  } finally {
+    db.database.close();
+  }
+});
+
 test('admin test fixture images require a staff session and preserve normal file access', async () => {
   const { env, api } = setup();
   const staff = await login(api, 'admin');
@@ -2325,8 +2568,11 @@ test('payment, survey and plan preserve independent customer progress', async ()
     age: 30,
     style: '캐주얼',
     motivation: '새 프로필',
+    purposes: ['비즈니스'],
     retouchStrength: 0,
     selector: 'customer',
+    referral: '네이버 검색',
+    reviewParticipation: false,
     safetyRead: true,
   };
   assert.equal(
@@ -2342,6 +2588,64 @@ test('payment, survey and plan preserve independent customer progress', async ()
     (await action({ type: 'save_survey', answers, pageDone: [1, 2, 3, 4], submit: true })).status,
     200,
   );
+  for (const [key, invalid] of [
+    ['purposes', []],
+    ['referral', ''],
+    ['reviewParticipation', null],
+  ]) {
+    assert.equal(
+      (
+        await action({
+          type: 'save_survey',
+          answers: { ...answers, [String(key)]: invalid },
+          pageDone: [1, 2, 3, 4],
+          submit: true,
+        })
+      ).status,
+      400,
+      `Required survey field: ${key}`,
+    );
+  }
+  db.database
+    .prepare(
+      "INSERT INTO shoot_addons(shoot_id,addon_id,name,quantity,unit_price) VALUES('demo-payment','rental','의상 대여',1,25000)",
+    )
+    .run();
+  const wardrobeAnswers = {
+    ...answers,
+    height: 178,
+    weight: 72,
+    topSize: 'L',
+    bottomSize: '32',
+    shoeSize: 270,
+    budget: 500000,
+  };
+  for (const key of ['height', 'weight', 'topSize', 'bottomSize', 'shoeSize', 'budget']) {
+    assert.equal(
+      (
+        await action({
+          type: 'save_survey',
+          answers: { ...wardrobeAnswers, [key]: '' },
+          pageDone: [1, 2, 3, 4],
+          submit: true,
+        })
+      ).status,
+      400,
+      `Required wardrobe field: ${key}`,
+    );
+  }
+  assert.equal(
+    (
+      await action({
+        type: 'save_survey',
+        answers: wardrobeAnswers,
+        pageDone: [1, 2, 3, 4],
+        submit: true,
+      })
+    ).status,
+    200,
+  );
+  Object.assign(answers, wardrobeAnswers);
   assert.equal(
     (
       await action(

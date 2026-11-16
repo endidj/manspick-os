@@ -12,7 +12,7 @@ export function CustomerShell({
   children,
   actions,
   onBack,
-  backLabel = '나의 촬영 홈으로',
+  backLabel = '뒤로가기',
   step,
   footer,
   onHelp,
@@ -33,13 +33,8 @@ export function CustomerShell({
     <div className={styles.shell}>
       <AppBar
         className={styles.appBar}
-        leading={
-          onBack ? (
-            <Button variant="ghost" aria-label={backLabel} onClick={onBack}>
-              <Icon name="solar/arrow-left-linear" size={20} />
-            </Button>
-          ) : undefined
-        }
+        onBack={onBack}
+        backLabel={backLabel}
         brand={
           <Link
             href="/"

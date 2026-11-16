@@ -65,7 +65,7 @@ Overview에서 대표 조합을 보고 Foundations·Components·Patterns·Icons�
 앱 루트 layout에서 스타일을 한 번 가져온다. Next 앱의 `transpilePackages`에는 이 workspace가 등록돼 있다.
 
 ```tsx
-import '@manspick/design-system/styles';
+import '@manspick/design-system/styles.css';
 import { Button, PhotoTile } from '@manspick/design-system/components';
 import { TextField, Dialog } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';

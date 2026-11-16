@@ -8,6 +8,8 @@ export { DomainError } from './errors.ts';
 export { assertTransition } from './transitions.ts';
 export { SLOT_TIMES, requiredSlots, holdExpiry, validateBookingDate } from './booking.ts';
 export { requiredOutfitPhotos, deadline } from './preparation.ts';
+export { surveyIssues, canEditSurvey } from './survey.ts';
+export type { SurveyIssue } from './survey.ts';
 export { koreaDate, datePlusDays } from './dates.ts';
 export { DEFAULT_OPERATIONS_POLICY, validateOperationsPolicy } from './operations-policy.ts';
 export type { OperationsPolicy } from './operations-policy.ts';

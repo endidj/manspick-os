@@ -17,6 +17,11 @@
   gap: var(--mp-space-8);
   min-width: 0;
 }
+.appBarBack[data-size='md'] {
+  flex: none;
+  width: 48px;
+  padding: 0;
+}
 .appBrand {
   font-family: var(--mp-font-display);
   font-size: var(--mp-type-body-l-size);

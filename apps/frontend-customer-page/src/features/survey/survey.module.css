@@ -128,6 +128,11 @@
   padding-inline: 5px;
   min-width: 0;
 }
+.strengthHint {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
 .consentCard {
   display: flex;
   align-items: flex-start;

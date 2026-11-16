@@ -1,7 +1,7 @@
 // 개인 링크 인증·촬영 조회·실제 업무 요청을 고객 원본의 개별 화면에 연결합니다.
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Loading, Notice } from '@manspick/design-system/components';
 import { Dialog, TextField } from '@manspick/design-system/patterns';
 import { api, action } from '@manspick/web/client';
@@ -14,6 +14,8 @@ import { ReviewView } from './customer-scenes';
 import { PreparationView, PlanView, ShootDayView } from './preparation';
 import { PaymentView } from './payment';
 import type { CustomerScene } from './journey';
+import { customerPath, customerParent, customerRoute } from './routes';
+import { useFlowNavigation } from '../shell/flow-navigation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
@@ -41,19 +43,73 @@ export function CustomerApp({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState('');
-  const [scene, setScene] = useState<CustomerScene>('home');
+  const [refreshing, setRefreshing] = useState(false);
+  const dataVersion = useRef(0);
+  const mutations = useRef(0);
+  const root = customerPath(token, 'home');
+  const { pathname, navigate: navigatePath, back } = useFlowNavigation(root);
+  const route = customerRoute(pathname.slice(root.length).split('/').filter(Boolean));
+  const scene = route?.scene ?? 'home';
+  const surveyPage = route?.surveyPage ?? 1;
   const [helpOpen, setHelpOpen] = useState(false);
   const refresh = useCallback(async (id: string) => {
-    setShoot(await api<ShootDetail>(`/shoots/${id}`));
+    const version = ++dataVersion.current;
+    const latest = await api<ShootDetail>(`/shoots/${id}`);
+    if (version === dataVersion.current) setShoot(latest);
   }, []);
 
   useEffect(() => {
-    if (!verified || !shootId || scene !== 'shoot-day' || busy) return;
-    const timer = setInterval(() => {
-      void refresh(shootId).catch((failure: Error) => setError(failure.message));
-    }, 15000);
-    return () => clearInterval(timer);
+    if (
+      verified &&
+      ((scene === 'survey' && !route?.surveyPage) ||
+        (scene === 'survey-complete' && !shoot?.survey?.submittedAt))
+    ) {
+      const resumePage = shoot?.survey?.submittedAt
+        ? 1
+        : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
+      navigatePath(customerPath(token, 'survey', resumePage), true);
+    }
+  }, [verified, scene, route?.surveyPage, shoot?.survey, token, navigatePath]);
+
+  useEffect(() => {
+    if (!verified || !shootId || !['home', 'payment', 'shoot-day'].includes(scene) || busy) return;
+    let active = true;
+    let checking = false;
+    const update = async () => {
+      if (!active || checking || mutations.current || document.visibilityState === 'hidden') return;
+      checking = true;
+      try {
+        await refresh(shootId);
+      } catch {
+        // 일시적인 자동 갱신 실패는 현재 화면과 입력을 유지합니다. 직접 확인은 오류를 안내합니다.
+      } finally {
+        checking = false;
+      }
+    };
+    const timer = setInterval(() => void update(), 15000);
+    window.addEventListener('focus', update);
+    document.addEventListener('visibilitychange', update);
+    return () => {
+      active = false;
+      dataVersion.current += 1;
+      clearInterval(timer);
+      window.removeEventListener('focus', update);
+      document.removeEventListener('visibilitychange', update);
+    };
   }, [verified, shootId, scene, busy, refresh]);
+
+  async function checkStatus() {
+    if (refreshing || mutations.current) return;
+    setRefreshing(true);
+    setError('');
+    try {
+      await refresh(shootId);
+    } catch (failure) {
+      setError((failure as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
@@ -76,6 +132,8 @@ export function CustomerApp({ token }: { token: string }) {
   }
 
   async function perform(body: unknown, message = '저장했습니다') {
+    dataVersion.current += 1;
+    mutations.current += 1;
     const quiet =
       (body as { type?: string; submit?: boolean }).type === 'save_survey' &&
       !(body as { submit?: boolean }).submit;
@@ -89,11 +147,14 @@ export function CustomerApp({ token }: { token: string }) {
       setError((failure as Error).message);
       return false;
     } finally {
+      mutations.current -= 1;
       if (!quiet) setBusy(false);
     }
   }
 
   async function upload(file: File, kind: string) {
+    dataVersion.current += 1;
+    mutations.current += 1;
     setBusy(true);
     setError('');
     try {
@@ -121,6 +182,7 @@ export function CustomerApp({ token }: { token: string }) {
       setError((failure as Error).message);
       return null;
     } finally {
+      mutations.current -= 1;
       setBusy(false);
     }
   }
@@ -130,10 +192,11 @@ export function CustomerApp({ token }: { token: string }) {
     setError('');
     try {
       await api('/auth/logout', { method: 'POST' });
+      dataVersion.current += 1;
       setVerified(false);
       setShoot(undefined);
       setLast4('');
-      setScene('home');
+      navigatePath(root, true);
       setHelpOpen(false);
     } catch (failure) {
       setError((failure as Error).message);
@@ -143,19 +206,29 @@ export function CustomerApp({ token }: { token: string }) {
   }
 
   function navigate(next: CustomerScene) {
-    setScene(next);
+    const resumePage = shoot?.survey?.submittedAt
+      ? 1
+      : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
+    navigatePath(customerPath(token, next, resumePage));
     setError('');
     setAnnouncement('');
     window.scrollTo({ top: 0 });
   }
 
   const onHelp = () => setHelpOpen(true);
-  const viewProps = shoot
-    ? { shoot, busy, onAction: perform, onUpload: upload, onNavigate: navigate, onHelp }
-    : null;
+  // 촬영을 불러온 분기에서만 아래 화면 props를 사용합니다.
+  const viewProps = {
+    shoot: shoot!,
+    busy,
+    onAction: perform,
+    onUpload: upload,
+    onNavigate: navigate,
+    onHelp,
+  };
 
   return (
     <CustomerShell
+      onBack={() => back(scene === 'home' ? '/' : customerParent(token, scene, surveyPage))}
       onHome={verified ? () => navigate('home') : undefined}
       onHelp={onHelp}
       step={verified ? sceneSteps[scene] : undefined}
@@ -187,7 +260,7 @@ export function CustomerApp({ token }: { token: string }) {
           </form>
           <p className={layout.small}>5회 연속 실패하면 10분 동안 확인이 제한됩니다.</p>
         </section>
-      ) : !viewProps ? (
+      ) : !shoot ? (
         <Loading />
       ) : (
         <>
@@ -198,9 +271,18 @@ export function CustomerApp({ token }: { token: string }) {
           {scene === 'home' && (
             <CustomerHome shoot={viewProps.shoot} onNavigate={navigate} onHelp={onHelp} />
           )}
-          {scene === 'payment' && <PaymentView {...viewProps} />}
-          {scene === 'survey' && <Survey {...viewProps} />}
-          {scene === 'survey-complete' && <SurveyComplete {...viewProps} />}
+          {scene === 'payment' && (
+            <PaymentView {...viewProps} refreshing={refreshing} onRefresh={checkStatus} />
+          )}
+          <Survey
+            {...viewProps}
+            active={scene === 'survey'}
+            page={surveyPage}
+            onPageChange={(page) => navigatePath(customerPath(token, 'survey', page))}
+          />
+          {scene === 'survey-complete' && shoot?.survey?.submittedAt && (
+            <SurveyComplete {...viewProps} />
+          )}
           {scene === 'preparation' && <PreparationView {...viewProps} />}
           {scene === 'plan' && <PlanView {...viewProps} />}
           {scene === 'shoot-day' && <ShootDayView {...viewProps} />}

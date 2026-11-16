@@ -15,6 +15,7 @@ import {
 } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
 import { api } from '@manspick/web/client';
+import { canEditSurvey, surveyIssues } from '@manspick/domain';
 import type { AddonDTO } from '@manspick/contracts';
 import { SceneFooter, KakaoButton } from '../shell';
 import type { CustomerViewProps } from '../customer/view-types';
@@ -43,13 +44,22 @@ const purposes = [
   { value: '비즈니스', label: '비즈니스 프로필' },
 ];
 
-export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: CustomerViewProps) {
+export function Survey({
+  shoot,
+  busy,
+  onAction,
+  onUpload,
+  onNavigate,
+  onHelp,
+  active,
+  page,
+  onPageChange,
+}: CustomerViewProps & {
+  active: boolean;
+  page: number;
+  onPageChange: (page: number) => void;
+}) {
   const now = useClock();
-  const [page, setPage] = useState(() =>
-    shoot.survey?.submittedAt
-      ? 1
-      : ([1, 2, 3, 4].find((value) => !shoot.survey?.pageDone.includes(value)) ?? 4),
-  );
   const [answers, setAnswers] = useState<Record<string, unknown>>(shoot.survey?.answers ?? {});
   const [done, setDone] = useState<number[]>(shoot.survey?.pageDone ?? []);
   const [validation, setValidation] = useState('');
@@ -57,23 +67,29 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [consentOpen, setConsentOpen] = useState(false);
   const [addons, setAddons] = useState<AddonDTO[]>([]);
+  const [addonsFailed, setAddonsFailed] = useState(false);
   const edited = useRef(false);
+  const editVersion = useRef(0);
+  const currentView = useRef({ active, page });
   const saveRef = useRef(onAction);
   const pending = useRef<Promise<unknown>>(Promise.resolve());
   const value = (key: string) => String(answers[key] ?? '');
   const wardrobe = shoot.addons.some(
     (addon) => ['rental', 'outfit', 'shopping'].includes(addon.id) && addon.quantity > 0,
   );
-  const closed =
-    shoot.paymentState !== 'confirmed' ||
-    shoot.stage > 4 ||
-    Boolean(
-      shoot.survey?.submittedAt && shoot.survey.dueAt && Date.parse(shoot.survey.dueAt) < now,
-    );
+  const closed = !canEditSurvey(shoot, now);
 
+  useEffect(() => {
+    currentView.current = { active, page };
+  }, [active, page]);
   useEffect(() => {
     saveRef.current = onAction;
   }, [onAction]);
+  useEffect(() => {
+    if (edited.current || savingPage) return;
+    setAnswers(shoot.survey?.answers ?? {});
+    setDone(shoot.survey?.pageDone ?? []);
+  }, [shoot.survey, savingPage]);
   useEffect(() => {
     let active = true;
     api<{ addons: AddonDTO[] }>('/catalog')
@@ -81,27 +97,31 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
         if (active) setAddons(catalog.addons.filter((addon) => addon.id !== 'extra_retouch'));
       })
       .catch(() => {
-        /* 기존 설문 저장은 상품 조회 실패와 무관하게 유지합니다. */
+        if (active) setAddonsFailed(true);
       });
     return () => {
       active = false;
     };
   }, []);
   useEffect(() => {
-    if (!edited.current || closed) return;
+    if (!edited.current || closed || savingPage) return;
     const timer = setTimeout(() => {
       if (!edited.current) return;
+      const version = editVersion.current;
       setSaveState('saving');
       pending.current = pending.current.then(async () => {
         const saved = await saveRef.current({ type: 'save_survey', answers, pageDone: done });
+        if (saved && version === editVersion.current) edited.current = false;
         setSaveState(saved ? 'saved' : 'error');
       });
     }, 900);
     return () => clearTimeout(timer);
-  }, [answers, done, closed]);
+  }, [answers, done, closed, savingPage]);
 
   function put(key: string, next: unknown) {
+    editVersion.current += 1;
     edited.current = true;
+    setValidation('');
     setSaveState('idle');
     setAnswers((previous) => ({ ...previous, [key]: next }));
   }
@@ -109,34 +129,19 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
   async function next() {
     if (savingPage || closed) return;
     setValidation('');
-    const invalid =
-      page === 1
-        ? ![1, 2, 3, 4, 5].includes(Number(answers.firstImpression)) ||
-          !(Number(answers.age) > 0 && Number(answers.age) <= 120) ||
-          !shoot.uploads.some((asset) => asset.kind === 'survey')
-        : page === 2
-          ? !value('style') ||
-            (wardrobe &&
-              ['height', 'weight', 'topSize', 'bottomSize', 'shoeSize', 'budget'].some(
-                (key) => !value(key) || Number(answers.budget) <= 0,
-              ))
-          : page === 3
-            ? !value('motivation').trim() ||
-              !(answers.purposes as string[] | undefined)?.length ||
-              answers.retouchStrength === undefined ||
-              !['customer', 'director'].includes(value('selector'))
-            : !value('referral') ||
-              typeof answers.reviewParticipation !== 'boolean' ||
-              answers.safetyRead !== true;
-    if (invalid) {
-      setValidation(
-        page === 1 && !shoot.uploads.some((asset) => asset.kind === 'survey')
-          ? '최근 얼굴 사진을 한 장 이상 올려주세요.'
-          : '필수 항목을 확인해주세요.',
-      );
+    const issues = surveyIssues(answers, {
+      wardrobe,
+      hasFacePhoto: shoot.uploads.some((asset) => asset.kind === 'survey'),
+    });
+    const invalid = issues.find((issue) => page === 4 || issue.page === page);
+    const unread = page === 4 ? [1, 2, 3].find((number) => !done.includes(number)) : undefined;
+    if (invalid || unread) {
+      setValidation(invalid?.message ?? '이 페이지의 답변을 확인한 뒤 다음을 눌러주세요.');
+      onPageChange(invalid?.page ?? unread!);
+      window.scrollTo({ top: 0 });
       return;
     }
-    edited.current = false;
+    // 편집 중인 초안은 저장 실패 때도 서버의 이전 응답으로 덮어쓰지 않습니다.
     setSavingPage(true);
     setSaveState('saving');
     try {
@@ -150,10 +155,12 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
       });
       setSaveState(saved ? 'saved' : 'error');
       if (saved) {
+        edited.current = false;
         setDone(completed);
+        if (!currentView.current.active || currentView.current.page !== page) return;
         if (page === 4) onNavigate('survey-complete');
         else {
-          setPage(page + 1);
+          onPageChange(page + 1);
           window.scrollTo({ top: 0 });
         }
       }
@@ -174,6 +181,9 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
       />
     );
   }
+
+  // 다른 업무 화면을 열어도 초안과 대기 중인 자동 저장을 유지합니다.
+  if (!active) return null;
 
   return (
     <>
@@ -376,6 +386,12 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
                 value: String(number),
                 label: `${number}%`,
               }))}
+              hint={
+                <span className={styles.strengthHint}>
+                  <span>있는 그대로</span>
+                  <span>화보처럼 완벽하게</span>
+                </span>
+              }
             />
             <fieldset className={`${layout.fieldSet} ${layout.stack}`}>
               <legend className={styles.fieldTitle}>
@@ -414,6 +430,12 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
               <p className={layout.small}>
                 상담 희망을 설문에 저장해요. 신청 확정과 결제는 담당자가 안내해요.
               </p>
+              {addonsFailed && (
+                <Notice>
+                  옵션 목록을 불러오지 못했어요. 설문은 계속 제출할 수 있고, 추가 옵션은 담당자에게
+                  문의해주세요.
+                </Notice>
+              )}
               <div className={styles.purposePills}>
                 {addons.map((addon) => (
                   <ChoiceCard
@@ -508,32 +530,37 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
         )}
       </fieldset>
       <SceneFooter>
-        <div className={layout.footerActions}>
-          {page > 1 && (
-            <Button
-              variant="secondary"
-              disabled={busy || savingPage}
-              onClick={() => {
-                setPage(page - 1);
-                window.scrollTo({ top: 0 });
-              }}
-            >
-              이전
-            </Button>
-          )}
-          <Button fullWidth loading={busy || savingPage} disabled={closed} onClick={next}>
-            {page === 4 ? '설문 제출하기' : '다음'}
+        {closed ? (
+          <Button fullWidth onClick={() => onNavigate('home')}>
+            나의 촬영 홈으로
           </Button>
-        </div>
+        ) : (
+          <div className={layout.footerActions}>
+            {page > 1 && (
+              <Button
+                variant="secondary"
+                disabled={busy || savingPage}
+                onClick={() => onPageChange(page - 1)}
+              >
+                이전
+              </Button>
+            )}
+            <Button fullWidth loading={busy || savingPage} disabled={closed} onClick={next}>
+              {page === 4 ? '설문 제출하기' : '다음'}
+            </Button>
+          </div>
+        )}
         <p className={styles.saveStatus} role="status">
           <Icon name="solar/check-circle-bold" size={12} />
-          {saveState === 'saving'
-            ? '저장 중이에요'
-            : saveState === 'error'
-              ? '저장하지 못했어요. 다시 시도해주세요.'
-              : saveState === 'saved'
-                ? '저장했어요'
-                : '자동 저장돼요'}{' '}
+          {closed
+            ? '제출한 답변을 확인하는 화면이에요'
+            : saveState === 'saving'
+              ? '저장 중이에요'
+              : saveState === 'error'
+                ? '저장하지 못했어요. 다시 시도해주세요.'
+                : saveState === 'saved'
+                  ? '저장했어요'
+                  : '자동 저장돼요'}{' '}
           ·{' '}
           {shoot.survey?.dueAt
             ? `${shootDate(shoot.survey.dueAt)}까지 제출`
@@ -553,7 +580,7 @@ export function Survey({ shoot, busy, onAction, onUpload, onNavigate, onHelp }: 
 export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps) {
   const now = useClock();
   const answer = shoot.survey?.answers ?? {};
-  const editable = !shoot.survey?.dueAt || Date.parse(shoot.survey.dueAt) >= now;
+  const editable = canEditSurvey(shoot, now);
   return (
     <>
       <header className={styles.complete}>
@@ -599,9 +626,11 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
             .join(' · ')}
         />
         <p className={layout.small}>
-          {shoot.survey?.dueAt
-            ? `${shootDate(shoot.survey.dueAt)}까지 다시 열어 고칠 수 있어요`
-            : '편집 기한은 담당자에게 확인해주세요'}
+          {!editable
+            ? '설문 편집이 종료됐어요. 변경이 필요하면 담당자에게 알려주세요.'
+            : shoot.survey?.dueAt
+              ? `${shootDate(shoot.survey.dueAt)}까지 다시 열어 고칠 수 있어요`
+              : '편집 기한은 담당자에게 확인해주세요'}
         </p>
         {editable && (
           <button className={layout.textLink} onClick={() => onNavigate('survey')}>
@@ -610,6 +639,9 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
         )}
       </section>
       <SceneFooter>
+        <Button fullWidth onClick={() => onNavigate('home')}>
+          나의 촬영 홈으로
+        </Button>
         <Button variant="secondary" fullWidth onClick={() => onNavigate('preparation')}>
           촬영 준비 안내 보기
         </Button>

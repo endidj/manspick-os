@@ -7,7 +7,7 @@ import { statement } from '../database/statements.ts';
 import { appOrigin, localDemo } from '../runtime/env.ts';
 import type { Env } from '../runtime/env.ts';
 import { accessibleShoot } from '../shoots/access.ts';
-import { hash, randomToken } from './crypto.ts';
+import { newCustomerToken } from './customer-token.ts';
 import { operator } from './permissions.ts';
 
 export async function issueCustomerLink(request: Request, env: Env, actor: Actor, shootId: string) {
@@ -26,12 +26,12 @@ export async function issueCustomerLink(request: Request, env: Env, actor: Actor
   const shoot = await accessibleShoot(env, actor, shootId);
   if (shoot.status === 'cancelled')
     throw new DomainError('CANCELLED', '취소된 촬영에는 고객 링크를 발급할 수 없습니다.', 409);
-  const token = randomToken();
+  const { token, tokenHash } = await newCustomerToken(env);
   await mutate(env, shoot, [
     statement(
       env,
       'UPDATE shoots SET access_token_hash=?,token_version=token_version+1 WHERE id=?',
-      await hash(token),
+      tokenHash,
       shoot.id,
     ),
     timelineStatement(

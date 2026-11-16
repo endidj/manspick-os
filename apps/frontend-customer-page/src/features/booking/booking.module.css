@@ -182,17 +182,13 @@
   flex-shrink: 0;
   accent-color: var(--mp-color-action-primary);
 }
-.consents label > :last-child {
-  margin-left: auto;
+.consents a {
   white-space: nowrap;
   font-size: var(--mp-type-overline-size);
 }
 .consents a,
 .required {
   color: var(--mp-color-text-accent);
-}
-.consents small {
-  color: var(--mp-color-text-secondary);
 }
 .calendar {
   padding: 16px;

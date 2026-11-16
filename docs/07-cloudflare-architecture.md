@@ -34,7 +34,7 @@ Wrangler의 esbuild는 생성자 타입의 decorator metadata를 출력하지 �
 
 세 앱은 Next.js App Router의 경로와 `next/*` API를 Vinext에서 실행한다. Vite와 Cloudflare Vite 플러그인이 프런트엔드를 Worker용으로 빌드하고 `cf`가 배포한다. 버전은 앱별 `package.json`과 `yarn.lock`에 고정한다. API와 Storybook의 Wrangler 설정은 `infra/`에 있다. [Vinext Workers 안내](https://vinext.dev/docs/deploying/cloudflare)
 
-`cloudflare.config.ts`에 앱별 Worker 이름과 `MANSPICK_API` 서비스 바인딩을 선언한다. 관리자 `test` 모드는 비공개 테스트 API Worker를 가리킨다. 공유 캐시나 이미지 최적화용 Cloudflare 리소스는 구성하지 않는다. [Cloudflare 테스트 환경](../README.md#cloudflare-테스트-환경)
+`cloudflare.config.ts`에 앱별 Worker 이름과 `MANSPICK_API` 서비스 바인딩을 선언한다. 세 앱의 `test` 모드는 같은 비공개 `manspick-public-api-test`를 가리키며 고객 예약과 관리자 처리가 같은 D1·R2를 사용한다. 관리자 테스트 로그인은 관리자 surface에서만 허용한다. 공유 캐시나 이미지 최적화용 Cloudflare 리소스는 구성하지 않는다. [Cloudflare 테스트 환경](../README.md#cloudflare-배포)
 
 ## 3. 로컬 검증
 
@@ -59,7 +59,7 @@ flowchart TD
   O --> A[개발 발송 기록 / 향후 메일·알림톡 어댑터]
 ```
 
-운영 목표는 API Worker에 공개 workers.dev/custom route를 주지 않고 Next Worker의 Service Binding으로 호출하는 것이다. HTTP Service Binding은 다른 Worker의 fetch handler를 내부적으로 호출할 수 있다. 현재 원격 설정 `infra/wrangler.api-test.jsonc`는 비공개 `manspick-api-test`와 전용 D1·R2를 가리킨다. `infra/api-test.ts`는 관리자 surface 헤더를 검사하고 `LOCAL_DEMO=false`, `ADMIN_TEST=true`로 요청한다. 실제 운영 설정 `infra/wrangler.production.jsonc`는 없으며 예시만 제공하므로 테스트 환경과 운영 환경을 구분한다. [Service Binding HTTP](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
+운영 목표는 API Worker에 공개 workers.dev/custom route를 주지 않고 Next Worker의 Service Binding으로 호출하는 것이다. HTTP Service Binding은 다른 Worker의 fetch handler를 내부적으로 호출할 수 있다. 현재 원격 설정 `infra/wrangler.public-test.jsonc`는 세 앱의 공통 비공개 API와 D1·R2를 가리킨다. `infra/public-test.ts`는 landing·user·admin surface를 검사하고 `LOCAL_DEMO=false`, `ADMIN_TEST: surface === 'admin'`으로 요청한다. 실제 운영 설정 `infra/wrangler.production.jsonc`는 없으며 예시만 제공하므로 테스트 환경과 운영 환경을 구분한다. [Service Binding HTTP](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)
 
 프록시는 브라우저가 보낸 role·staff_id·shoot_id를 신뢰된 실행 문맥으로 승격시키지 않는다. API Worker가 세션을 직접 검증하고 현재 DB의 active·배정과 자원 소속을 확인한다. 내부 통신이라는 사실이 사용자 인가를 대체하지 않는다. 전달할 Cookie·Origin·요청 ID의 허용 목록을 정하고 헤더 변조를 검사한다. 파일 응답의 Set-Cookie·Cache-Control·Content-Type·스트림도 손상 없이 전달한다.
 

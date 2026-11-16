@@ -1,6 +1,6 @@
 // 공용 디자인 시스템과 검색 비공개 메타데이터를 고객 앱에 적용합니다.
 import type { Metadata } from 'next';
-import '@manspick/design-system/styles';
+import '@manspick/design-system/styles.css';
 
 export const metadata: Metadata = {
   title: '맨즈픽 · 나의 촬영',
