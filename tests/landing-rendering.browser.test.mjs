@@ -47,9 +47,17 @@ test(
             );
             assert.ok(Math.abs(modal.width - width) < 1 && Math.abs(modal.height - 900) < 1);
             await page.keyboard.press('Escape');
-            await page.evaluate(() => {
-              location.hash = 'pricing';
-            });
+            await page.evaluate(
+              () =>
+                new Promise((resolve) => {
+                  addEventListener(
+                    'hashchange',
+                    () => requestAnimationFrame(() => requestAnimationFrame(resolve)),
+                    { once: true },
+                  );
+                  location.hash = 'pricing';
+                }),
+            );
             await page.waitForFunction(() => {
               const rect = document.querySelector('#pricing').getBoundingClientRect();
               return rect.top >= -2 && rect.top < 200;
@@ -125,6 +133,44 @@ test(
       }
       if (output)
         await writeFile(path.join(output, 'geometry.json'), JSON.stringify(results, null, 2));
+    } finally {
+      await browser.close();
+    }
+  },
+);
+
+test(
+  'first smooth anchor navigation reaches its target before sections have been measured',
+  { skip: !appUrl, timeout: 60000 },
+  async () => {
+    process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
+      new URL('../.local/playwright', import.meta.url),
+    );
+    const { chromium } = await import('playwright');
+    const browser = await chromium.launch();
+    try {
+      for (const width of [390, 1440]) {
+        const context = await browser.newContext({ viewport: { width, height: 900 } });
+        const page = await context.newPage();
+        await page.goto(appUrl, { waitUntil: 'networkidle' });
+        await page.evaluate(
+          () =>
+            new Promise((resolve) => {
+              addEventListener('scrollend', resolve, { once: true });
+              document.querySelector('#hero a[href="#pricing"]').click();
+            }),
+        );
+        assert.ok(
+          Math.abs(
+            await page
+              .locator('#pricing')
+              .evaluate((element) => element.getBoundingClientRect().top),
+          ) < 2,
+        );
+        await page.locator('#back-to-top').click();
+        await page.waitForFunction(() => scrollY === 0);
+        await context.close();
+      }
     } finally {
       await browser.close();
     }
