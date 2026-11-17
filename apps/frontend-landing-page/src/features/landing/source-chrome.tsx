@@ -870,19 +870,6 @@ export function SourceOverlays() {
         id="cursor-glow"
         className="pointer-events-none fixed inset-0 z-[1] opacity-0 transition-opacity duration-300"
         aria-hidden="true"
-        style={
-          {
-            backgroundImage: '',
-            backgroundPositionX: '',
-            backgroundPositionY: '',
-            backgroundSize: '',
-            backgroundRepeat: '',
-            backgroundAttachment: '',
-            backgroundOrigin: '',
-            backgroundClip: '',
-            backgroundColor: '',
-          } as CSSProperties
-        }
       ></div>
     </>
   );

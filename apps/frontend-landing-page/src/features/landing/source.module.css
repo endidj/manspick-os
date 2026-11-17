@@ -37,6 +37,14 @@
   height: 1em;
   vertical-align: 0;
 }
+/* manspick.co.kr 원본의 350px 커서 광원과 12% 파랑을 유지합니다. */
+.root :global(#cursor-glow) {
+  background: radial-gradient(
+    350px circle at var(--gx, 50%) var(--gy, 50%),
+    rgb(var(--mp-site-color-rgb-45-118-246) / 0.12),
+    transparent 55%
+  );
+}
 /* @license MANSPICK(R) 804-18-02180 | manspick.kr */
 .root {
   --_mp-sig: 'mp-2k26-jhu-8041802180';

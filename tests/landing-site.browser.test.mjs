@@ -21,6 +21,36 @@ test(
       page.on('pageerror', (error) => errors.push(error.message));
       await page.goto(appUrl, { waitUntil: 'networkidle' });
       await page.waitForSelector('[data-motion-ready="true"]');
+      const glow = page.locator('#cursor-glow');
+      assert.equal(await glow.evaluate((element) => getComputedStyle(element).opacity), '0');
+      assert.equal(await glow.getAttribute('aria-hidden'), 'true');
+      await page.mouse.move(420, 360);
+      await page.waitForFunction(
+        () => getComputedStyle(document.querySelector('#cursor-glow')).opacity === '1',
+      );
+      assert.deepEqual(
+        await glow.evaluate((element) => {
+          const css = getComputedStyle(element);
+          return [css.backgroundImage, css.pointerEvents, css.transitionDuration];
+        }),
+        [
+          'radial-gradient(350px at 420px 360px, rgba(45, 118, 246, 0.12), rgba(0, 0, 0, 0) 55%)',
+          'none',
+          '0.3s',
+        ],
+      );
+      await page.mouse.move(720, 500);
+      await page.waitForFunction(() => {
+        const style = document.querySelector('#cursor-glow').style;
+        return (
+          style.getPropertyValue('--gx') === '720px' && style.getPropertyValue('--gy') === '500px'
+        );
+      });
+      await page.mouse.move(-10, -10);
+      await page.waitForFunction(
+        () => getComputedStyle(document.querySelector('#cursor-glow')).opacity === '0',
+      );
+      results.push('source cursor gradient, movement, fade and click-through');
       for (const selector of [
         '#main-nav > div:first-child',
         '#sticky-cta > div',
@@ -137,6 +167,30 @@ test(
       const reducedPage = await reduced.newPage();
       await reducedPage.goto(appUrl, { waitUntil: 'networkidle' });
       await reducedPage.waitForSelector('[data-motion-ready="true"]');
+      await reducedPage.mouse.move(200, 300);
+      assert.equal(
+        await reducedPage
+          .locator('#cursor-glow')
+          .evaluate((element) => getComputedStyle(element).opacity),
+        '0',
+      );
+      const touch = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      });
+      const touchPage = await touch.newPage();
+      await touchPage.goto(appUrl, { waitUntil: 'networkidle' });
+      await touchPage.waitForSelector('[data-motion-ready="true"]');
+      await touchPage.touchscreen.tap(200, 300);
+      assert.equal(
+        await touchPage
+          .locator('#cursor-glow')
+          .evaluate((element) => getComputedStyle(element).opacity),
+        '0',
+      );
+      await touch.close();
+      results.push('cursor hidden for reduced motion and touch');
       const hiddenReveals = await reducedPage
         .locator('.reveal')
         .evaluateAll(
