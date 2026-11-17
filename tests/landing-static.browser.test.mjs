@@ -6,6 +6,7 @@ import path from 'node:path';
 
 const appUrl = process.env.LANDING_APP_URL;
 const buildRoot = process.env.LANDING_BUILD_ROOT;
+const indexable = process.env.LANDING_INDEXABLE === 'true';
 
 test(
   'landing serves prebuilt HTML and RSC while query routes remain dynamic',
@@ -38,7 +39,9 @@ test(
         assert.equal(body, generated, `${url}: response must use the build output`);
         if (!rsc) {
           assert.ok(body.includes(heading), `${url}: primary content is in HTML`);
-          assert.match(body, /<meta name="robots" content="[^"]*noindex/);
+          const robots = body.match(/<meta name="robots" content="([^"]+)"/)?.[1];
+          assert.ok(robots);
+          assert.equal(robots.split(/,\s*/).includes('noindex'), !indexable);
         }
       }
     }

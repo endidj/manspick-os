@@ -1,4 +1,5 @@
 // 원본 사이트에 공개된 사업자 정보만 검색엔진용 JSON-LD로 제공합니다.
+import { marketingPackages } from '../package-quiz/marketing-offers';
 import { siteDescription, siteOrigin } from './metadata';
 import { serializeStructuredData } from './settings';
 
@@ -23,6 +24,12 @@ export function StructuredData() {
         url: `${siteOrigin}/`,
         image: `${siteOrigin}/images/og-image.jpg`,
         email: 'wook971215@gmail.com',
+        openingHoursSpecification: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          opens: '11:00',
+          closes: '21:00',
+        },
         address: {
           '@type': 'PostalAddress',
           streetAddress: '양천로 94, G85호(염창동)',
@@ -31,6 +38,32 @@ export function StructuredData() {
           addressCountry: 'KR',
         },
         sameAs: ['https://www.instagram.com/we.are.manspick/', 'https://pf.kakao.com/_kNxoMn'],
+        hasOfferCatalog: { '@id': `${siteOrigin}/#packages` },
+      },
+      {
+        '@type': 'Service',
+        '@id': `${siteOrigin}/#service`,
+        name: '남성 프로필 사진 촬영 및 이미지 컨설팅',
+        url: `${siteOrigin}/#pricing`,
+        provider: { '@id': `${siteOrigin}/#business` },
+        areaServed: ['서울특별시', '경기도'],
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          '@id': `${siteOrigin}/#packages`,
+          name: '맨즈픽 촬영 패키지',
+          itemListElement: marketingPackages.map((pack) => ({
+            '@type': 'Offer',
+            name: `${pack.name} 패키지`,
+            price: pack.price,
+            priceCurrency: 'KRW',
+            url: `${siteOrigin}/#pricing`,
+            itemOffered: {
+              '@type': 'Service',
+              name: `${pack.name} 패키지`,
+              provider: { '@id': `${siteOrigin}/#business` },
+            },
+          })),
+        },
       },
     ],
   };

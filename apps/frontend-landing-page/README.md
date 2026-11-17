@@ -9,7 +9,7 @@
 - `source-radar.ts`: 원본 Chart.js 4.6.1의 곡선·툴팁·애니메이션. 원본에서 사용하던 라이브러리를 버전·MIT 라이선스와 함께 자체 호스팅한다.
 - `features/package-quiz`: 원본 5단계 추천·7옵션·상담 견적. `marketing-offers.ts`에 원본 상담 상품을 분리한다. 관리자·고객 앱의 예약 상품이나 데이터를 변경하지 않는다.
 - `/terms`, `/privacy`: 원본 정책 문서와 배치. 구형 `/legal`은 `/terms`로 이동한다.
-- `features/seo`: canonical·OG·JSON-LD·강제 noindex. 구형 `.html` 주소는 query를 보존하며 308 이동한다.
+- `features/seo`: canonical·OG·사업자/서비스 JSON-LD·운영 페이지 검색 허용. 구형 `.html` 주소는 query를 보존하며 308 이동한다.
 - `/api/[...path]`: 기존 `@manspick/web/proxy`의 공개 API 권한 경계.
 
 전체 HTML 삽입이나 원본 전역 스크립트 실행은 사용하지 않는다. 원본 CSS·정적으로 추출한 Tailwind utility는 `source.module.css` 안으로 범위를 제한한다. 공용 디자인 시스템의 폰트·SVG·타입·색상 토큰을 재사용하고 원본 전용 값은 `/styles/site-tokens.css`로 제공한다. 공용 UI의 기존 모양을 원본 화면에 강제하지 않는다.
@@ -28,11 +28,11 @@
 
 상담 폼은 개인정보 동의와 이름·전화번호 확인 후 원본 Google Forms에 native POST한다. 새 탭에서 접수 결과를 확인하도록 안내하며 접수 성공을 추정하지 않는다. GA/GTM 추적은 이식하지 않았다. 모달 포커스·Escape·스크롤 복구와 JavaScript 없는 본문 가독성을 보완했다.
 
-## 검색 제외와 환경
+## 검색 공개와 환경
 
-사용자가 공개를 다시 요청하기 전까지 **모든 앱·모든 환경에서 검색 제외**다. `NEXT_PUBLIC_SITE_INDEXABLE=true`도 색인을 켜지 못한다. HTML meta와 HTTP `X-Robots-Tag`에 `noindex, nofollow, noarchive, noimageindex`를 넣는다. robots.txt는 `Allow: /`로 noindex 지시를 읽게 하며 sitemap은 비어 있다. 정적 파일은 `_headers`로 보호한다. Storybook manager·preview·정적 파일도 포함한다.
+2026-11-17 검색 공개 요청에 따라 **운영 랜딩·약관·개인정보 페이지는 검색 허용**이다. 추천·API·고객·어드민·Empty·Storybook은 검색 제외를 유지한다. Vite의 production 빌드와 대표 origin이 일치할 때만 공개 메타데이터와 사이트맵을 생성한다. 개발 서버·`--mode test` 빌드는 메타데이터가 noindex이고 사이트맵은 비어 있다. 내부 `MANSPICK_SITE_*` 빌드 상수를 사용하므로 외부 `NEXT_PUBLIC_SITE_INDEXABLE` 환경변수로 테스트 빌드의 색인을 켤 수 없다.
 
-`NEXT_PUBLIC_SITE_ORIGIN`은 canonical·공유 주소를 정하며 기본값은 원본 canonical인 `https://manspick.kr`이다. 이 값은 검색 허용 스위치가 아니다.
+`NEXT_PUBLIC_SITE_ORIGIN`의 기본값과 검색을 허용하는 대표 주소는 `https://www.manspick.co.kr`이다. 다른 origin은 검색 제외다. 운영 빌드를 테스트 호스트에서 제공해도 HTTP `X-Robots-Tag`로 제외하며, 정적 자산은 `_headers`의 대표 호스트 예외로 구분한다. robots.txt는 추천 등의 noindex를 읽을 수 있도록 `Allow: /`를 유지한다. 운영 사이트맵에는 `/`, `/terms`, `/privacy`만 포함한다. 카피·사진·통계·연출은 변경하지 않았다. [검색 공개 정책과 남은 작업](../../docs/reference/27-landing-seo.md)
 
 ## 검증
 

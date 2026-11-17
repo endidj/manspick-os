@@ -24,10 +24,11 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/frontend-landing-page/AGENTS.md
 - [클라이언트 미팅](reference/19-client-review.md) · 시연 순서, 300만원 검수 제안, 운영 출시 조건
 - [DB와 아키텍처](reference/20-database-review.md) · 현재 스키마, 예약 경합, 파일 권한과 회사별 확장
 - [NestJS 마이그레이션](reference/21-nestjs-migration.md) · HTTP 계층 전환, Workers 런타임 제약, 회귀 검사와 배포 기록
-- [랜딩 사이트 마이그레이션](reference/23-landing-site-migration.md) · 운영 원본 화면·애니메이션 대조, 상담 상품, 전체 앱 검색 제외
+- [랜딩 사이트 마이그레이션](reference/23-landing-site-migration.md) · 운영 원본 화면·애니메이션 대조, 상담 상품, 당시 검색 제외
 - [사진·폰트 최적화](reference/24-media-optimization.md) · 메타데이터 없는 반응형 이미지, 증분 생성, 폰트 로딩과 검증
 - [랜딩 정적 생성과 코드 분할](reference/25-landing-static-rendering.md) · SSG/SSR 경계, 지연 기능, Lighthouse SEO 69의 원인
 - [랜딩 추가 성능·캐시](reference/26-landing-performance.md) · 파비콘·폰트·CSS·렌더 최적화, 배포별 캐시 갱신
+- [랜딩 검색 공개](reference/27-landing-seo.md) · 대표 도메인·메타데이터·사이트맵·이미지 검색 정책과 남은 작업
 - [랜딩·고객 공개 테스트 배포](reference/22-public-test-deployment.md) · 기존 공개 테스트 환경과 배포 기록
 - [역할별 QA](reference/18-role-workflow-qa.md) · 고객과 직원의 수동 검증 시나리오
 

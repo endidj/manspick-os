@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
       images: [`${siteOrigin}/images/og-image.jpg`],
     },
-    { url: `${siteOrigin}/recommend`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${siteOrigin}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteOrigin}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
   ];
 }

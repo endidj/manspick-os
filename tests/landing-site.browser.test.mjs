@@ -160,9 +160,11 @@ test(
           width + 'px overflow',
         );
       }
-      assert.match(
-        await reducedPage.locator('meta[name=robots]').getAttribute('content'),
-        /noindex/,
+      assert.equal(
+        (await reducedPage.locator('meta[name=robots]').getAttribute('content'))
+          .split(/,\s*/)
+          .includes('noindex'),
+        process.env.LANDING_INDEXABLE !== 'true',
       );
       assert.equal(await reducedPage.locator('h1').count(), 1);
       assert.match(await reducedPage.title(), /맨즈픽 MANSPICK/);
