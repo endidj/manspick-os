@@ -21,6 +21,9 @@ test(
     const website = data['@graph'].find((item) => item['@type'] === 'WebSite');
     const business = data['@graph'].find((item) => item['@type'] === 'LocalBusiness');
     const service = data['@graph'].find((item) => item['@type'] === 'Service');
+    const imageUrl = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+    assert.ok(imageUrl);
+    assert.equal(business.image, imageUrl, 'schema and sharing metadata reuse the deployed image');
     assert.equal(website.url, `${origin}/`);
     assert.equal(website.publisher['@id'], business['@id']);
     assert.equal(service.provider['@id'], business['@id']);
