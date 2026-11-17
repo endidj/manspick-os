@@ -86,3 +86,12 @@ Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은
 5. HTTPS·화면·상담·canonical·robots·사이트맵·OG를 확인한 뒤 기존 Vercel 연결을 정리한다. 그 전에는 기존 프로젝트와 DNS 값을 보관해 연결을 되돌릴 수 있게 한다.
 
 현재 실제 DNS 관리 계정의 권한과 전체 레코드는 확인하지 않았다. 도메인·네임서버·인증서·Vercel 프로젝트 변경은 수행하지 않았다.
+
+## OG 미리보기 URL 보완 — 2026-11-17
+
+사용자가 OpenGraph.xyz에서 이미지가 보이지 않는 현상을 제보했다. 기존 사진 콜라주 파일은 테스트 Worker에 있지만 메타태그의 `https://www.manspick.co.kr/images/og-image.jpg`는 기존 Vercel 사이트에서 404를 반환했다. 이전 검사는 메타태그의 경로를 테스트 호스트로 바꿔 요청해 이 오류를 놓쳤다.
+
+- 기존 1200×630 JPEG 이미지를 재사용한다. 사진·문구를 새로 만들거나 변경하지 않는다.
+- canonical·사이트맵·JSON-LD 식별자는 운영 대표 주소를 유지하고, `og:url`과 OG·X·JSON-LD 이미지는 실제 배포 주소로 만든다. test 빌드는 `manspick-landing-test.winningant8.workers.dev`를 사용한다.
+- 실제 배포 검사는 `og:image`와 `twitter:image`의 절대 URL을 변경 없이 요청한다. 이전 배포에서 404 실패를 재현했으며 새 배포에서 이미지 응답·크기와 OpenGraph.xyz 미리보기를 재확인한다.
+- 운영 도메인·DNS·기존 Vercel 사이트와 검색 제외 경계는 변경하지 않는다.

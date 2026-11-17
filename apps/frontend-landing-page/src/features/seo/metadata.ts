@@ -1,4 +1,4 @@
-// 페이지별 검색·공유 메타데이터를 동일한 운영 주소와 색인 정책으로 만듭니다.
+// 검색 대표 주소와 실제 배포 주소를 구분해 페이지별 메타데이터를 만듭니다.
 import type { Metadata } from 'next';
 import { brandedPageTitle, resolveSiteSettings } from './settings';
 import faviconUrl from './icons/favicon.ico?url';
@@ -12,6 +12,8 @@ const settings = resolveSiteSettings(
 
 export const siteOrigin = settings.origin;
 export const isSiteIndexable = settings.indexable;
+const deploymentOrigin = process.env.MANSPICK_DEPLOYMENT_ORIGIN || siteOrigin;
+export const socialImageUrl = new URL('/images/og-image.jpg', deploymentOrigin).href;
 export const siteTitle = '맨즈픽 MANSPICK | 남자 프로필사진·소개팅사진·이미지컨설팅';
 export const siteDescription =
   '남성을 위한 프로필 사진과 이미지 컨설팅. 사전 스타일링부터 의상, 포즈 디렉팅, 촬영과 보정까지 맨즈픽과 함께 나다운 첫인상을 완성하세요.';
@@ -47,10 +49,10 @@ export function pageMetadata({
       locale: 'ko_KR',
       title: fullTitle,
       description,
-      url,
+      url: new URL(path, deploymentOrigin).href,
       images: [
         {
-          url: `${siteOrigin}/images/og-image.jpg`,
+          url: socialImageUrl,
           width: 1200,
           height: 630,
           alt: '맨즈픽 남성 프로필 사진과 이미지 컨설팅',
@@ -61,7 +63,7 @@ export function pageMetadata({
       card: 'summary_large_image',
       title: fullTitle,
       description,
-      images: [`${siteOrigin}/images/og-image.jpg`],
+      images: [socialImageUrl],
     },
   };
 }

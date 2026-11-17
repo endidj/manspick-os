@@ -34,6 +34,8 @@
 
 `NEXT_PUBLIC_SITE_ORIGIN`의 기본값과 검색을 허용하는 대표 주소는 `https://www.manspick.co.kr`이다. 다른 origin은 검색 제외다. 운영 빌드를 테스트 호스트에서 제공해도 HTTP `X-Robots-Tag`로 제외하며, 정적 자산은 `_headers`의 대표 호스트 예외로 구분한다. robots.txt는 추천 등의 noindex를 읽을 수 있도록 `Allow: /`를 유지한다. 운영 사이트맵에는 `/`, `/terms`, `/privacy`만 포함한다. 카피·사진·통계·연출은 변경하지 않았다. [검색 공개 정책과 남은 작업](../../docs/reference/27-landing-seo.md)
 
+공유용 `og:url`과 OG·X·JSON-LD 이미지는 실제 빌드의 배포 주소를 사용한다. test 빌드는 기존 Vercel 사이트 대신 테스트 Worker의 `/images/og-image.jpg`를 참조하며, canonical과 구조화 데이터의 식별자는 대표 도메인을 유지한다. 배포 검증에서는 태그의 절대 이미지 URL을 그대로 요청해 200·JPEG·1200×630을 확인한다.
+
 ## 검증
 
 루트에서 `yarn typecheck`, `yarn lint`, `yarn test`, `yarn build`를 실행한다. 추천 단위 검사는 `yarn tsx --test apps/frontend-landing-page/src/features/package-quiz/recommendation.test.ts`다.

@@ -8,7 +8,12 @@ import sharp from 'sharp';
 const appUrl = process.env.LANDING_APP_URL;
 const indexable = process.env.LANDING_INDEXABLE === 'true';
 const productionOrigin = 'https://www.manspick.co.kr';
+const deploymentOrigin =
+  process.env.LANDING_DEPLOYMENT_ORIGIN ||
+  (indexable ? productionOrigin : 'https://manspick-landing-test.winningant8.workers.dev');
+const isLocal = appUrl && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(appUrl).hostname);
 const productionHeaders = { Host: 'www.manspick.co.kr' };
+
 function get(pathname, options) {
   const url = new URL(pathname, appUrl);
   if (!options?.headers?.Host) return fetch(url, options);
@@ -51,20 +56,44 @@ test(
       assert.equal(robots.split(/,\s*/).includes('noimageindex'), !indexable, pathname);
       if (indexable) assert.match(robots, /max-image-preview:large/);
       const ogUrl = html.match(/<meta property="og:url" content="([^"]+)"/)?.[1];
-      assert.equal(new URL(ogUrl).href, new URL(pathname, productionOrigin).href);
+      assert.equal(new URL(ogUrl).href, new URL(pathname, deploymentOrigin).href);
       for (const script of html.matchAll(
         /<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/gs,
       )) {
         const data = JSON.parse(script[1]);
-        for (const field of JSON.stringify(data).matchAll(/"(?:@id|url|image)":"([^"]+)"/g)) {
-          assert.equal(new URL(field[1]).origin, productionOrigin, field[1]);
+        for (const field of JSON.stringify(data).matchAll(/"(@id|url|image)":"([^"]+)"/g)) {
+          assert.equal(
+            new URL(field[2]).origin,
+            field[1] === 'image' ? deploymentOrigin : productionOrigin,
+            field[2],
+          );
         }
       }
     }
-    const recommendation = await get('/recommend', { headers: productionHeaders });
+    const recommendation = await get('/recommend', isLocal ? { headers: productionHeaders } : {});
     assert.equal(recommendation.status, 200);
     assert.match(recommendation.headers.get('x-robots-tag') ?? '', /noindex/);
     assert.match(await recommendation.text(), /<meta name="robots" content="[^"]*noindex/);
+  },
+);
+
+test(
+  'deployed OG and Twitter metadata point to an image that is actually reachable',
+  { skip: !appUrl || isLocal, timeout: 30000 },
+  async () => {
+    const html = await (await get('/')).text();
+    const imageUrl = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+    const twitterImage = html.match(/<meta name="twitter:image" content="([^"]+)"/)?.[1];
+    assert.ok(imageUrl, 'OG metadata includes an absolute image URL');
+    assert.equal(twitterImage, imageUrl);
+    // 경로를 테스트 서버로 바꾸지 않고 공유 크롤러가 읽는 실제 URL을 요청합니다.
+    const image = await fetch(imageUrl);
+    assert.equal(image.status, 200, imageUrl);
+    assert.match(image.headers.get('content-type') ?? '', /^image\/jpeg/);
+    const dimensions = await sharp(Buffer.from(await image.arrayBuffer())).metadata();
+    assert.equal(dimensions.width, 1200);
+    assert.equal(dimensions.height, 630);
+    assert.equal(new URL(imageUrl).origin, deploymentOrigin);
   },
 );
 
@@ -100,7 +129,7 @@ test(
 
 test(
   'production headers allow public HTML and images while excluding previews and private endpoints',
-  { skip: !appUrl, timeout: 30000 },
+  { skip: !appUrl || !isLocal, timeout: 30000 },
   async () => {
     const localHome = await get('/');
     assert.equal(localHome.status, 200);
@@ -114,7 +143,7 @@ test(
 
     const imageUrl = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
     assert.ok(imageUrl, 'sharing metadata references an absolute image URL');
-    assert.equal(new URL(imageUrl).origin, productionOrigin);
+    assert.equal(new URL(imageUrl).origin, deploymentOrigin);
     const imagePath = new URL(imageUrl).pathname;
     const image = await get(imagePath, { headers: productionHeaders });
     assert.equal(image.status, 200);
@@ -144,7 +173,7 @@ test(
 
 test(
   'apex host redirects to the canonical host without losing the path or query',
-  { skip: !appUrl, timeout: 30000 },
+  { skip: !appUrl || !isLocal, timeout: 30000 },
   async () => {
     const response = await get('/recommend?pkg=hybrid&utm_source=naver', {
       headers: { Host: 'manspick.co.kr' },

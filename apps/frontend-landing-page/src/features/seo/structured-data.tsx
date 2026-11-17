@@ -1,6 +1,6 @@
 // 원본 사이트에 공개된 사업자 정보만 검색엔진용 JSON-LD로 제공합니다.
 import { marketingPackages } from '../package-quiz/marketing-offers';
-import { siteDescription, siteOrigin } from './metadata';
+import { siteDescription, siteOrigin, socialImageUrl } from './metadata';
 import { serializeStructuredData } from './settings';
 
 export function StructuredData() {
@@ -22,7 +22,7 @@ export function StructuredData() {
         alternateName: 'MANSPICK',
         description: siteDescription,
         url: `${siteOrigin}/`,
-        image: `${siteOrigin}/images/og-image.jpg`,
+        image: socialImageUrl,
         email: 'wook971215@gmail.com',
         openingHoursSpecification: {
           '@type': 'OpeningHoursSpecification',
