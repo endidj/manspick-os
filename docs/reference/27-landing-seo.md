@@ -97,3 +97,13 @@ Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은
 - 운영 도메인·DNS·기존 Vercel 사이트와 검색 제외 경계는 변경하지 않는다.
 
 공개 수정 커밋은 `8b672e30652d28e7b30898464e62f91668a09708`, 테스트 Worker 버전은 `f074ab7a-cd49-4cb6-9ee8-07b33b4e5333`이다. 타입·lint·format·SEO 단위 7개, 운영 빌드 로컬 HTTP 5개, 테스트 빌드 로컬 HTTP 6개와 배포 후 HTTP 5개 검사가 통과했다. 원격에서는 이미 로컬에서 검증한 Host 시뮬레이션 2개만 건너뛰었다. OpenGraph.xyz의 같은 URL을 Rescan해 사진 표시와 오류 0개·통과 11개를 확인했다. 경고 2개는 이미지 내 홍보 문구와 description 길이 제안이며 사용자 요청에 따라 문구는 유지했다.
+
+## 스마트스토어 OG 이미지 교체 — 2026-11-17
+
+사용자가 기존 사진 콜라주 대신 [맨즈픽 스마트스토어 상품](https://smartstore.naver.com/_manspick/products/11725751378)의 OG 이미지를 지정했다. 해당 페이지의 `og:image`와 `twitter:image`가 가리키는 [원본 이미지](https://shop-phinf.pstatic.net/20260516_128/17788596303106JvD8_PNG/41847861411907666_2084221316.png?type=o1000)를 그대로 저장했다. 원본은 인물과 문구가 합성된 1000×1000 상품 홍보 이미지이며 새로 생성하거나 편집하지 않았다.
+
+- 저장 위치: `apps/frontend-landing-page/public/images/og-smartstore-11725751378.jpg`
+- 원본 URL은 `.png`이지만 실제 응답 형식은 JPEG이며 파일 바이트를 변환하지 않았다.
+- SHA-256: `70c85b5dbffc1c3783b8f025e839da24d4cf8d0965e6ad94af5eb099cc96a56b`
+- 새 파일명으로 OG·X·JSON-LD·사이트맵을 연결해 이전 공유 이미지 캐시와 구분하고, 기존 `og-image.jpg`는 배포 자산에서 제거한다.
+- 원본 비율과 모든 문구를 유지한다. 플랫폼별 큰 카드에서 정사각형 이미지 일부가 잘릴 수 있다.
