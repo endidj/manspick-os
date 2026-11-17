@@ -48,7 +48,7 @@
 - production HTTP·브라우저 검사 13개 통과. 대표 주소·검색 지시·사이트맵·이미지·구조화 데이터·도메인 이동·추천 동작과 320–1440px 화면을 확인했다.
 - `NEXT_PUBLIC_SITE_INDEXABLE=true`를 주입한 test 빌드의 경계 검사 6개 통과. 공개 페이지도 noindex이며 사이트맵은 비어 있다.
 - 최종 로컬 운영 Host 조건의 Lighthouse SEO 100/100, 실패 항목·실행 경고 없음. 운영 사이트 점수나 실제 검색 순위에 대한 측정은 아니다.
-- 새 의존성·가시적인 카피·사진·연출 변경 없음. 원격 배포·검색엔진 계정 작업 없음.
+- 새 의존성·가시적인 카피·사진·연출 변경 없음. 초기 검증에서는 원격 배포·검색엔진 계정 작업을 하지 않았다. 이후 승인된 테스트 배포는 아래에 기록한다.
 
 ## 남은 운영 작업
 
@@ -61,3 +61,28 @@
 - 별도 전화번호·정확한 좌표·후기 원문 등 확인되지 않은 정보를 추가하지 않았다.
 
 검색 공개는 색인·순위·리치 결과를 보장하지 않는다. 과거 문서의 전 앱 noindex와 Lighthouse SEO 69는 당시 정책의 검증 기록이며 현재 정책은 이 문서를 따른다.
+
+## 승인된 테스트 배포 — 2026-11-17
+
+사용자가 커밋·푸시·배포를 요청했으며, 추가 확인에서 운영 도메인은 변경하지 않도록 지정했다. 이번 배포는 기존 `manspick-landing-test`만 갱신했다.
+
+- 공개 구현 커밋: `397dfbb98c6142104ad693add253946a6125e59d` (`endidj/manspick-os`, main).
+- Worker 버전: `7e43daa5-95da-4977-bcd8-4e708d3e73cd`.
+- 주소: `https://manspick-landing-test.winningant8.workers.dev/`.
+- 공개 릴리스 작업트리의 typecheck·ESLint·포맷·단위 145개, test 빌드·HTTP 회귀 6개 및 Wrangler dry-run을 통과한 뒤 동일 산출물을 배포했다.
+- 실제 배포의 HTML/RSC가 빌드 파일과 일치하고 캐시 HIT를 반환한다. 구조화 데이터·대표 주소·OG 이미지 200, 추천 검색 제외·비공개 캐시 404도 확인했다.
+- 배포 후 HTTP·구조화 데이터 검사 2개와 실제 Chromium 화면·추천 검사 7개가 통과했다. 상담 제출은 테스트에서 가로채 실제 전송하지 않았다.
+- 테스트 주소는 noindex·빈 사이트맵을 유지한다. `www.manspick.co.kr`은 여전히 기존 Vercel 사이트이며 새 운영 SEO 정책은 이 도메인에 반영되지 않았다.
+- 고객·어드민·API·DB·DNS·Vercel 설정은 변경하지 않았다. 새 OG 이미지는 아직 생성하지 않았다.
+
+## 운영 도메인 이전 방법 — 실행하지 않음
+
+Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은 별개다. 도메인의 DNS와 네임서버를 관리할 수 있으면 기존 Vercel 계정을 인수하기 전에도 새 호스팅으로 전환할 수 있다. 이 권한이 현재 소유자에게 있으면 소유자의 협조가 필요하다. [Vercel DNS 관리](https://vercel.com/docs/domains/managing-dns-records)
+
+1. 등록기관·DNS 관리자·Vercel 프로젝트 소유자를 확인하고 현재 DNS 전체와 기존 프로젝트의 소스·환경 설정을 확보한다.
+2. 운영용 API 연결과 검색 공개 설정을 가진 Worker를 먼저 검증한다. 현재 테스트 API를 그대로 운영에 연결하지 않는다.
+3. DNS가 Cloudflare에 없으면 기존 웹·메일 MX/SPF/DKIM/DMARC·검증 TXT·하위 도메인 레코드를 복제하고 네임서버를 이전한다. DNSSEC 사용 시 기존 DS 처리를 포함한 공식 절차를 따른다. 도메인 등록기관 자체를 바꿀 필요는 없다. [Cloudflare DNS 이전](https://developers.cloudflare.com/dns/zone-setups/full-setup/setup/)
+4. 활성 Cloudflare zone에서 `www.manspick.co.kr`을 운영 Worker의 Custom Domain으로 연결한다. 같은 이름의 기존 CNAME은 전환 시 정리하고, 루트 도메인은 www로 이동하도록 연결한다. Cloudflare가 DNS와 인증서를 관리한다. [Workers Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)
+5. HTTPS·화면·상담·canonical·robots·사이트맵·OG를 확인한 뒤 기존 Vercel 연결을 정리한다. 그 전에는 기존 프로젝트와 DNS 값을 보관해 연결을 되돌릴 수 있게 한다.
+
+현재 실제 DNS 관리 계정의 권한과 전체 레코드는 확인하지 않았다. 도메인·네임서버·인증서·Vercel 프로젝트 변경은 수행하지 않았다.
