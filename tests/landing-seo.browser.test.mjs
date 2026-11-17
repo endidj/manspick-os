@@ -119,6 +119,17 @@ test(
         : [],
     );
     assert.doesNotMatch(xml, /\/recommend|\/api\/|localhost|workers\.dev/);
+    if (indexable) {
+      assert.match(xml, /<lastmod>2026-11-17<\/lastmod>/);
+      const images = [...xml.matchAll(/<image:loc>([^<]+)<\/image:loc>/g)];
+      assert.equal(images.length, 4, 'sharing image and three public portfolio images');
+      for (const [, imageUrl] of images) {
+        assert.equal(new URL(imageUrl).origin, productionOrigin);
+        const image = await get(new URL(imageUrl).pathname);
+        assert.equal(image.status, 200, imageUrl);
+        assert.match(image.headers.get('content-type') ?? '', /^image\//);
+      }
+    }
     const robots = await get('/robots.txt');
     assert.equal(robots.status, 200);
     const text = await robots.text();
@@ -126,6 +137,26 @@ test(
     assert.doesNotMatch(text, /^Disallow:\s*\/\s*$/im);
     const sitemaps = [...text.matchAll(/^Sitemap:\s*(\S+)/gim)].map((match) => match[1]);
     assert.deepEqual(sitemaps, indexable ? [`${productionOrigin}/sitemap.xml`] : []);
+  },
+);
+
+test(
+  'legacy HTML links keep their destination and query after permanent redirects',
+  { skip: !appUrl, timeout: 30000 },
+  async () => {
+    for (const [legacy, target] of [
+      ['/index.html', '/'],
+      ['/terms.html', '/terms'],
+      ['/privacy.html', '/privacy'],
+      ['/recommend.html', '/recommend'],
+    ]) {
+      const response = await get(`${legacy}?utm_source=naver`, { redirect: 'manual' });
+      assert.equal(response.status, 308, legacy);
+      const location = new URL(response.headers.get('location'), appUrl);
+      assert.equal(location.pathname, target);
+      assert.equal(location.search, '?utm_source=naver');
+      assert.equal((await get(`${target}${location.search}`)).status, 200, target);
+    }
   },
 );
 

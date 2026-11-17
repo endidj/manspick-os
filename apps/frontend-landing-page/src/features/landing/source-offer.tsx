@@ -954,7 +954,7 @@ export function SourceOffer() {
             </details>
             {'\n\n        '}
             {'\n        '}
-            <div id="faq-more" className="hidden space-y-3">
+            <div id="faq-more" className="space-y-3">
               {'\n          '}
               <details className="reveal in glass rounded-2xl p-5 md:p-6 group">
                 {'\n            '}
@@ -1089,8 +1089,10 @@ export function SourceOffer() {
             {'\n        '}
             <button
               id="faq-toggle"
-              className="w-full mt-4 flex items-center justify-center gap-2 text-sm text-zinc-400 hover:text-white transition py-3 rounded-2xl glass hover:bg-white/5"
+              className="hidden w-full mt-4 flex items-center justify-center gap-2 text-sm text-zinc-400 hover:text-white transition py-3 rounded-2xl glass hover:bg-white/5"
               type="button"
+              aria-controls="faq-more"
+              aria-expanded="false"
             >
               {'\n          '}
               <span id="faq-toggle-text">{'질문 더보기'}</span>

@@ -19,6 +19,7 @@ test(
     const data = JSON.parse(script[1]);
     assert.equal(data['@context'], 'https://schema.org');
     const website = data['@graph'].find((item) => item['@type'] === 'WebSite');
+    const webpage = data['@graph'].find((item) => item['@type'] === 'WebPage');
     const business = data['@graph'].find((item) => item['@type'] === 'LocalBusiness');
     const service = data['@graph'].find((item) => item['@type'] === 'Service');
     const imageUrl = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
@@ -26,6 +27,11 @@ test(
     assert.equal(business.image, imageUrl, 'schema and sharing metadata reuse the deployed image');
     assert.equal(website.url, `${origin}/`);
     assert.equal(website.publisher['@id'], business['@id']);
+    assert.equal(webpage.isPartOf['@id'], website['@id']);
+    assert.equal(webpage.about['@id'], business['@id']);
+    assert.equal(webpage.mainEntity['@id'], service['@id']);
+    assert.ok(business.sameAs.includes('https://smartstore.naver.com/_manspick'));
+    assert.ok(html.includes(`href="${business.hasMap}"`), 'map matches the visible business link');
     assert.equal(service.provider['@id'], business['@id']);
     assert.equal(service.hasOfferCatalog['@id'], business.hasOfferCatalog['@id']);
     assert.equal(business.openingHoursSpecification.opens, '11:00');
@@ -44,6 +50,7 @@ test(
       assert.equal(offer.priceCurrency, 'KRW');
       assert.equal(offer.url, `${origin}/#pricing`);
       assert.equal(offer.itemOffered.provider['@id'], business['@id']);
+      assert.ok(offer.itemOffered.description.includes('포즈·표정 디렉팅'));
       assert.ok(html.includes(offer.price.toLocaleString('en-US')), 'offer price is visible');
       assert.equal(offer.availability, undefined, 'simulated remaining seats are not stock data');
     }

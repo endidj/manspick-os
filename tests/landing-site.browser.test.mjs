@@ -4,6 +4,29 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const appUrl = process.env.LANDING_APP_URL;
+test('JavaScript 없이 FAQ 11개를 모두 펼쳐 읽을 수 있다', { skip: !appUrl }, async () => {
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
+    new URL('../.local/playwright', import.meta.url),
+  );
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    assert.equal((await page.goto(appUrl)).status(), 200);
+    assert.equal(await page.locator('#faq-toggle').isVisible(), false);
+    const questions = page.locator('#faq details');
+    assert.equal(await questions.count(), 11);
+    for (const question of await questions.all()) {
+      await question.locator('summary').click();
+      assert.equal(await question.locator('p').isVisible(), true);
+      assert.ok((await question.locator('p').innerText()).trim().length > 0);
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test(
   '원본 홈페이지의 SSR·애니메이션·갤러리·상담·반응형 흐름',
   { skip: !appUrl, timeout: 240000 },
@@ -91,8 +114,11 @@ test(
         [60, 55, 62, 32, 48, 28],
       );
       results.push('radar + concern');
+      assert.equal(await page.locator('#faq-more').isVisible(), false);
+      assert.equal(await page.locator('#faq-toggle').getAttribute('aria-expanded'), 'false');
       await page.locator('#faq-toggle').click();
       assert.equal(await page.locator('#faq-more').isVisible(), true);
+      assert.equal(await page.locator('#faq-toggle').getAttribute('aria-expanded'), 'true');
       assert.equal(await page.locator('#faq-toggle-text').innerText(), '접기');
       await page.locator('#faq-toggle').click();
       assert.equal(await page.locator('#faq-more').isVisible(), false);

@@ -78,7 +78,7 @@ export function SourceHow() {
               <SourceImage
                 name="location-1.jpg"
                 sizes={sourceImageSizes.location}
-                alt="감성 스팟 촬영 사례 1"
+                alt="식물과 유리창을 배경으로 검정 재킷과 빨간 티셔츠를 입은 남성의 야외 프로필 사진"
                 className="rounded-2xl aspect-[3/4] object-cover"
                 loading="lazy"
                 decoding="async"
@@ -87,7 +87,7 @@ export function SourceHow() {
               <SourceImage
                 name="location-2.jpg"
                 sizes={sourceImageSizes.location}
-                alt="감성 스팟 촬영 사례 2"
+                alt="실내 테이블에 앉아 갈색 재킷을 입고 옆을 바라보는 남성의 프로필 사진"
                 className="rounded-2xl aspect-[3/4] object-cover translate-y-6"
                 loading="lazy"
                 decoding="async"
@@ -96,7 +96,7 @@ export function SourceHow() {
               <SourceImage
                 name="location-3.jpg"
                 sizes={sourceImageSizes.location}
-                alt="감성 스팟 촬영 사례 3"
+                alt="밝은 콘크리트 벽 앞에서 검정 재킷을 입고 서 있는 남성의 측면 프로필 사진"
                 className="rounded-2xl aspect-[3/4] object-cover"
                 loading="lazy"
                 decoding="async"
