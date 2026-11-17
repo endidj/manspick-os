@@ -183,6 +183,13 @@ function attachNavigation(scope: Scope) {
   });
   const faqToggle = scope.query('#faq-toggle');
   const faqMore = scope.query('#faq-more');
+  // JS가 동작할 때만 추가 질문을 접어 기본 HTML에서도 모든 답변을 열 수 있게 합니다.
+  faqMore?.classList.add('hidden');
+  faqToggle?.classList.remove('hidden');
+  scope.cleanup(() => {
+    faqMore?.classList.remove('hidden');
+    faqToggle?.classList.add('hidden');
+  });
   scope.on(faqToggle, 'click', () => {
     const open = faqMore?.classList.contains('hidden') ?? false;
     faqMore?.classList.toggle('hidden', !open);
