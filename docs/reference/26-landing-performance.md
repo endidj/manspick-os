@@ -9,7 +9,7 @@
 - 팀 갤러리 `sizes`를 실제 3열 너비에 맞췄다. 1440px DPR2에서 선택하는 사진 합계가 1,323,048B에서 459,150B로 약 65.3% 감소했다. 이미 카드에서 받은 큰 사진은 브라우저가 재사용할 수 있다. 390px DPR2는 기존 459,150B를 유지한다.
 - 공용 안내·본문 바로가기 스타일을 `essentials.css`에 모으고 랜딩은 업무 앱 레이아웃 CSS를 가져오지 않는다. 약관·개인정보는 홈 전체 스타일 대신 실제 사용하는 규칙만 가져온다.
 - 공용 Icon의 반복 고정 스타일을 CSS Module로 옮겨 HTML/RSC를 줄였다. 크기·색·접근성·사용자 style 우선순위는 유지한다.
-- 화면 밖 섹션에 `content-visibility: auto`를 적용한다. 본문은 SSG HTML에 그대로 있으며, 화면에 접근할 때 레이아웃과 페인트를 수행한다. 팀 모달은 같은 기능 scope 안에서 섹션 밖으로 옮겨 viewport 위치를 유지한다. 인쇄는 전체 본문을 렌더한다.
+- 화면 밖 섹션에 `content-visibility: auto`를 적용한다. 본문은 SSG HTML에 그대로 있으며, 화면에 접근할 때 레이아웃과 페인트를 수행한다. 앵커를 선택하면 `:has(:target)`으로 전체 높이를 확정해 기존 smooth scroll의 목적지를 보존한다. 팀 모달은 같은 기능 scope 안에서 섹션 밖으로 옮겨 viewport 위치를 유지한다. 인쇄는 전체 본문을 렌더한다.
 
 이미지·아이콘·폰트 생성은 일반 앱 빌드에 연결하지 않는다. 변경된 원본이나 글리프 집합이 있을 때 명시적으로 생성하고 결과를 커밋한다. Node의 `--check` 검사는 재인코딩 없이 현재 상태를 검증한다. 도구와 원본 정보는 [사진 최적화](24-media-optimization.md), [폰트 README](../../packages/design-system/src/assets/fonts/landing/README.md), [아이콘 README](../../apps/frontend-landing-page/src/features/seo/icons/README.md)를 참고한다.
 

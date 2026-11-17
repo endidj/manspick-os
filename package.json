@@ -33,7 +33,7 @@
     "format:check": "prettier --check .",
     "images:generate": "node scripts/generate-site-images.mjs",
     "images:check": "node scripts/generate-site-images.mjs --check",
-    "test": "tsx --tsconfig apps/server/tsconfig.json --test tests/*.test.ts tests/package-lint.test.mjs",
+    "test": "tsx --tsconfig apps/server/tsconfig.json --test tests/*.test.ts tests/package-lint.test.mjs tests/landing-fonts.test.mjs",
     "test:admin": "node --test tests/*.browser.test.mjs",
     "test:local": "node --test tests/local.integration.test.mjs",
     "build": "node scripts/build.mjs",

@@ -173,6 +173,10 @@
     contain-intrinsic-block-size: auto 1000px;
   }
 }
+/* 앵커 이동 중 높이가 바뀌어 smooth scroll의 목적지가 어긋나지 않게 합니다. */
+.root:has(:target) :global(main > section:not(#hero)) {
+  content-visibility: visible;
+}
 @media print {
   .root :global(main > section:not(#hero)) {
     content-visibility: visible;
