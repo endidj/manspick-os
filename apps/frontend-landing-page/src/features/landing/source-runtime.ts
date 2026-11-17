@@ -3,6 +3,24 @@ import { semanticTokens } from '@manspick/design-system/tokens';
 import { attachSourceRadar } from './source-radar';
 import { createScope, type Scope } from './source-scope';
 
+function attachNearbyImages(scope: Scope) {
+  // 렌더를 생략한 섹션도 화면 1,200px 앞에서 사진 다운로드를 시작합니다.
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((image) => {
+          image.loading = 'eager';
+        });
+        observer.unobserve(entry.target);
+      }
+    },
+    { rootMargin: '1200px 0px' },
+  );
+  scope.all('main > section').forEach((section) => observer.observe(section));
+  scope.cleanup(() => observer.disconnect());
+}
+
 function attachReveals(scope: Scope) {
   scope.observe(scope.all('.reveal'), (element) => element.classList.add('in'), {
     threshold: 0.12,
@@ -485,6 +503,7 @@ export function attachSourceInteractions(root: HTMLElement): () => void {
   const scope = createScope(root);
   root.dataset.motionReady = 'true';
   scope.cleanup(() => delete root.dataset.motionReady);
+  attachNearbyImages(scope);
   attachReveals(scope);
   attachPointerEffects(scope);
   attachNavigation(scope);
