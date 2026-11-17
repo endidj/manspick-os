@@ -91,8 +91,10 @@ test(
     assert.equal(image.status, 200, imageUrl);
     assert.match(image.headers.get('content-type') ?? '', /^image\/jpeg/);
     const dimensions = await sharp(Buffer.from(await image.arrayBuffer())).metadata();
-    assert.equal(dimensions.width, 1200);
-    assert.equal(dimensions.height, 630);
+    assert.equal(dimensions.width, 1000);
+    assert.equal(dimensions.height, 1000);
+    assert.equal(html.match(/<meta property="og:image:width" content="([^"]+)"/)?.[1], '1000');
+    assert.equal(html.match(/<meta property="og:image:height" content="([^"]+)"/)?.[1], '1000');
     assert.equal(new URL(imageUrl).origin, deploymentOrigin);
   },
 );
@@ -150,8 +152,8 @@ test(
     assert.match(image.headers.get('content-type') ?? '', /^image\/jpeg/);
     assert.doesNotMatch(image.headers.get('x-robots-tag') ?? '', /noindex/);
     const dimensions = await sharp(Buffer.from(await image.arrayBuffer())).metadata();
-    assert.equal(dimensions.width, 1200);
-    assert.equal(dimensions.height, 630);
+    assert.equal(dimensions.width, 1000);
+    assert.equal(dimensions.height, 1000);
     const localImage = await get(imagePath);
     assert.equal(localImage.status, 200);
     if (new URL(appUrl).origin !== productionOrigin) {

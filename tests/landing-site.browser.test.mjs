@@ -247,7 +247,13 @@ test(
       }
       assert.match(await (await context.request.get(appUrl + '/robots.txt')).text(), /Allow: \/\s/);
       assert.equal((await context.request.get(appUrl + '/api/admin/shoots')).status(), 403);
-      for (const path of ['/terms', '/privacy', '/legal', '/images/og-image.jpg', '/favicon.ico']) {
+      for (const path of [
+        '/terms',
+        '/privacy',
+        '/legal',
+        '/images/og-smartstore-11725751378.jpg',
+        '/favicon.ico',
+      ]) {
         assert.equal((await context.request.get(appUrl + path)).status(), 200, path);
       }
       const noJs = await browser.newContext({ javaScriptEnabled: false });

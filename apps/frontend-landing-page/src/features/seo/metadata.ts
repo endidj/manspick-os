@@ -13,7 +13,8 @@ const settings = resolveSiteSettings(
 export const siteOrigin = settings.origin;
 export const isSiteIndexable = settings.indexable;
 const deploymentOrigin = process.env.MANSPICK_DEPLOYMENT_ORIGIN || siteOrigin;
-export const socialImageUrl = new URL('/images/og-image.jpg', deploymentOrigin).href;
+export const socialImageUrl = new URL('/images/og-smartstore-11725751378.jpg', deploymentOrigin)
+  .href;
 export const siteTitle = '맨즈픽 MANSPICK | 남자 프로필사진·소개팅사진·이미지컨설팅';
 export const siteDescription =
   '남성을 위한 프로필 사진과 이미지 컨설팅. 사전 스타일링부터 의상, 포즈 디렉팅, 촬영과 보정까지 맨즈픽과 함께 나다운 첫인상을 완성하세요.';
@@ -53,8 +54,8 @@ export function pageMetadata({
       images: [
         {
           url: socialImageUrl,
-          width: 1200,
-          height: 630,
+          width: 1000,
+          height: 1000,
           alt: '맨즈픽 남성 프로필 사진과 이미지 컨설팅',
         },
       ],

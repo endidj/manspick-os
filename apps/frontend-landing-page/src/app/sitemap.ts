@@ -9,7 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteOrigin}/`,
       changeFrequency: 'weekly',
       priority: 1,
-      images: [`${siteOrigin}/images/og-image.jpg`],
+      images: [`${siteOrigin}/images/og-smartstore-11725751378.jpg`],
     },
     { url: `${siteOrigin}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${siteOrigin}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
