@@ -251,7 +251,7 @@ test(
         '/terms',
         '/privacy',
         '/legal',
-        '/images/og-smartstore-11725751378.jpg',
+        '/images/og-smartstore-11725751378-wide.jpg',
         '/favicon.ico',
       ]) {
         assert.equal((await context.request.get(appUrl + path)).status(), 200, path);
