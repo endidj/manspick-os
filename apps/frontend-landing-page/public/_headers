@@ -1,6 +1,9 @@
-# 모든 정적 자산도 검색 결과에서 제외합니다.
+# 테스트 주소의 자산은 제외하고 대표 도메인의 공개 자산은 검색을 허용합니다.
 /*
   X-Robots-Tag: noindex, nofollow, noarchive, noimageindex
+
+https://www.manspick.co.kr/*
+  ! X-Robots-Tag
 
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable

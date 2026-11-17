@@ -5,7 +5,10 @@ import faviconUrl from './icons/favicon.ico?url';
 import appleTouchIconUrl from './icons/apple-touch-icon.png?url';
 import largeIconUrl from './icons/icon-256.png?url';
 
-const settings = resolveSiteSettings(process.env.NEXT_PUBLIC_SITE_ORIGIN);
+const settings = resolveSiteSettings(
+  process.env.MANSPICK_SITE_ORIGIN,
+  process.env.MANSPICK_SITE_INDEXABLE === 'true',
+);
 
 export const siteOrigin = settings.origin;
 export const isSiteIndexable = settings.indexable;
@@ -34,9 +37,9 @@ export function pageMetadata({
     robots: {
       index: canIndex,
       follow: isSiteIndexable,
-      noarchive: true,
-      noimageindex: true,
-      ...(canIndex && { 'max-image-preview': 'large' as const }),
+      ...(canIndex
+        ? { 'max-image-preview': 'large' as const, 'max-snippet': -1, 'max-video-preview': -1 }
+        : { noarchive: true, noimageindex: true }),
     },
     openGraph: {
       type: 'website',

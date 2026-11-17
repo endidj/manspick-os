@@ -1,6 +1,10 @@
-// 검색로봇이 모든 응답의 noindex를 읽게 허용하며 사이트맵은 알리지 않습니다.
+// 검색 제외 지시를 읽도록 수집을 허용하고 운영 빌드의 사이트맵만 알립니다.
 import type { MetadataRoute } from 'next';
+import { isSiteIndexable, siteOrigin } from '../features/seo';
 
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: '*', allow: '/' } };
+  return {
+    rules: { userAgent: '*', allow: '/' },
+    ...(isSiteIndexable && { sitemap: `${siteOrigin}/sitemap.xml` }),
+  };
 }
