@@ -93,5 +93,7 @@ Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은
 
 - 기존 1200×630 JPEG 이미지를 재사용한다. 사진·문구를 새로 만들거나 변경하지 않는다.
 - canonical·사이트맵·JSON-LD 식별자는 운영 대표 주소를 유지하고, `og:url`과 OG·X·JSON-LD 이미지는 실제 배포 주소로 만든다. test 빌드는 `manspick-landing-test.winningant8.workers.dev`를 사용한다.
-- 실제 배포 검사는 `og:image`와 `twitter:image`의 절대 URL을 변경 없이 요청한다. 이전 배포에서 404 실패를 재현했으며 새 배포에서 이미지 응답·크기와 OpenGraph.xyz 미리보기를 재확인한다.
+- 실제 배포 검사는 `og:image`와 `twitter:image`의 절대 URL을 변경 없이 요청한다. 이전 배포에서 404 실패를 재현했고 새 배포에서는 200·JPEG·1200×630 검사를 통과했다.
 - 운영 도메인·DNS·기존 Vercel 사이트와 검색 제외 경계는 변경하지 않는다.
+
+공개 수정 커밋은 `8b672e30652d28e7b30898464e62f91668a09708`, 테스트 Worker 버전은 `f074ab7a-cd49-4cb6-9ee8-07b33b4e5333`이다. 타입·lint·format·SEO 단위 7개, 운영 빌드 로컬 HTTP 5개, 테스트 빌드 로컬 HTTP 6개와 배포 후 HTTP 5개 검사가 통과했다. 원격에서는 이미 로컬에서 검증한 Host 시뮬레이션 2개만 건너뛰었다. OpenGraph.xyz의 같은 URL을 Rescan해 사진 표시와 오류 0개·통과 11개를 확인했다. 경고 2개는 이미지 내 홍보 문구와 description 길이 제안이며 사용자 요청에 따라 문구는 유지했다.
