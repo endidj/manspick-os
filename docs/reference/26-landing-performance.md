@@ -65,3 +65,9 @@ Lighthouse 13.6.0 모바일 두 번은 변경 전 성능 40/62, 이후 76/62였�
 ## 모바일 메뉴 정렬 보완
 
 사용자가 확인한 원형 버튼 안의 햄버거 아이콘은 배포 화면에서 중심보다 3px 위에 있었다. 36px 버튼 안의 20px 아이콘을 감싼 `text-xl`의 28px line box와 inline baseline이 원인이며, SVG의 세 줄은 원래 중앙 대칭이다. 해당 wrapper에 기존 `flex items-center justify-center`만 적용해 아이콘을 가운데 정렬한다. 공용 Icon과 원본 SVG는 수정하지 않는다.
+
+최종 코드 커밋은 `f4c7af4`, Worker 버전은 `d0b18f39-f346-425a-befb-3600ccea0938`이다. 실제 배포의 390/768px DPR2에서 메뉴 열림·닫힘 네 경우 모두 중심 오차 x=0px, y=0px을 확인했다. 측정과 화면은 `.local/performance-audit/menu-alignment-deployed*`에 있다.
+
+헤더 변경 후 공개 프리뷰와 실제 배포 양쪽에서 기존 사이트 상호작용·SSG/캐시 검사 2개를 다시 통과했다. 메뉴 정렬 한 줄 외에 앱 동작은 추가 변경하지 않았다.
+
+새 캐시 정책을 적용한 버전에서 이 후속 배포로 넘어갈 때 같은 브라우저 캐시를 유지했다. HTML build ID가 `7df1771449162791897c8cdb2d34fb37`에서 `7c74ab5c6fbcad366c9ecd4179f801a9`로 바뀌고 고정 favicon은 최신 6,721B를 반환했다. 변경 없는 사진 8개와 폰트 2개는 `transferSize: 0`으로 재사용했다. 전체 캐시 purge 없이 최신 HTML과 기존 자산 재사용이 함께 동작한 검증이며, 결과는 `.local/performance-audit/cache-header-deploy.json`이다. 이 후속 배포에서는 앞선 전환의 폰트 20개 현상이 재현되지 않았다.
