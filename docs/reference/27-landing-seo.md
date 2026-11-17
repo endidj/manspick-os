@@ -141,12 +141,13 @@ Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은
 - 상품 포함 항목은 기존 `marketingIncludes`를 재사용했다. 연락처·좌표·후기·평점·성과 수치를 새로 만들지 않았다.
 - 기존 공개 HTML·robots 수집 허용을 유지했다. 별도 AI API, llms.txt, 자동 백링크 생성, 학습 허용 정책 변경은 추가하지 않았다.
 
-테스트 Worker 버전은 `3c00c2b0-ce8e-432e-863d-be1cc9be39d4`다. 기존 테스트 API binding을 유지하고 DB·다른 Worker·운영 도메인은 변경하지 않았다. 테스트 주소는 계속 noindex·빈 사이트맵이다.
+최종 테스트 Worker 버전은 `124d2caf-cda9-4f2f-aed1-5d1227eff2cf`이며 공개 릴리스 작업트리에서 빌드·검증한 산출물이다. 기존 테스트 API binding을 유지하고 DB·다른 Worker·운영 도메인은 변경하지 않았다. 테스트 주소는 계속 noindex·빈 사이트맵이다.
 
 ### 검증과 남은 항목
 
 - 랜딩 타입 검사·관련 ESLint·포맷·SEO 단위 7개 통과. production/test SSG 빌드 및 Wrangler dry-run 통과.
 - 운영 빌드 로컬 HTTP·브라우저 8개 통과(원격 OG 검사는 로컬에서 제외), 테스트 빌드 HTTP·구조화 데이터 6개 통과.
+- 공개 릴리스 작업트리에서도 랜딩 타입·ESLint·SEO 단위 7개, test 빌드, 로컬 HTTP·브라우저 8개를 통과했다. 신규 기능·사진용 의존성 없이 기존 공용 자산과 상품 정보를 재사용한다.
 - 내부 앵커 33개와 주요 페이지 링크, Googlebot·Yeti·bingbot·OAI-SearchBot User-Agent의 초기 HTML 200을 로컬에서 확인했다. 실제 검색엔진 IP의 크롤링이나 색인을 증명하는 검사는 아니다.
 - 원격 Cloudflare HTTP·구조화 데이터 5개와 JS 없는 FAQ 11개 브라우저 검사 통과. 운영 Host 시뮬레이션 2개는 이미 로컬에서 검사해 원격에서는 제외했다.
 - 기존 화면·갤러리·모바일 메뉴·상담 폼 회귀 검사 통과. 상담 제출은 가로채 실제 전송하지 않았다.
