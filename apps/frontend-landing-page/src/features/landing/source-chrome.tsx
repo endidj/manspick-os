@@ -199,7 +199,7 @@ export function SourceNavigation() {
               className="lg:hidden w-9 h-9 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 transition"
             >
               {'\n          '}
-              <span id="mobile-menu-icon" className="text-xl">
+              <span id="mobile-menu-icon" className="flex items-center justify-center text-xl">
                 <SourceIcon name="solar/hamburger-menu-linear" data-menu-icon="open" />
                 <SourceIcon
                   name="solar/close-circle-linear"
