@@ -1,0 +1,35 @@
+// codex/landing-refinement 브랜치 전용 미리보기이며 기존 사이트를 변경하지 않습니다.
+// 앱 폴더에서 NEXT_PUBLIC_SITE_ORIGIN=https://manspick-landing-refinement.winningant8.workers.dev 로 vite build --mode preview 후 이 설정으로 배포합니다.
+{
+  "name": "manspick-landing-refinement",
+  "main": "../apps/frontend-landing-page/.cloudflare/output/v0/workers/default/bundle/index.js",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": false,
+  },
+  "no_bundle": true,
+  "find_additional_modules": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"],
+      "fallthrough": true,
+    },
+  ],
+  "assets": {
+    "directory": "../apps/frontend-landing-page/.cloudflare/output/v0/workers/default/assets",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": ["/*", "!/_next/static/*", "!/*/_next/static/*"],
+  },
+  "services": [
+    {
+      "binding": "MANSPICK_API",
+      "service": "manspick-public-api-test",
+    },
+  ],
+}
