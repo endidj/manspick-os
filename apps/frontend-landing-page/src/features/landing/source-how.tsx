@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { SourceImage } from './source-image';
 import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
+import styles from './source-how.module.css';
 
 export function SourceHow() {
   return (
@@ -661,6 +662,10 @@ export function SourceHow() {
               {'\n          '}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
               {'\n          '}
+              <span className={styles.galleryBadge}>
+                <SourceIcon name="solar/gallery-wide-bold-duotone" />
+                {'갤러리 보기'}
+              </span>
               <div className="relative p-5 sm:p-6 md:p-7">
                 {'\n            '}
                 <p className="text-accent-400 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -701,19 +706,6 @@ export function SourceHow() {
                   {'\n            '}
                 </ul>
                 {'\n            '}
-                <div className="mt-4 flex items-center gap-2 text-accent-400 text-xs font-semibold uppercase tracking-widest">
-                  {'\n              '}
-                  <SourceIcon name="solar/gallery-wide-bold-duotone" />
-                  {'\n              '}
-                  <span>{'갤러리 보기'}</span>
-                  {'\n              '}
-                  <SourceIcon
-                    name="solar/arrow-right-linear"
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                  {'\n            '}
-                </div>
-                {'\n          '}
               </div>
               {'\n        '}
             </button>
@@ -737,6 +729,10 @@ export function SourceHow() {
               {'\n          '}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
               {'\n          '}
+              <span className={styles.galleryBadge}>
+                <SourceIcon name="solar/gallery-wide-bold-duotone" />
+                {'갤러리 보기'}
+              </span>
               <div className="relative p-5 sm:p-6 md:p-7">
                 {'\n            '}
                 <p className="text-accent-400 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -778,19 +774,6 @@ export function SourceHow() {
                   {'\n            '}
                 </ul>
                 {'\n            '}
-                <div className="mt-4 flex items-center gap-2 text-accent-400 text-xs font-semibold uppercase tracking-widest">
-                  {'\n              '}
-                  <SourceIcon name="solar/gallery-wide-bold-duotone" />
-                  {'\n              '}
-                  <span>{'갤러리 보기'}</span>
-                  {'\n              '}
-                  <SourceIcon
-                    name="solar/arrow-right-linear"
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                  {'\n            '}
-                </div>
-                {'\n          '}
               </div>
               {'\n        '}
             </button>
@@ -814,6 +797,10 @@ export function SourceHow() {
               {'\n          '}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
               {'\n          '}
+              <span className={styles.galleryBadge}>
+                <SourceIcon name="solar/gallery-wide-bold-duotone" />
+                {'갤러리 보기'}
+              </span>
               <div className="relative p-5 sm:p-6 md:p-7">
                 {'\n            '}
                 <p className="text-accent-400 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -855,19 +842,6 @@ export function SourceHow() {
                   {'\n            '}
                 </ul>
                 {'\n            '}
-                <div className="mt-4 flex items-center gap-2 text-accent-400 text-xs font-semibold uppercase tracking-widest">
-                  {'\n              '}
-                  <SourceIcon name="solar/gallery-wide-bold-duotone" />
-                  {'\n              '}
-                  <span>{'갤러리 보기'}</span>
-                  {'\n              '}
-                  <SourceIcon
-                    name="solar/arrow-right-linear"
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                  {'\n            '}
-                </div>
-                {'\n          '}
               </div>
               {'\n        '}
             </button>
