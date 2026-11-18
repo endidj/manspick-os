@@ -8,9 +8,10 @@ import sharp from 'sharp';
 const appUrl = process.env.LANDING_APP_URL;
 const indexable = process.env.LANDING_INDEXABLE === 'true';
 const productionOrigin = 'https://www.manspick.co.kr';
+const cloudflareOrigin = 'https://manspick-landing-test.winningant8.workers.dev';
+const siteOrigin = process.env.LANDING_SITE_ORIGIN || productionOrigin;
 const deploymentOrigin =
-  process.env.LANDING_DEPLOYMENT_ORIGIN ||
-  (indexable ? productionOrigin : 'https://manspick-landing-test.winningant8.workers.dev');
+  process.env.LANDING_DEPLOYMENT_ORIGIN || (indexable ? siteOrigin : cloudflareOrigin);
 const isLocal = appUrl && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(appUrl).hostname);
 const productionHeaders = { Host: 'www.manspick.co.kr' };
 
@@ -40,16 +41,19 @@ function get(pathname, options) {
 }
 
 test(
-  'public pages expose one production canonical and the intended indexing metadata',
+  'public pages expose their canonical origin and the intended indexing metadata',
   { skip: !appUrl, timeout: 30000 },
   async () => {
     for (const pathname of ['/', '/terms', '/privacy']) {
       const response = await get(pathname);
       assert.equal(response.status, 200, pathname);
+      if (indexable && !isLocal) {
+        assert.doesNotMatch(response.headers.get('x-robots-tag') ?? '', /noindex|noimageindex/);
+      }
       const html = await response.text();
       const canonicals = [...html.matchAll(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/g)];
       assert.equal(canonicals.length, 1, pathname);
-      assert.equal(new URL(canonicals[0][1]).href, new URL(pathname, productionOrigin).href);
+      assert.equal(new URL(canonicals[0][1]).href, new URL(pathname, siteOrigin).href);
       const robots = html.match(/<meta name="robots" content="([^"]+)"/)?.[1];
       assert.ok(robots, pathname);
       assert.equal(robots.split(/,\s*/).includes('noindex'), !indexable, pathname);
@@ -64,7 +68,7 @@ test(
         for (const field of JSON.stringify(data).matchAll(/"(@id|url|image)":"([^"]+)"/g)) {
           assert.equal(
             new URL(field[2]).origin,
-            field[1] === 'image' ? deploymentOrigin : productionOrigin,
+            field[1] === 'image' ? deploymentOrigin : siteOrigin,
             field[2],
           );
         }
@@ -90,6 +94,9 @@ test(
     const image = await fetch(imageUrl);
     assert.equal(image.status, 200, imageUrl);
     assert.match(image.headers.get('content-type') ?? '', /^image\/jpeg/);
+    if (indexable) {
+      assert.doesNotMatch(image.headers.get('x-robots-tag') ?? '', /noindex|noimageindex/);
+    }
     const dimensions = await sharp(Buffer.from(await image.arrayBuffer())).metadata();
     assert.equal(dimensions.width, 1200);
     assert.equal(dimensions.height, 630);
@@ -110,21 +117,15 @@ test(
     const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     assert.deepEqual(
       urls.sort(),
-      indexable
-        ? [
-            `${productionOrigin}/`,
-            `${productionOrigin}/terms`,
-            `${productionOrigin}/privacy`,
-          ].sort()
-        : [],
+      indexable ? [`${siteOrigin}/`, `${siteOrigin}/terms`, `${siteOrigin}/privacy`].sort() : [],
     );
-    assert.doesNotMatch(xml, /\/recommend|\/api\/|localhost|workers\.dev/);
+    assert.doesNotMatch(xml, /\/recommend|\/api\/|localhost/);
     if (indexable) {
       assert.match(xml, /<lastmod>2026-11-17<\/lastmod>/);
       const images = [...xml.matchAll(/<image:loc>([^<]+)<\/image:loc>/g)];
       assert.equal(images.length, 4, 'sharing image and three public portfolio images');
       for (const [, imageUrl] of images) {
-        assert.equal(new URL(imageUrl).origin, productionOrigin);
+        assert.equal(new URL(imageUrl).origin, siteOrigin);
         const image = await get(new URL(imageUrl).pathname);
         assert.equal(image.status, 200, imageUrl);
         assert.match(image.headers.get('content-type') ?? '', /^image\//);
@@ -136,7 +137,7 @@ test(
     assert.match(text, /^Allow:\s*\/\s*$/im);
     assert.doesNotMatch(text, /^Disallow:\s*\/\s*$/im);
     const sitemaps = [...text.matchAll(/^Sitemap:\s*(\S+)/gim)].map((match) => match[1]);
-    assert.deepEqual(sitemaps, indexable ? [`${productionOrigin}/sitemap.xml`] : []);
+    assert.deepEqual(sitemaps, indexable ? [`${siteOrigin}/sitemap.xml`] : []);
   },
 );
 
@@ -173,6 +174,19 @@ test(
     const productionHome = await get('/', { headers: productionHeaders });
     assert.equal(productionHome.status, 200);
     assert.doesNotMatch(productionHome.headers.get('x-robots-tag') ?? '', /noindex/);
+    const cloudflareHeaders = { Host: new URL(cloudflareOrigin).hostname };
+    const cloudflareHome = await get('/', { headers: cloudflareHeaders });
+    assert.equal(cloudflareHome.status, 200);
+    assert.doesNotMatch(cloudflareHome.headers.get('x-robots-tag') ?? '', /noindex/);
+    for (const host of [
+      'preview.example.com',
+      `${cloudflareHeaders.Host}.evil.example`,
+      `preview-${cloudflareHeaders.Host}`,
+    ]) {
+      const preview = await get('/', { headers: { Host: host } });
+      assert.equal(preview.status, 200, host);
+      assert.match(preview.headers.get('x-robots-tag') ?? '', /noindex/, host);
+    }
 
     const imageUrl = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
     assert.ok(imageUrl, 'sharing metadata references an absolute image URL');
@@ -182,6 +196,9 @@ test(
     assert.equal(image.status, 200);
     assert.match(image.headers.get('content-type') ?? '', /^image\/jpeg/);
     assert.doesNotMatch(image.headers.get('x-robots-tag') ?? '', /noindex/);
+    const cloudflareImage = await get(imagePath, { headers: cloudflareHeaders });
+    assert.equal(cloudflareImage.status, 200);
+    assert.doesNotMatch(cloudflareImage.headers.get('x-robots-tag') ?? '', /noindex/);
     const dimensions = await sharp(Buffer.from(await image.arrayBuffer())).metadata();
     assert.equal(dimensions.width, 1200);
     assert.equal(dimensions.height, 630);
@@ -196,10 +213,19 @@ test(
     const asset = await get(assetPath, { headers: productionHeaders });
     assert.equal(asset.status, 200);
     assert.doesNotMatch(asset.headers.get('x-robots-tag') ?? '', /noindex/);
+    const cloudflareAsset = await get(assetPath, { headers: cloudflareHeaders });
+    assert.equal(cloudflareAsset.status, 200);
+    assert.doesNotMatch(cloudflareAsset.headers.get('x-robots-tag') ?? '', /noindex/);
 
-    const api = await get('/api/admin/shoots', { headers: productionHeaders });
-    assert.equal(api.status, 403);
-    assert.match(api.headers.get('x-robots-tag') ?? '', /noindex/);
+    for (const headers of [productionHeaders, cloudflareHeaders]) {
+      const api = await get('/api/admin/shoots', { headers });
+      assert.equal(api.status, 403);
+      assert.match(api.headers.get('x-robots-tag') ?? '', /noindex/);
+      const recommendation = await get('/recommend', { headers });
+      assert.equal(recommendation.status, 200);
+      assert.match(recommendation.headers.get('x-robots-tag') ?? '', /noindex/);
+      assert.match(await recommendation.text(), /<meta name="robots" content="[^"]*noindex/);
+    }
     assert.equal((await get('/_vinext/static-cache/index.json')).status, 404);
   },
 );

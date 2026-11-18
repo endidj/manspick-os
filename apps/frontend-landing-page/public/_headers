@@ -1,8 +1,11 @@
-# 테스트 주소의 자산은 제외하고 대표 도메인의 공개 자산은 검색을 허용합니다.
+# 사용자가 공개한 두 배포 주소의 자산만 검색을 허용합니다.
 /*
   X-Robots-Tag: noindex, nofollow, noarchive, noimageindex
 
 https://www.manspick.co.kr/*
+  ! X-Robots-Tag
+
+https://manspick-landing-test.winningant8.workers.dev/*
   ! X-Robots-Tag
 
 /_next/static/*
