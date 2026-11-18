@@ -53,8 +53,14 @@ test(
         );
         assert.equal(await page.locator('#hero + section').getAttribute('id'), 'real-impact');
         const hero = page.locator('#hero');
+        assert.equal(await hero.locator('#hero-scroll-hint').count(), 1);
+        assert.equal(await hero.locator('#hero-audience .marquee-track').count(), 1);
+        assert.equal(
+          await page.locator('#before-after + #profile-notifications #notif-screen').count(),
+          1,
+        );
         assert.ok(await hero.evaluate((el) => el.getBoundingClientRect().height >= innerHeight));
-        assert.equal(await hero.locator('h1 span').first().innerText(), '매력적인 남자');
+        assert.equal(await hero.locator('h1 span').first().innerText(), '인기있는 남자');
         assert.equal(
           await hero
             .locator('h1 span')
@@ -64,7 +70,7 @@ test(
         );
         assert.match(
           await hero.locator('h1').innerText(),
-          /매력적인 남자의\s+프로필 사진은\s+어떻게 다를까요\?/,
+          /인기있는 남자의\s+프로필 사진은\s+어떻게 다를까요\?/,
         );
         assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저/);
         assert.ok(
@@ -81,7 +87,7 @@ test(
         );
         assert.ok(await backdrop.evaluate((el) => el.getBoundingClientRect().bottom < 0));
         await page.evaluate(() => window.scrollTo(0, 0));
-        const badge = hero.getByText('46K 인플루언서가 찍어주는 프로필 사진', { exact: true });
+        const badge = hero.getByText('46K 인플루언서가 찍어주는 남성 프로필', { exact: true });
         assert.equal(await badge.isVisible(), true);
         const badgeBox = await badge.boundingBox();
         const navBox = await page.locator('#main-nav').boundingBox();

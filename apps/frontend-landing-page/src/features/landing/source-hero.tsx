@@ -32,10 +32,10 @@ export function SourceHero() {
           <div className={`${styles.content} flex flex-col items-center text-center`}>
             {'\n\n        '}
             <div className={`${styles.creatorBadge} reveal`}>
-              <strong>46K</strong> 인플루언서가 찍어주는 프로필 사진
+              <strong>46K</strong> 인플루언서가 찍어주는 남성 프로필
             </div>
             <h1 className={`${styles.title} reveal font-display`}>
-              <span className={styles.accent}>매력적인 남자</span>의 <br />
+              <span className={styles.accent}>인기있는 남자</span>의 <br />
               <span className={styles.underline}>프로필 사진</span>은{' '}
               <br className={styles.mobileBreak} />
               어떻게 다를까요?
@@ -149,19 +149,20 @@ export function SourceHero() {
           {'\n    '}
         </div>
         {'\n\n    '}
+        <SourceAudience />
       </section>
     </>
   );
 }
 
-export function SourceAudience() {
+function SourceAudience() {
   return (
-    <section className="relative py-12 md:py-14 lg:py-16 border-y border-white/5">
+    <div id="hero-audience" className="relative pt-10 md:pt-12">
       {'\n    '}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {'\n      '}
         <p className="text-center text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
-          {'\n        누가 맨즈픽을 찾아오나요?\n      '}
+          {'\n        누가 맨즈픽을 찾아주나요?\n      '}
         </p>
         {'\n      '}
         <div className="marquee-row overflow-hidden relative">
@@ -271,6 +272,6 @@ export function SourceAudience() {
         {'\n    '}
       </div>
       {'\n  '}
-    </section>
+    </div>
   );
 }

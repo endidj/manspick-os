@@ -454,6 +454,7 @@ export function SourceProof() {
               rel="noopener noreferrer"
               className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-8 py-4 text-base rounded-full"
             >
+              <SourceIcon name="solar/bolt-bold" className="text-xl" />
               맨즈픽 무료 상담
               <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
             </a>
@@ -472,7 +473,7 @@ export function SourceImpact() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {'\n      '}
         {'\n      '}
-        <div className="reveal text-center max-w-2xl mx-auto mb-10 md:mb-12">
+        <div className="reveal text-center max-w-2xl mx-auto">
           {'\n        '}
           <p className="text-accent-400 text-sm font-semibold uppercase tracking-widest mb-6">
             {'Real Impact'}
@@ -494,8 +495,7 @@ export function SourceImpact() {
             </p>
             {'\n          '}
             <footer className="mt-4 text-sm text-zinc-500">
-              {'\n            — Albert Mehrabian, UCLA 심리학 교수 · '}
-              <cite className="not-italic text-zinc-400">{'《Silent Messages》'}</cite>
+              {'\n            — Albert Mehrabian, UCLA 심리학 교수'}
               {'\n          '}
             </footer>
             {'\n        '}
@@ -504,6 +504,18 @@ export function SourceImpact() {
         </div>
         {'\n\n      '}
         {'\n      '}
+      </div>
+    </section>
+  );
+}
+
+export function SourceNotifications() {
+  return (
+    <section
+      id="profile-notifications"
+      className="relative py-20 md:py-24 lg:py-32 overflow-hidden"
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="reveal text-center max-w-xl mx-auto mb-14 md:mb-16">
           {'\n        '}
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight text-white break-keep">

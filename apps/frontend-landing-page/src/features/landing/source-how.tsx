@@ -650,6 +650,7 @@ export function SourceHow() {
             rel="noopener noreferrer"
             className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full"
           >
+            <SourceIcon name="solar/bolt-bold" className="text-xl" />
             맨즈픽 무료 상담
             <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
           </a>
