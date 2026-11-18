@@ -157,7 +157,7 @@ test(
           () =>
             new Promise((resolve) => {
               addEventListener('scrollend', resolve, { once: true });
-              document.querySelector('#hero a[href="#pricing"]').click();
+              document.querySelector('#main-nav a[href="#pricing"]').click();
             }),
         );
         assert.ok(
