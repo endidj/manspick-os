@@ -1,8 +1,10 @@
 // 원본 추천의 선택·진입 모션을 React 상태로 재현하고 상담 견적은 순수 함수로 계산합니다.
 'use client';
 
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Notice } from '@manspick/design-system/components';
+import { AppBar, AppBarBrand, Button, Notice } from '@manspick/design-system/components';
 import { ChoiceCard } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
 import { quizQuestions } from './quiz-data';
@@ -22,6 +24,7 @@ export function PackageQuiz({
   addons,
   initialPackage,
 }: MarketingCatalog & { initialPackage?: string }) {
+  const router = useRouter();
   const ready = useSyncExternalStore(hydration.subscribe, hydration.client, hydration.server);
   const available = packages.filter((pack) => pack.active);
   const [step, setStep] = useState(0);
@@ -31,10 +34,16 @@ export function PackageQuiz({
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [revision, setRevision] = useState(0);
   const [advancing, setAdvancing] = useState(false);
+  const [restored, setRestored] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const heading = useRef<HTMLHeadingElement>(null);
   const selected = available.find((pack) => pack.id === selectedId) ?? available[0];
   const question = quizQuestions[step];
+
+  useEffect(() => {
+    if (!restored) return;
+    window.history.replaceState({ quiz: { step, result, answers, selectedId, quantities } }, '');
+  }, [restored, step, result, answers, selectedId, quantities]);
 
   useEffect(() => () => clearTimeout(timer.current), []);
   useEffect(() => {
@@ -48,11 +57,55 @@ export function PackageQuiz({
     });
   }, [revision]);
 
+  useEffect(() => {
+    function restore(event: PopStateEvent) {
+      if (!event.state?.quiz) return;
+      clearTimeout(timer.current);
+      setAdvancing(false);
+      const saved = event.state.quiz;
+      setStep(saved?.step ?? 0);
+      setResult(saved?.result ?? Boolean(initialPackage));
+      if (saved) {
+        setAnswers(saved.answers);
+        setSelectedId(saved.selectedId);
+        setQuantities(saved.quantities);
+      }
+      setRevision((value) => value + 1);
+    }
+    const frame = requestAnimationFrame(() => {
+      if (window.history.state?.quiz) {
+        restore(new PopStateEvent('popstate', { state: window.history.state }));
+      } else if (window.location.pathname !== '/recommend') {
+        window.history.replaceState({}, '', `/recommend${window.location.search}`);
+      }
+      setRestored(true);
+    });
+    window.addEventListener('popstate', restore, true);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('popstate', restore, true);
+    };
+  }, [initialPackage]);
+
   if (!selected) return <Notice>현재 추천할 수 있는 판매 상품이 없습니다.</Notice>;
   const options = question.options;
   const canContinue = Boolean(question.optional || answers[question.id]?.length);
 
+  function navigate(nextStep: number, showResult = false, reset = false) {
+    const current = window.history.state?.quiz ?? { step, result, answers, selectedId, quantities };
+    window.history.replaceState({ quiz: current }, '');
+    const target = reset
+      ? { step: 0, result: false, answers: {}, selectedId: 'hybrid', quantities: {} }
+      : { ...current, step: nextStep, result: showResult };
+    window.history.pushState(
+      { quiz: target },
+      '',
+      showResult ? '/recommend/result' : nextStep ? `/recommend/${nextStep + 1}` : '/recommend',
+    );
+  }
+
   function move(nextStep: number) {
+    navigate(nextStep);
     clearTimeout(timer.current);
     setAdvancing(false);
     setStep(nextStep);
@@ -84,6 +137,7 @@ export function PackageQuiz({
     else {
       setSelectedId(recommendedPackage(answers, available)?.id ?? available[0].id);
       setQuantities(interestedAddonQuantities(answers.addons));
+      navigate(step, true);
       setResult(true);
       setRevision((value) => value + 1);
     }
@@ -94,7 +148,11 @@ export function PackageQuiz({
     setQuantities({});
     setSelectedId('hybrid');
     setResult(false);
-    move(0);
+    navigate(0, false, true);
+    clearTimeout(timer.current);
+    setAdvancing(false);
+    setStep(0);
+    setRevision((value) => value + 1);
   }
 
   function selectPackage(id: string) {
@@ -109,7 +167,27 @@ export function PackageQuiz({
   }
 
   return (
-    <div className={styles.quiz} aria-busy={!ready} inert={!ready}>
+    <div className={styles.quiz} aria-busy={!ready || !restored} inert={!ready || !restored}>
+      <AppBar
+        className={styles.navigation}
+        brand={
+          <Link href="/" aria-label="MANSPICK 홈" scroll>
+            <AppBarBrand />
+          </Link>
+        }
+        actions={
+          result && (
+            <Button variant="secondary" size="sm" onClick={restart}>
+              다시 해보기
+            </Button>
+          )
+        }
+        onBack={() => {
+          clearTimeout(timer.current);
+          if (step > 0) window.history.back();
+          else router.push('/', { scroll: true });
+        }}
+      />
       {result ? (
         <QuizResult
           packages={available}
@@ -119,7 +197,6 @@ export function PackageQuiz({
           headingRef={heading}
           onSelectPackage={selectPackage}
           onQuantitiesChange={setQuantities}
-          onRestart={restart}
         />
       ) : (
         <>

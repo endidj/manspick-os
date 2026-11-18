@@ -83,6 +83,10 @@ test(
           );
           await page.getByText('비즈니스 · 링크드인 · 이력서', { exact: true }).click();
           await page.getByRole('button', { name: '다음으로', exact: true }).click();
+          assert.equal(new URL(page.url()).pathname, '/recommend/2');
+          await page.goBack();
+          await page.getByRole('heading', { name: '촬영 목적이 무엇인가요?' }).waitFor();
+          await page.goForward();
           await page.getByText('포즈 · 표정이 어색하다', { exact: true }).click();
           await page.getByRole('button', { name: '다음으로', exact: true }).click();
           await page.getByText('간단하게 1벌이면 충분', { exact: true }).click();
@@ -94,11 +98,17 @@ test(
           await page.getByRole('heading', { name: '당신에게 딱 맞는 패키지는' }).waitFor();
           assert.equal(await packageRadio(page, 'one').isChecked(), true);
           await expectTotal(page, 85000);
+          await page.getByRole('button', { name: '뒤로가기', exact: true }).click();
+          await page.getByRole('heading', { name: '추가로 관심 있는 건?' }).waitFor();
+          await page.goForward();
+          await page.getByRole('heading', { name: '당신에게 딱 맞는 패키지는' }).waitFor();
+          assert.equal(await packageRadio(page, 'one').isChecked(), true);
+          await expectTotal(page, 85000);
           const consultation = page.getByRole('link', { name: '이 구성으로 상담하기' });
           assert.equal(new URL(await consultation.getAttribute('href')).hostname, 'pf.kakao.com');
-          await page.getByRole('button', { name: '받는 구성 보기' }).click();
+          assert.equal(await page.getByRole('button', { name: '접기', exact: true }).count(), 0);
           await page.getByText('프리미엄 보정 5장', { exact: true }).waitFor();
-          await page.getByRole('button', { name: '다시 테스트하기' }).click();
+          await page.getByRole('button', { name: '다시 해보기' }).click();
           await page.getByRole('heading', { name: '촬영 목적이 무엇인가요?' }).waitFor();
           assert.equal(
             await page.getByRole('button', { name: '다음으로', exact: true }).isDisabled(),
@@ -112,6 +122,16 @@ test(
           );
         },
       );
+      await scenario('logo returns to the top of the landing page', async (page) => {
+        await page.goto(appUrl);
+        await page.evaluate(() => window.scrollTo(0, 1800));
+        await openRecommendation(page, '?pkg=hybrid');
+        const restart = page.getByRole('button', { name: '다시 해보기', exact: true });
+        assert.equal(await restart.isVisible(), true);
+        await page.getByRole('link', { name: 'MANSPICK 홈', exact: true }).click();
+        await page.waitForURL((url) => url.pathname === '/');
+        await page.waitForFunction(() => window.scrollY === 0);
+      });
       await scenario(
         'direct package URLs, seven options, descriptions and keyboard toggles',
         async (page) => {

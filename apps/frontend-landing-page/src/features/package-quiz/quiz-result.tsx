@@ -17,7 +17,6 @@ type QuizResultProps = {
   headingRef: Ref<HTMLHeadingElement>;
   onSelectPackage: (id: string) => void;
   onQuantitiesChange: (quantities: Record<string, number>) => void;
-  onRestart: () => void;
 };
 function duration(minutes: number) {
   return `${Math.floor(minutes / 60) ? `${Math.floor(minutes / 60)}시간` : ''}${minutes % 60 ? `${minutes % 60}분` : ''}`;
@@ -31,21 +30,19 @@ export function QuizResult({
   headingRef,
   onSelectPackage,
   onQuantitiesChange,
-  onRestart,
 }: QuizResultProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [summary, setSummary] = useState(false);
   const [footerSpace, setFooterSpace] = useState(0);
   const footer = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!footer.current) return;
     const element = footer.current;
     const observer = new ResizeObserver(() => {
-      setFooterSpace(summary ? Math.max(0, element.getBoundingClientRect().height - 128) : 0);
+      setFooterSpace(Math.max(0, element.getBoundingClientRect().height - 128));
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [summary]);
+  }, []);
   const options = marketingQuote(selected, addons, quantities);
   const total = selected.price + options.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const includes = [
@@ -206,12 +203,6 @@ export function QuizResult({
             )}
           </div>
         </section>
-        <div className={styles.resultLinks}>
-          <button type="button" onClick={onRestart}>
-            <Icon name="solar/restart-bold" size={16} />
-            다시 테스트하기
-          </button>
-        </div>
       </div>
       <div aria-hidden="true" style={{ height: footerSpace }} />
       <footer ref={footer} className={styles.resultAction}>
@@ -239,16 +230,8 @@ export function QuizResult({
             화면 캡처 후 카카오톡으로 보내주세요, 선택하신 구성 그대로 안내해 드릴게요.
           </p>
           <div className={styles.summary}>
-            <button
-              type="button"
-              aria-expanded={summary}
-              aria-controls="quote-summary"
-              onClick={() => setSummary(!summary)}
-            >
-              {summary ? '접기' : '받는 구성 보기'}
-              <Icon name="solar/alt-arrow-down-linear" size={12} />
-            </button>
-            <div id="quote-summary" className={styles.summaryList} hidden={!summary}>
+            <p>받는 구성</p>
+            <div id="quote-summary" className={styles.summaryList}>
               {includes.map((text) => (
                 <span key={text}>{text}</span>
               ))}
