@@ -25,20 +25,61 @@ test(
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(appUrl);
         await page.evaluate(() => document.fonts.ready);
+        assert.equal(await page.locator('#why, #analysisChart, a[href="#why"]').count(), 0);
+        for (const section of ['#before-after', '#how', '#pricing', '#cta']) {
+          assert.equal(
+            await page
+              .locator(section)
+              .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
+              .getAttribute('href'),
+            'https://pf.kakao.com/_kNxoMn',
+          );
+        }
+        const afterBadges = page.locator('#before-after .ba-tag.after');
+        assert.equal(await afterBadges.count(), 6);
+        assert.equal(
+          await afterBadges.evaluateAll((badges) =>
+            badges.every((badge) => {
+              const frame = getComputedStyle(badge.parentElement, '::after');
+              return [
+                frame.borderTopWidth,
+                frame.borderRightWidth,
+                frame.borderBottomWidth,
+                frame.borderLeftWidth,
+              ].every((width) => width === '4px');
+            }),
+          ),
+          true,
+        );
         const hero = page.locator('#hero');
         assert.match(
           await hero.locator('h1').innerText(),
-          /매력있는 남성은\s*왜 프로필 사진부터\s*다를까요\?/,
+          /매력적인 남자는\s*왜 프로필 사진부터\s*다를까요\?/,
         );
-        assert.doesNotMatch(
-          await hero.innerText(),
-          /인플루언서가 직접|113만 유튜버|변신 사례 먼저|다 해드립니다/,
-        );
+        assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저|다 해드립니다/);
         assert.ok(
           await hero
             .locator('h1')
             .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 32),
         );
+        assert.equal(await page.locator('.page-portraits').count(), 0);
+        const backdrop = hero.locator('[aria-hidden="true"]').filter({ has: page.locator('img') });
+        assert.equal(await backdrop.locator('img').count(), 2);
+        assert.equal(await backdrop.evaluate((el) => getComputedStyle(el).position), 'absolute');
+        await page.evaluate(() =>
+          window.scrollTo(0, document.querySelector('#hero').offsetHeight + 100),
+        );
+        assert.ok(await backdrop.evaluate((el) => el.getBoundingClientRect().bottom < 0));
+        await page.evaluate(() => window.scrollTo(0, 0));
+        const badge = hero.getByText('46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영');
+        assert.equal(await badge.isVisible(), true);
+        const proofBox = await hero
+          .getByText('평범남 1,127명+ 호감형으로 바뀌었습니다')
+          .boundingBox();
+        const consultationBox = await hero
+          .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
+          .boundingBox();
+        assert.ok(proofBox.y + proofBox.height < consultationBox.y);
         const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 한번에', {
           exact: true,
         });
@@ -55,13 +96,22 @@ test(
           true,
         );
         await page.screenshot({ path: `${directory}/hero-${width}.png` });
-        await page.waitForSelector('[data-motion-ready="true"]');
-        await page.evaluate(() => window.scrollTo(0, 80));
-        await page.waitForFunction(
-          () =>
-            getComputedStyle(document.querySelector('#hero-scroll-hint')).visibility === 'hidden',
+        assert.equal(await page.locator('#hero-scroll-hint').count(), 0);
+        assert.equal(
+          await page
+            .locator('#main-nav')
+            .getByRole('link', { name: '바로 상담', exact: true })
+            .getAttribute('href'),
+          'https://pf.kakao.com/_kNxoMn',
         );
-        await page.evaluate(() => window.scrollTo(0, 0));
+        if (width < 1024) {
+          await page.waitForSelector('[data-motion-ready="true"]');
+          await page.locator('#mobile-menu-toggle').click();
+          const first = page.locator('#mobile-menu a').first();
+          assert.equal((await first.innerText()).trim(), '나한테 딱 맞는 패키지는?');
+          assert.equal(await first.getAttribute('href'), '/recommend');
+          await page.locator('#mobile-menu-toggle').click();
+        }
         const cta = hero.getByRole('link', { name: '나한테 딱 맞는 패키지는?' });
         assert.equal(await cta.getAttribute('href'), '/recommend');
         await cta.click();

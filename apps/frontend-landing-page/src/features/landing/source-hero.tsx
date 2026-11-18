@@ -12,47 +12,48 @@ export function SourceHero() {
         id="hero"
         className={`${styles.hero} relative mesh-bg overflow-hidden pt-28 sm:pt-32`}
       >
-        {'\n    '}
+        <div className={styles.backdrop} aria-hidden="true">
+          <SourceImage
+            name="스타일링 포트폴리오 1.png"
+            sizes="(min-width: 768px) 280px, 44vw"
+            alt=""
+            loading="lazy"
+            fetchPriority="low"
+            className={styles.leftPortrait}
+          />
+          <SourceImage
+            name="스타일링 포트폴리오 4.png"
+            sizes="(min-width: 768px) 280px, 44vw"
+            alt=""
+            loading="lazy"
+            fetchPriority="low"
+            className={styles.rightPortrait}
+          />
+        </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
           <div className="flex flex-col items-center text-center">
             {'\n\n        '}
+            <div className="reveal inline-flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs text-zinc-300 mb-6 sm:mb-7 max-w-[92vw]">
+              {'\n          '}
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shrink-0"></span>
+              {'\n          '}
+              <span className="truncate">
+                {'46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영'}
+              </span>
+              {'\n        '}
+            </div>
             <h1 className={`${styles.title} reveal font-display`}>
-              <span>매력있는 남성</span>은
+              매력적인 남자는
               <br />왜 <span>프로필 사진</span>부터
               <br className={styles.mobileBreak} /> 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션·헤어·보정까지 한번에</p>
+            <p className={`${styles.subtitle} reveal`}>
+              <strong>7명의 전문가</strong>가 패션·헤어·보정까지 <strong>한번에</strong>
+            </p>
             <div
-              className="reveal flex flex-col sm:flex-row gap-3 justify-center"
-              style={{ transitionDelay: '280ms' } as CSSProperties}
-            >
-              {'\n          '}
-              <a
-                href="https://pf.kakao.com/_kNxoMn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-8 py-4 text-base rounded-full shadow-[0_10px_30px_-10px_rgba(45,118,246,0.7)]"
-              >
-                {'\n            '}
-                <SourceIcon name="solar/bolt-bold" className="text-xl" />
-                {'\n            무료 상담 신청하기\n            '}
-                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
-                {'\n          '}
-              </a>
-              {'\n          '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Vinext의 이 경로 간 클라이언트 전환 오류를 피해 문서 탐색을 사용합니다. */}
-              <a
-                href="/recommend"
-                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 text-base rounded-full`}
-              >
-                나한테 딱 맞는 패키지는?
-                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
-              </a>
-            </div>
-            <div
-              className="reveal mt-10 md:mt-12 flex items-center gap-3 sm:gap-5 justify-center"
-              style={{ transitionDelay: '360ms' } as CSSProperties}
+              className="reveal mb-6 flex items-center gap-3 sm:gap-5 justify-center"
+              style={{ transitionDelay: '200ms' } as CSSProperties}
             >
               {'\n          '}
               <div className="flex -space-x-2.5 sm:-space-x-3">
@@ -122,23 +123,38 @@ export function SourceHero() {
               </div>
               {'\n        '}
             </div>
+            <div
+              className="reveal flex flex-col sm:flex-row items-center gap-3 justify-center"
+              style={{ transitionDelay: '280ms' } as CSSProperties}
+            >
+              {'\n          '}
+              <a
+                href="https://pf.kakao.com/_kNxoMn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full shadow-[0_10px_30px_-10px_rgba(45,118,246,0.7)]"
+              >
+                {'\n            '}
+                <SourceIcon name="solar/bolt-bold" className="text-xl" />
+                {'\n            맨즈픽 무료 상담\n            '}
+                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+                {'\n          '}
+              </a>
+              {'\n          '}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Vinext의 이 경로 간 클라이언트 전환 오류를 피해 문서 탐색을 사용합니다. */}
+              <a
+                href="/recommend"
+                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 text-base rounded-full`}
+              >
+                나한테 딱 맞는 패키지는?
+                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+              </a>
+            </div>
             {'\n      '}
           </div>
           {'\n    '}
         </div>
         {'\n\n    '}
-        <div
-          id="hero-scroll-hint"
-          className={`${styles.scrollHint} flex flex-col items-center gap-2 text-xs`}
-          aria-hidden="true"
-        >
-          {'\n      '}
-          <span className="uppercase tracking-widest">{'scroll'}</span>
-          {'\n      '}
-          <SourceIcon name="solar/arrow-down-linear" className="text-base animate-bounce" />
-          {'\n    '}
-        </div>
-        {'\n  '}
       </section>
       <section className="relative py-12 md:py-14 lg:py-16 border-y border-white/5">
         {'\n    '}

@@ -643,6 +643,17 @@ export function SourceHow() {
           {'\n    '}
         </div>
         {'\n  '}
+        <div className="mt-8 flex justify-center px-4">
+          <a
+            href="https://pf.kakao.com/_kNxoMn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full"
+          >
+            맨즈픽 무료 상담
+            <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+          </a>
+        </div>
       </section>
       <section id="team" className="relative py-20 md:py-24 lg:py-32">
         {'\n    '}

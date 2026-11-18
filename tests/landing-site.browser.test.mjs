@@ -87,33 +87,9 @@ test(
           selector + ' must retain the source glass effect after CSS minification',
         );
       }
-      await page.locator('#why').scrollIntoViewIfNeeded();
-      await page.waitForSelector('#analysisChart[data-ready="true"]', { timeout: 20000 });
-      assert.match(
-        await page.evaluate(
-          () =>
-            window.Chart.getChart(document.querySelector('#analysisChart')).options.scales.r
-              .pointLabels.font.family,
-        ),
-        /Manspick Landing Sans/,
-      );
-      await page.locator('.selfcheck-chip').nth(1).click();
-      assert.match(
-        await page.locator('#selfcheck-solution').innerText(),
-        /의상 피드백부터 코디 제안/,
-      );
-      assert.equal(
-        await page.locator('.selfcheck-chip').nth(1).getAttribute('aria-pressed'),
-        'true',
-      );
-      assert.deepEqual(
-        await page.evaluate(
-          () =>
-            window.Chart.getChart(document.querySelector('#analysisChart')).data.datasets[0].data,
-        ),
-        [60, 55, 62, 32, 48, 28],
-      );
-      results.push('radar + concern');
+      assert.equal(await page.locator('#why, #analysisChart, .selfcheck-chip').count(), 0);
+      assert.equal(await page.locator('script[data-manspick-radar]').count(), 0);
+      results.push('removed problem and diagnosis section');
       assert.equal(await page.locator('#faq-more').isVisible(), false);
       assert.equal(await page.locator('#faq-toggle').getAttribute('aria-expanded'), 'false');
       await page.locator('#faq-toggle').click();
@@ -175,10 +151,10 @@ test(
       await page.locator('#mobile-menu-toggle').click();
       assert.equal(await page.locator('#mobile-menu').isVisible(), true);
       assert.equal(await page.locator('#mobile-menu-toggle').getAttribute('aria-expanded'), 'true');
-      await page.locator('#mobile-menu .mobile-nav-link').first().click();
+      await page.locator('#mobile-menu .mobile-nav-link[href="#before-after"]').click();
       assert.equal(await page.locator('#mobile-menu').isVisible(), false);
       results.push('mobile menu');
-      await page.locator('#why').scrollIntoViewIfNeeded();
+      await page.locator('#before-after').scrollIntoViewIfNeeded();
       await page.waitForTimeout(650);
       assert.equal(await page.locator('#sticky-cta').getAttribute('aria-hidden'), 'false');
       await page.locator('#cta').scrollIntoViewIfNeeded();
@@ -248,7 +224,8 @@ test(
       );
       assert.equal(await reducedPage.locator('h1').count(), 1);
       assert.match(await reducedPage.title(), /맨즈픽 MANSPICK/);
-      assert.equal(await reducedPage.locator('#before-after .ba-tag').count(), 6);
+      assert.equal(await reducedPage.locator('#before-after .ba-tag').count(), 12);
+      assert.equal(await reducedPage.locator('#before-after .ba-tag.after').count(), 6);
       assert.equal(await reducedPage.locator('#before-after img').count(), 12);
       assert.equal(await reducedPage.locator('#faq details').count(), 11);
       assert.match(await reducedPage.locator('#pricing').textContent(), /85,000/);

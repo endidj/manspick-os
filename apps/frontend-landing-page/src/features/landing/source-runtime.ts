@@ -1,6 +1,5 @@
 // 원본 맨즈픽의 화면 동작을 React 화면 수명 안에서 실행하고 모두 정리합니다.
 import { semanticTokens } from '@manspick/design-system/tokens';
-import { attachSourceRadar } from './source-radar';
 import { createScope, type Scope } from './source-scope';
 
 function attachNearbyImages(scope: Scope) {
@@ -200,7 +199,6 @@ function attachNavigation(scope: Scope) {
     if (icon) icon.style.transform = open ? 'rotate(180deg)' : '';
   });
   const hero = scope.query('#hero');
-  const scrollHint = scope.query('#hero-scroll-hint');
   const promo = scope.query('#promo-bar');
   const nav = scope.query('#main-nav');
   const final = scope.query('#cta');
@@ -210,7 +208,6 @@ function attachNavigation(scope: Scope) {
     [scope.query('#floating-social'), 'translate-y-2'],
   ] as const;
   const update = () => {
-    if (scrollHint) scrollHint.style.visibility = window.scrollY > 48 ? 'hidden' : '';
     const promoVisible = !!hero && hero.getBoundingClientRect().bottom < 0;
     promo?.classList.toggle('-translate-y-full', !promoVisible);
     promo?.classList.toggle('translate-y-0', promoVisible);
@@ -519,6 +516,5 @@ export function attachSourceInteractions(root: HTMLElement): () => void {
   attachModals(scope);
   attachRotation(scope);
   attachSourceIndicators(scope);
-  scope.cleanup(attachSourceRadar(root, scope.reduced));
   return scope.dispose;
 }
