@@ -22,3 +22,32 @@
 .photoFrame :global(.ba-tag) {
   z-index: 1;
 }
+
+.notificationIcon {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-h1-size);
+}
+
+.notificationIcon.notificationIconOnLight {
+  color: var(--mp-color-text-on-light);
+}
+
+.notificationTitle {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-label-s-size);
+  font-weight: 700;
+}
+
+.notificationTime {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-site-type-font-size-12px);
+  white-space: nowrap;
+}
+
+p.notificationMessage {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-label-m-size);
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}

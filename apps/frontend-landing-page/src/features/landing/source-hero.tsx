@@ -38,7 +38,7 @@ export function SourceHero() {
               <span className={styles.accent}>인기있는 남자</span>의 <br />
               <span className={styles.underline}>프로필 사진</span>은{' '}
               <br className={styles.mobileBreak} />
-              어떻게 다를까요?
+              무엇이 다를까요?
             </h1>
             <div
               className="reveal flex flex-col sm:flex-row items-center gap-1 sm:gap-2 justify-center"

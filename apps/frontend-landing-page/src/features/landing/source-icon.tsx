@@ -2,16 +2,12 @@
 import { Icon, type IconProps } from '@manspick/design-system/icons';
 
 type SourceIconProps = Omit<IconProps, 'name'> & {
-  name: IconProps['name'] | 'solar/quote-open-bold' | 'solar/ring-bold' | 'solar/briefcase-bold';
+  name: IconProps['name'] | 'solar/quote-open-bold';
 };
 
 export function SourceIcon({ className = '', style, name, ...props }: SourceIconProps) {
-  // 원본에서도 404인 세 이름은 빈 inline footprint를 유지합니다.
-  if (
-    name === 'solar/quote-open-bold' ||
-    name === 'solar/ring-bold' ||
-    name === 'solar/briefcase-bold'
-  ) {
+  // 원본에서 누락된 인용 아이콘의 표시 공간을 유지합니다.
+  if (name === 'solar/quote-open-bold') {
     return (
       <svg
         {...props}
