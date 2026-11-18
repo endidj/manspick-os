@@ -506,14 +506,7 @@ export function SourceImpact() {
         {'\n      '}
         <div className="reveal text-center max-w-xl mx-auto mb-14 md:mb-16">
           {'\n        '}
-          <p className="text-base md:text-lg text-zinc-400 leading-relaxed break-keep">
-            {'\n          소개팅 앱에서 넘기는 시간, '}
-            <span className="text-white font-semibold">{'평균 0.3초.'}</span>
-            <br />
-            {'\n          그 짧은 순간, 사진 한 장이 모든 걸 결정합니다.\n        '}
-          </p>
-          {'\n        '}
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight text-white break-keep mt-8">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight text-white break-keep">
             {'\n          사진 한 장이 바뀌면,'}
             <br />
             <span className="text-accent-400">{'알림이 달라집니다.'}</span>
