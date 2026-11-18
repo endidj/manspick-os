@@ -4,11 +4,11 @@
   min-height: 100dvh;
   display: flex;
   align-items: center;
-  padding-bottom: 64px;
+  padding-bottom: 40px;
 }
 
 .hero .content {
-  gap: clamp(32px, 4.5vh, 48px);
+  gap: 28px;
 }
 
 .hero .content > * {
@@ -17,12 +17,11 @@
 }
 
 .hero .title {
-  margin-bottom: 24px;
   color: var(--mp-color-text-primary);
-  font-size: clamp(var(--mp-type-display-l-size), 10.5vw, var(--mp-site-type-font-size-2-6rem));
+  font-size: clamp(var(--mp-type-display-l-size), 11.4vw, var(--mp-site-type-font-size-3rem));
   font-weight: var(--mp-type-h1-weight);
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+  line-height: 1.13;
+  letter-spacing: -0.05em;
 }
 
 .hero .title .accent {
@@ -30,12 +29,13 @@
 }
 
 .hero .subtitle {
-  margin-bottom: var(--mp-space-32);
-  color: var(--mp-color-text-secondary);
-  font-size: clamp(var(--mp-site-type-font-size-12px), 3.4vw, var(--mp-type-h2-size));
-  font-weight: var(--mp-type-body-m-weight);
-  line-height: 1.7;
-  white-space: nowrap;
+  color: var(--mp-color-text-primary);
+  font-size: clamp(var(--mp-type-h3-size), 4.8vw, var(--mp-type-h1-size));
+  font-weight: var(--mp-type-h3-weight);
+  line-height: 1.6;
+  max-width: 32ch;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 .hero .title .underline {
   text-decoration-line: underline;
@@ -75,7 +75,11 @@
 
 @media (min-width: 640px) {
   .hero .title {
-    font-size: clamp(var(--mp-site-type-font-size-3rem), 6vw, var(--mp-site-type-font-size-4-5rem));
+    font-size: clamp(
+      var(--mp-site-type-font-size-3rem),
+      6.5vw,
+      var(--mp-site-type-font-size-4-5rem)
+    );
   }
   .mobileBreak {
     display: none;
@@ -131,4 +135,19 @@
   .rightPortrait {
     right: 2%;
   }
+}
+
+.hero .scrollHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-body-m-size);
+  letter-spacing: 0.12em;
+  transition: opacity 180ms ease;
+}
+.hero .scrollArrow {
+  font-size: var(--mp-type-h1-size);
+  line-height: 1;
 }

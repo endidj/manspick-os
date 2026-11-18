@@ -66,7 +66,7 @@ test(
           await hero.locator('h1').innerText(),
           /매력적인 남자는\s*왜 프로필 사진부터\s*다를까요\?/,
         );
-        assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저|다 해드립니다/);
+        assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저/);
         assert.ok(
           await hero
             .locator('h1')
@@ -89,25 +89,26 @@ test(
         const consultationBox = await hero
           .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
           .boundingBox();
-        assert.ok(proofBox.y + proofBox.height < consultationBox.y);
-        const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 한번에', {
+        assert.ok(proofBox.y > consultationBox.y + consultationBox.height);
+        const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 알아서 다 해드립니다.', {
           exact: true,
         });
         assert.equal(await subtitle.locator('strong').count(), 0);
         assert.equal(
           await subtitle.evaluate(
             (el) =>
-              el.getBoundingClientRect().height <= parseFloat(getComputedStyle(el).lineHeight) + 2,
+              el.getBoundingClientRect().height <=
+              parseFloat(getComputedStyle(el).lineHeight) * 2 + 2,
           ),
           true,
-          'subtitle stays on one line',
+          'subtitle stays within two readable lines',
         );
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           true,
         );
         await page.screenshot({ path: `${directory}/hero-${width}.png` });
-        assert.equal(await page.locator('#hero-scroll-hint').count(), 0);
+        assert.equal(await page.locator('#hero-scroll-hint').isVisible(), true);
         assert.equal(
           await page
             .locator('#main-nav')

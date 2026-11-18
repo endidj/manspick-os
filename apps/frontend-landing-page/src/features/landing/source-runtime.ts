@@ -200,6 +200,7 @@ function attachNavigation(scope: Scope) {
   });
   const hero = scope.query('#hero');
   const promo = scope.query('#promo-bar');
+  const scrollHint = scope.query('#hero-scroll-hint');
   const nav = scope.query('#main-nav');
   const final = scope.query('#cta');
   const sticky = [
@@ -208,6 +209,7 @@ function attachNavigation(scope: Scope) {
     [scope.query('#floating-social'), 'translate-y-2'],
   ] as const;
   const update = () => {
+    if (scrollHint) scrollHint.style.opacity = window.scrollY > 48 ? '0' : '1';
     const promoVisible = !!hero && hero.getBoundingClientRect().bottom < 0;
     promo?.classList.toggle('-translate-y-full', !promoVisible);
     promo?.classList.toggle('translate-y-0', promoVisible);

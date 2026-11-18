@@ -48,7 +48,36 @@ export function SourceHero() {
               <br />왜 <span className={styles.underline}>프로필 사진</span>부터
               <br className={styles.mobileBreak} /> 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션·헤어·보정까지 한번에</p>
+            <p className={`${styles.subtitle} reveal`}>
+              7명의 전문가가 패션·헤어·보정까지 알아서 다 해드립니다.
+            </p>
+            <div
+              className="reveal flex flex-col sm:flex-row items-center gap-3 justify-center"
+              style={{ transitionDelay: '280ms' } as CSSProperties}
+            >
+              {'\n          '}
+              <a
+                href="https://pf.kakao.com/_kNxoMn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full shadow-[0_10px_30px_-10px_rgba(45,118,246,0.7)]"
+              >
+                {'\n            '}
+                <SourceIcon name="solar/bolt-bold" className="text-xl" />
+                {'\n            맨즈픽 무료 상담\n            '}
+                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+                {'\n          '}
+              </a>
+              {'\n          '}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Vinext의 이 경로 간 클라이언트 전환 오류를 피해 문서 탐색을 사용합니다. */}
+              <a
+                href="/recommend"
+                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 text-base rounded-full`}
+              >
+                나한테 딱 맞는 패키지는?
+                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+              </a>
+            </div>
             <div
               className="reveal mb-6 flex items-center gap-3 sm:gap-5 justify-center"
               style={{ transitionDelay: '200ms' } as CSSProperties}
@@ -121,32 +150,9 @@ export function SourceHero() {
               </div>
               {'\n        '}
             </div>
-            <div
-              className="reveal flex flex-col sm:flex-row items-center gap-3 justify-center"
-              style={{ transitionDelay: '280ms' } as CSSProperties}
-            >
-              {'\n          '}
-              <a
-                href="https://pf.kakao.com/_kNxoMn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full shadow-[0_10px_30px_-10px_rgba(45,118,246,0.7)]"
-              >
-                {'\n            '}
-                <SourceIcon name="solar/bolt-bold" className="text-xl" />
-                {'\n            맨즈픽 무료 상담\n            '}
-                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
-                {'\n          '}
-              </a>
-              {'\n          '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Vinext의 이 경로 간 클라이언트 전환 오류를 피해 문서 탐색을 사용합니다. */}
-              <a
-                href="/recommend"
-                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 text-base rounded-full`}
-              >
-                나한테 딱 맞는 패키지는?
-                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
-              </a>
+            <div id="hero-scroll-hint" className={styles.scrollHint} aria-hidden="true">
+              <span>SCROLL</span>
+              <span className={styles.scrollArrow}>↓</span>
             </div>
             {'\n      '}
           </div>
