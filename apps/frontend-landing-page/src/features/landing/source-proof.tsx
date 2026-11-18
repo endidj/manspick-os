@@ -3,208 +3,11 @@ import type { CSSProperties } from 'react';
 import { SourceImage } from './source-image';
 import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
+import styles from './source-proof.module.css';
 
 export function SourceProof() {
   return (
     <>
-      <section
-        id="why"
-        className="relative lg:min-h-[100dvh] lg:flex lg:items-center py-20 md:py-24 lg:py-16"
-      >
-        {'\n    '}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {'\n      '}
-          <div className="grid lg:grid-cols-12 gap-12 md:gap-14 lg:gap-14 items-center">
-            {'\n\n        '}
-            {'\n        '}
-            <div className="reveal lg:col-span-5">
-              {'\n          '}
-              <p className="flex items-center gap-3 text-accent-400 text-xs font-bold uppercase tracking-[0.2em] mb-5">
-                {'\n            '}
-                <span className="w-10 h-px bg-accent-400"></span>
-                {'\n            PROBLEM & SOLUTION\n          '}
-              </p>
-              {'\n          '}
-              <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter leading-[1.1] text-white mb-6 break-keep">
-                {'\n            왜 찍은 사진마다'}
-                <br />
-                {'유난히 '}
-                <span className="text-accent-400">{'어색할까요?'}</span>
-                {'\n          '}
-              </h2>
-              {'\n          '}
-              <p className="text-lg md:text-xl font-medium text-zinc-200 leading-relaxed mb-4 break-keep">
-                {'\n            1%의 디테일이 인상을 결정합니다.\n          '}
-              </p>
-              {'\n          '}
-              <p className="text-sm md:text-base text-zinc-400 leading-relaxed mb-7 break-keep">
-                {
-                  "\n            앵글, 포즈, 조명, 의상... 같은 사람이어도 누가 어떻게 찍느냐에 따라 완전히 다른 사진이 나옵니다. 맨즈픽은 카메라 앞에서 가장 잘 나오는 '나'의 공식을 직접 설계합니다.\n          "
-                }
-              </p>
-              {'\n          '}
-              <div className="glass rounded-r-2xl border-l-4 border-accent-500 p-5 md:p-6 mb-6 transition-all duration-300">
-                {'\n            '}
-                <p
-                  id="selfcheck-solution"
-                  className="text-sm md:text-base text-white font-medium leading-relaxed break-keep transition-opacity duration-200"
-                >
-                  {'\n              "6년간 '}
-                  <span className="text-accent-400 font-bold">{'1,127명'}</span>
-                  {'을 촬영한 전문가가'}
-                  <br />
-                  {'\n              당신의 '}
-                  <span className="text-accent-400 font-bold">{'앵글·톤·스타일'}</span>
-                  {'을 직접 설계합니다."\n            '}
-                </p>
-                {'\n          '}
-              </div>
-              {'\n\n          '}
-              {'\n          '}
-              <div className="selfcheck">
-                {'\n            '}
-                <p className="text-[11px] text-zinc-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
-                  {'\n              '}
-                  <SourceIcon
-                    name="solar/checklist-minimalistic-bold"
-                    className="text-accent-400 text-base"
-                  />
-                  {'\n              지금 당신의 고민은?\n            '}
-                </p>
-                {'\n            '}
-                <div className="flex flex-wrap gap-2">
-                  {'\n              '}
-                  <button
-                    type="button"
-                    data-selfcheck="프로필 사진이 어색해요"
-                    className="selfcheck-chip glass hover:bg-accent-500/15 hover:border-accent-400 border border-white/10 text-zinc-300 hover:text-white text-xs md:text-sm font-medium px-3.5 py-2 rounded-full transition"
-                  >
-                    {'\n                프로필 사진이 어색해요\n              '}
-                  </button>
-                  {'\n              '}
-                  <button
-                    type="button"
-                    data-selfcheck="소개팅 앞두고 급해요"
-                    className="selfcheck-chip glass hover:bg-accent-500/15 hover:border-accent-400 border border-white/10 text-zinc-300 hover:text-white text-xs md:text-sm font-medium px-3.5 py-2 rounded-full transition"
-                  >
-                    {'\n                소개팅이 코앞이에요\n              '}
-                  </button>
-                  {'\n              '}
-                  <button
-                    type="button"
-                    data-selfcheck="거울과 사진이 달라요"
-                    className="selfcheck-chip glass hover:bg-accent-500/15 hover:border-accent-400 border border-white/10 text-zinc-300 hover:text-white text-xs md:text-sm font-medium px-3.5 py-2 rounded-full transition"
-                  >
-                    {'\n                거울보다 사진이 못해요\n              '}
-                  </button>
-                  {'\n            '}
-                </div>
-                {'\n            '}
-                {'\n          '}
-              </div>
-              {'\n        '}
-            </div>
-            {'\n\n        '}
-            {'\n        '}
-            <div
-              className="reveal lg:col-span-7"
-              style={{ transitionDelay: '120ms' } as CSSProperties}
-            >
-              {'\n          '}
-              <div className="relative glass-strong rounded-3xl p-5 md:p-7 border border-white/10">
-                {'\n            '}
-                <div className="absolute -top-3 right-5 md:right-7 bg-accent-500 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-lg">
-                  {'\n              전문가 직접 분석\n            '}
-                </div>
-                {'\n            '}
-                <p className="font-display text-lg md:text-xl font-bold text-white text-center mb-1">
-                  {'\n              맨즈픽 촬영 디렉팅 진단\n            '}
-                </p>
-                {'\n            '}
-                <p className="text-[11px] md:text-xs text-zinc-500 text-center mb-3">
-                  {'\n              일반 셀카 대비 맨즈픽 디렉팅 후 완성도 비교\n            '}
-                </p>
-                {'\n            '}
-                <div
-                  className="relative mx-auto"
-                  style={{ maxWidth: '440px', aspectRatio: '1 / 1' } as CSSProperties}
-                >
-                  {'\n              '}
-                  <canvas
-                    id="analysisChart"
-                    role="img"
-                    aria-label="현재 프로필과 맨즈픽 촬영 후의 6가지 이미지 요소 비교"
-                  ></canvas>
-                  {'\n            '}
-                </div>
-                {'\n            '}
-                <div className="grid grid-cols-3 gap-2 md:gap-4 mt-4 pt-5 border-t border-white/10">
-                  {'\n              '}
-                  <div className="flex flex-col items-center text-center">
-                    {'\n                '}
-                    <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-accent-400 text-xl md:text-2xl mb-2">
-                      {'\n                  '}
-                      <SourceIcon name="solar/camera-bold" />
-                      {'\n                '}
-                    </div>
-                    {'\n                '}
-                    <p className="text-white font-bold text-xs md:text-sm">{'앵글 진단'}</p>
-                    {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
-                      {'얼굴형·체형별'}
-                      <br />
-                      {'최적 각도'}
-                    </p>
-                    {'\n              '}
-                  </div>
-                  {'\n              '}
-                  <div className="flex flex-col items-center text-center">
-                    {'\n                '}
-                    <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-accent-400 text-xl md:text-2xl mb-2">
-                      {'\n                  '}
-                      <SourceIcon name="solar/hanger-bold" />
-                      {'\n                '}
-                    </div>
-                    {'\n                '}
-                    <p className="text-white font-bold text-xs md:text-sm">{'의상·톤 매칭'}</p>
-                    {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
-                      {'피부톤에 맞는'}
-                      <br />
-                      {'컬러 디렉팅'}
-                    </p>
-                    {'\n              '}
-                  </div>
-                  {'\n              '}
-                  <div className="flex flex-col items-center text-center">
-                    {'\n                '}
-                    <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-accent-400 text-xl md:text-2xl mb-2">
-                      {'\n                  '}
-                      <SourceIcon name="solar/user-hand-up-bold" />
-                      {'\n                '}
-                    </div>
-                    {'\n                '}
-                    <p className="text-white font-bold text-xs md:text-sm">{'포즈 디렉팅'}</p>
-                    {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
-                      {'표정·시선·손'}
-                      <br />
-                      {'현장 가이드'}
-                    </p>
-                    {'\n              '}
-                  </div>
-                  {'\n            '}
-                </div>
-                {'\n          '}
-              </div>
-              {'\n        '}
-            </div>
-            {'\n      '}
-          </div>
-          {'\n    '}
-        </div>
-        {'\n  '}
-      </section>
       <section id="before-after" className="relative py-20 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -237,7 +40,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-1.png"
@@ -252,7 +55,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-1.png"
@@ -262,6 +65,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -293,7 +97,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-2.png"
@@ -308,7 +112,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-2.png"
@@ -318,6 +122,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -349,7 +154,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-3.png"
@@ -364,7 +169,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-3.png"
@@ -374,6 +179,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -405,7 +211,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-4.png"
@@ -420,7 +226,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-4.png"
@@ -430,6 +236,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -461,7 +268,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-5.png"
@@ -476,7 +283,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-5.png"
@@ -486,6 +293,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -517,7 +325,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={styles.photoFrame}>
                   {'\n              '}
                   <SourceImage
                     name="hero-before-6.png"
@@ -532,7 +340,7 @@ export function SourceProof() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <div className={`${styles.photoFrame} ${styles.afterFrame}`}>
                   {'\n              '}
                   <SourceImage
                     name="hero-after-6.png"
@@ -542,6 +350,7 @@ export function SourceProof() {
                     loading="lazy"
                     decoding="async"
                   />
+                  <span className="ba-tag after">AFTER</span>
                   {'\n            '}
                 </div>
                 {'\n          '}
@@ -638,6 +447,17 @@ export function SourceProof() {
             {'\n      '}
           </div>
           {'\n    '}
+          <div className="mt-10 flex justify-center">
+            <a
+              href="https://pf.kakao.com/_kNxoMn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-8 py-4 text-base rounded-full"
+            >
+              맨즈픽 무료 상담
+              <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+            </a>
+          </div>
         </div>
         {'\n  '}
       </section>

@@ -5,87 +5,6 @@ import { SourceImage } from './source-image';
 import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
 
-export function SourceBackdrop() {
-  return (
-    <>
-      <div
-        className="page-portraits fixed inset-0 pointer-events-none select-none overflow-hidden"
-        aria-hidden="true"
-        style={{ zIndex: '-1' } as CSSProperties}
-      >
-        {'\n    '}
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 1.png"
-          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, (min-width: 640px) 208px, 144px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="absolute top-[3vh] left-[-10%] sm:left-[-2%] w-36 sm:w-52 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-6deg] opacity-[0.18] sm:opacity-[0.32] shadow-2xl"
-        />
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 6.png"
-          sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 176px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="hidden sm:block absolute top-[36vh] left-[3%] w-44 md:w-52 lg:w-60 aspect-[4/5] object-cover rounded-2xl rotate-[5deg] opacity-[0.28] shadow-2xl"
-        />
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 9.png"
-          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, (min-width: 640px) 224px, 160px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="absolute top-[70vh] left-[-12%] sm:left-[-1%] w-40 sm:w-56 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-4deg] opacity-[0.16] sm:opacity-[0.30] shadow-2xl"
-        />
-        {'\n\n    '}
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 4.png"
-          sizes="(min-width: 1024px) 256px, (min-width: 768px) 224px, (min-width: 640px) 192px, 144px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="absolute top-[6vh] right-[-10%] sm:right-[-1%] w-36 sm:w-48 md:w-56 lg:w-64 aspect-[4/5] object-cover rounded-2xl rotate-[6deg] opacity-[0.18] sm:opacity-[0.30] shadow-2xl"
-        />
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 7.png"
-          sizes="(min-width: 1024px) 288px, (min-width: 768px) 256px, 224px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="hidden sm:block absolute top-[40vh] right-[2%] w-56 md:w-64 lg:w-72 aspect-[4/5] object-cover rounded-2xl rotate-[-5deg] opacity-[0.32] shadow-2xl"
-        />
-        {'\n    '}
-        <SourceImage
-          name="스타일링 포트폴리오 12.png"
-          sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, (min-width: 640px) 176px, 160px"
-          alt=""
-          loading="lazy"
-          fetchPriority="low"
-          decoding="async"
-          className="absolute top-[74vh] right-[-12%] sm:right-[-2%] w-40 sm:w-44 md:w-52 lg:w-60 aspect-[4/5] object-cover rounded-2xl rotate-[4deg] opacity-[0.16] sm:opacity-[0.28] shadow-2xl"
-        />
-        {'\n\n    '}
-        {'\n    '}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(10,10,10,0.4)_0%,rgba(10,10,10,0.75)_60%,rgba(10,10,10,0.94)_100%)] pointer-events-none">
-          {'\n    '}
-        </div>
-        {'\n  '}
-      </div>
-    </>
-  );
-}
-
 export function SourceNavigation() {
   return (
     <>
@@ -142,9 +61,6 @@ export function SourceNavigation() {
           {'\n      '}
           <div className="hidden lg:flex items-center gap-6 xl:gap-7 text-sm text-zinc-300">
             {'\n        '}
-            <a href="#why" className="hover:text-white transition">
-              {'왜 맨즈픽?'}
-            </a>
             {'\n        '}
             <a href="#before-after" className="hover:text-white transition">
               {'변신 사례'}
@@ -179,15 +95,17 @@ export function SourceNavigation() {
           <div className="flex items-center gap-2">
             {'\n        '}
             <a
-              href="/recommend"
+              href="https://pf.kakao.com/_kNxoMn"
+              target="_blank"
+              rel="noopener noreferrer"
               className="cta-primary inline-flex items-center gap-1.5 bg-accent-500 hover:bg-accent-600 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-2 rounded-full"
             >
               {'\n          '}
               <SourceIcon name="solar/magic-stick-3-bold" className="text-base" />
               {'\n          '}
-              <span className="hidden sm:inline">{'맞춤 설계'}</span>
+              <span className="hidden sm:inline">{'바로 상담'}</span>
               {'\n          '}
-              <span className="sm:hidden">{'맞춤 설계'}</span>
+              <span className="sm:hidden">{'바로 상담'}</span>
               {'\n        '}
             </a>
             {'\n        '}
@@ -220,13 +138,13 @@ export function SourceNavigation() {
           className="lg:hidden mt-2 hidden glass-strong rounded-2xl p-2 overflow-hidden"
         >
           {'\n      '}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- 추천 화면은 안정적인 문서 탐색을 사용합니다. */}
           <a
-            href="#why"
-            className="mobile-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition text-sm font-medium"
+            href="/recommend"
+            className="mobile-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/5 transition text-sm font-medium"
           >
-            {'\n        '}
-            <SourceIcon name="solar/question-circle-bold" className="text-accent-400 text-lg" />
-            {'\n        왜 맨즈픽?\n      '}
+            <SourceIcon name="solar/magic-stick-3-bold" className="text-accent-400 text-lg" />
+            나한테 딱 맞는 패키지는?
           </a>
           {'\n      '}
           <a
@@ -849,7 +767,7 @@ export function SourceOverlays() {
             className="sticky-cta-btn group relative inline-flex items-center gap-1.5 bg-gradient-to-r from-accent-500 to-accent-400 text-white text-xs md:text-sm font-semibold px-5 md:px-6 py-2.5 md:py-3 rounded-full whitespace-nowrap shrink-0 shadow-[0_8px_24px_-6px_rgba(45,118,246,0.7)] overflow-hidden transition-all duration-200 will-change-transform"
           >
             {'\n        '}
-            <span className="relative z-10">{'무료 상담 받기'}</span>
+            <span className="relative z-10">{'맨즈픽 무료 상담'}</span>
             {'\n        '}
             <SourceIcon
               name="solar/arrow-right-linear"

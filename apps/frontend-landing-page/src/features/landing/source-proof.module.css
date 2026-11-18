@@ -1,0 +1,24 @@
+/* 원본 사진에 포함된 사각 테두리가 둥근 모서리에서 끊기지 않게 덮어 그립니다. */
+.photoFrame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--mp-radius-12);
+}
+
+.photoFrame.photoFrame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 4px solid var(--mp-color-text-tertiary);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.photoFrame.afterFrame::after {
+  border-color: var(--mp-color-action-primary);
+}
+
+.photoFrame :global(.ba-tag) {
+  z-index: 1;
+}

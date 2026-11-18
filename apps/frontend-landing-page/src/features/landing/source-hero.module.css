@@ -17,26 +17,30 @@
 }
 
 .hero .subtitle {
-  margin-bottom: 32px;
-  color: var(--mp-color-text-primary);
+  margin-bottom: var(--mp-space-32);
+  color: var(--mp-color-text-secondary);
   font-size: clamp(var(--mp-site-type-font-size-12px), 3.4vw, var(--mp-type-h2-size));
-  font-weight: var(--mp-type-h3-weight);
+  font-weight: var(--mp-type-body-m-weight);
   line-height: 1.7;
   white-space: nowrap;
-  text-decoration: underline;
-  text-decoration-color: var(--mp-color-status-danger);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
+}
+.hero .subtitle strong {
+  color: var(--mp-color-text-primary);
+  font-weight: var(--mp-type-h3-weight);
 }
 
 .hero .recommendLink {
-  color: var(--mp-color-text-primary);
-  background: var(--mp-color-bg-elevated);
-  border: 1px solid var(--mp-color-border-strong);
+  padding: var(--mp-space-12) var(--mp-space-16);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-label-s-weight);
+  background: transparent;
+  border: 0;
 }
 
 .hero .recommendLink:hover {
-  background: var(--mp-color-border-strong);
+  color: var(--mp-color-text-primary);
+  background: var(--mp-color-bg-glass);
 }
 
 .hero .proof {
@@ -45,11 +49,6 @@
   font-size: var(--mp-site-type-font-size-12px);
   line-height: 1.5;
   word-break: keep-all;
-}
-
-.hero .scrollHint {
-  margin-top: 28px;
-  color: var(--mp-color-text-secondary);
 }
 
 @media (min-width: 640px) {
@@ -68,5 +67,56 @@
   }
   .mobileBreak {
     display: none;
+  }
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 60%, transparent);
+}
+.backdrop img {
+  position: absolute;
+  width: min(44vw, 280px);
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--mp-radius-16);
+  opacity: 0.38;
+}
+.leftPortrait {
+  top: 12%;
+  left: -24%;
+  mask-image:
+    linear-gradient(to right, black 40%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 65%, transparent);
+  mask-composite: intersect;
+}
+.rightPortrait {
+  top: 24%;
+  right: -24%;
+  mask-image:
+    linear-gradient(to left, black 40%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 65%, transparent);
+  mask-composite: intersect;
+}
+@media (min-width: 768px) {
+  .leftPortrait {
+    left: -8%;
+  }
+  .rightPortrait {
+    right: -8%;
+  }
+  .backdrop img {
+    opacity: 0.5;
+  }
+}
+@media (min-width: 1200px) {
+  .leftPortrait {
+    left: 2%;
+  }
+  .rightPortrait {
+    right: 2%;
   }
 }
