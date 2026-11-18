@@ -30,9 +30,9 @@ export function SourceHero() {
             className={styles.rightPortrait}
           />
         </div>
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
-          <div className="flex flex-col items-center text-center">
+          <div className={`${styles.content} flex flex-col items-center text-center`}>
             {'\n\n        '}
             <div className="reveal inline-flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs text-zinc-300 mb-6 sm:mb-7 max-w-[92vw]">
               {'\n          '}
@@ -44,13 +44,11 @@ export function SourceHero() {
               {'\n        '}
             </div>
             <h1 className={`${styles.title} reveal font-display`}>
-              매력적인 남자는
-              <br />왜 <span>프로필 사진</span>부터
+              <span className={styles.accent}>매력적인 남자</span>는
+              <br />왜 <span className={styles.underline}>프로필 사진</span>부터
               <br className={styles.mobileBreak} /> 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>
-              <strong>7명의 전문가</strong>가 패션·헤어·보정까지 <strong>한번에</strong>
-            </p>
+            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션·헤어·보정까지 한번에</p>
             <div
               className="reveal mb-6 flex items-center gap-3 sm:gap-5 justify-center"
               style={{ transitionDelay: '200ms' } as CSSProperties}
@@ -156,122 +154,127 @@ export function SourceHero() {
         </div>
         {'\n\n    '}
       </section>
-      <section className="relative py-12 md:py-14 lg:py-16 border-y border-white/5">
-        {'\n    '}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {'\n      '}
-          <p className="text-center text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
-            {'\n        누가 맨즈픽을 찾아오나요?\n      '}
-          </p>
-          {'\n      '}
-          <div className="marquee-row overflow-hidden relative">
-            {'\n        '}
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-zinc-950 to-transparent z-10">
-              {'\n        '}
-            </div>
-            {'\n        '}
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10">
-              {'\n        '}
-            </div>
-            {'\n        '}
-            <div className="flex w-max marquee-track gap-8 md:gap-14 whitespace-nowrap">
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'100만\n            유튜버'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'대기업\n            직장인'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'사업가'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'변호사'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'의사'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'금융투자자'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'인플루언서'}
-              </span>
-              {'\n          '}
-              <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
-                {'배우'}
-              </span>
-              {'\n          '}
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'100만\n            유튜버'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'대기업\n            직장인'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'사업가'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'변호사'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'의사'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'금융투자자'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'인플루언서'}
-              </span>
-              {'\n          '}
-              <span
-                aria-hidden="true"
-                className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
-              >
-                {'배우'}
-              </span>
-              {'\n        '}
-            </div>
-            {'\n      '}
-          </div>
-          {'\n    '}
-        </div>
-        {'\n  '}
-      </section>
     </>
+  );
+}
+
+export function SourceAudience() {
+  return (
+    <section className="relative py-12 md:py-14 lg:py-16 border-y border-white/5">
+      {'\n    '}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {'\n      '}
+        <p className="text-center text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
+          {'\n        누가 맨즈픽을 찾아오나요?\n      '}
+        </p>
+        {'\n      '}
+        <div className="marquee-row overflow-hidden relative">
+          {'\n        '}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-zinc-950 to-transparent z-10">
+            {'\n        '}
+          </div>
+          {'\n        '}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10">
+            {'\n        '}
+          </div>
+          {'\n        '}
+          <div className="flex w-max marquee-track gap-8 md:gap-14 whitespace-nowrap">
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'100만\n            유튜버'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'대기업\n            직장인'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'사업가'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'변호사'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'의사'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'금융투자자'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'인플루언서'}
+            </span>
+            {'\n          '}
+            <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">
+              {'배우'}
+            </span>
+            {'\n          '}
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'100만\n            유튜버'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'대기업\n            직장인'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'사업가'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'변호사'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'의사'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'금융투자자'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'인플루언서'}
+            </span>
+            {'\n          '}
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition"
+            >
+              {'배우'}
+            </span>
+            {'\n        '}
+          </div>
+          {'\n      '}
+        </div>
+        {'\n    '}
+      </div>
+      {'\n  '}
+    </section>
   );
 }

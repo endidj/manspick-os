@@ -51,7 +51,17 @@ test(
           ),
           true,
         );
+        assert.equal(await page.locator('#hero + section').getAttribute('id'), 'real-impact');
         const hero = page.locator('#hero');
+        assert.ok(await hero.evaluate((el) => el.getBoundingClientRect().height >= innerHeight));
+        assert.equal(await hero.locator('h1 span').first().innerText(), '매력적인 남자');
+        assert.equal(
+          await hero
+            .locator('h1 span')
+            .last()
+            .evaluate((el) => getComputedStyle(el).textDecorationStyle),
+          'double',
+        );
         assert.match(
           await hero.locator('h1').innerText(),
           /매력적인 남자는\s*왜 프로필 사진부터\s*다를까요\?/,
@@ -83,6 +93,7 @@ test(
         const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 한번에', {
           exact: true,
         });
+        assert.equal(await subtitle.locator('strong').count(), 0);
         assert.equal(
           await subtitle.evaluate(
             (el) =>
