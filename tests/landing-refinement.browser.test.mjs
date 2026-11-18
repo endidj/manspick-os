@@ -28,13 +28,18 @@ test(
         const hero = page.locator('#hero');
         assert.match(
           await hero.locator('h1').innerText(),
-          /매력있는 남성은\s*왜 프로필 사진부터 다를까요\?/,
+          /매력있는 남성은\s*왜 프로필 사진부터\s*다를까요\?/,
         );
         assert.doesNotMatch(
           await hero.innerText(),
           /인플루언서가 직접|113만 유튜버|변신 사례 먼저|다 해드립니다/,
         );
-        const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 알아서', {
+        assert.ok(
+          await hero
+            .locator('h1')
+            .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 32),
+        );
+        const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 한번에', {
           exact: true,
         });
         assert.equal(
