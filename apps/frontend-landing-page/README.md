@@ -30,11 +30,11 @@
 
 ## 검색 공개와 환경
 
-2026-11-17 검색 공개 요청에 따라 **운영 랜딩·약관·개인정보 페이지는 검색 허용**이다. 추천·API·고객·어드민·Empty·Storybook은 검색 제외를 유지한다. Vite의 production 빌드와 대표 origin이 일치할 때만 공개 메타데이터와 사이트맵을 생성한다. 개발 서버·`--mode test` 빌드는 메타데이터가 noindex이고 사이트맵은 비어 있다. 내부 `MANSPICK_SITE_*` 빌드 상수를 사용하므로 외부 `NEXT_PUBLIC_SITE_INDEXABLE` 환경변수로 테스트 빌드의 색인을 켤 수 없다.
+2026-11-18 추가 요청에 따라 **운영 주소와 기존 Cloudflare 테스트 주소의 랜딩·약관·개인정보 페이지는 검색 허용**이다. 추천·API·고객·어드민·Empty·Storybook은 검색 제외를 유지한다. Vite의 production/test 빌드와 허용된 origin이 일치할 때 공개 메타데이터와 사이트맵을 생성한다. 개발 서버와 그 외 빌드 모드는 noindex이며 사이트맵이 비어 있다. 검색 정책은 내부 `MANSPICK_SITE_*` 빌드 상수로 전달한다.
 
-`NEXT_PUBLIC_SITE_ORIGIN`의 기본값과 검색을 허용하는 대표 주소는 `https://www.manspick.co.kr`이다. 다른 origin은 검색 제외다. 운영 빌드를 테스트 호스트에서 제공해도 HTTP `X-Robots-Tag`로 제외하며, 정적 자산은 `_headers`의 대표 호스트 예외로 구분한다. robots.txt는 추천 등의 noindex를 읽을 수 있도록 `Allow: /`를 유지한다. 운영 사이트맵에는 `/`, `/terms`, `/privacy`만 포함한다. 카피·사진·통계·연출은 변경하지 않았다. [검색 공개 정책과 남은 작업](../../docs/reference/27-landing-seo.md)
+production 빌드의 `NEXT_PUBLIC_SITE_ORIGIN` 기본값은 `https://www.manspick.co.kr`이고, test 빌드는 `https://manspick-landing-test.winningant8.workers.dev`를 사용한다. 두 주소만 검색을 허용하며 다른 호스트는 HTTP `X-Robots-Tag`와 정적 자산 `_headers`로 제외한다. robots.txt는 추천 등의 noindex를 읽을 수 있도록 `Allow: /`를 유지한다. 사이트맵에는 해당 빌드 주소의 `/`, `/terms`, `/privacy`와 공개 이미지를 제공한다. 카피·사진·통계·연출은 변경하지 않았다. [검색 공개 정책과 남은 작업](../../docs/reference/27-landing-seo.md)
 
-공유용 `og:url`과 OG·X·JSON-LD 이미지는 실제 빌드의 배포 주소를 사용한다. test 빌드는 기존 Vercel 사이트 대신 테스트 Worker의 `/images/og-smartstore-11725751378-wide.jpg`를 참조하며, canonical과 구조화 데이터의 식별자는 대표 도메인을 유지한다. 사용자가 지정한 스마트스토어 상품 이미지는 상단 인물 중심의 1200×630 가로형으로 제공한다. 얼굴은 온전히 보이게 하고 하단 `1% 비주얼…` 문구는 공유 이미지에서 제외한다. 정사각형 원본은 보관하며, 배포 검증에서는 태그의 절대 이미지 URL을 그대로 요청해 200·JPEG·1200×630을 확인한다. [이미지 출처](../../docs/reference/27-landing-seo.md#스마트스토어-og-이미지-교체--2026-11-17)
+canonical·구조화 데이터·사이트맵·공유 메타데이터는 각 빌드의 배포 주소로 일치시킨다. test 빌드는 기존 Vercel 대신 Cloudflare Worker를 자신의 대표 주소로 안내한다. 사용자가 지정한 스마트스토어 상품 이미지는 상단 인물 중심의 1200×630 가로형으로 제공한다. 얼굴은 온전히 보이게 하고 하단 `1% 비주얼…` 문구는 공유 이미지에서 제외한다. 정사각형 원본은 보관하며, 배포 검증에서는 태그의 절대 이미지 URL을 그대로 요청해 200·JPEG·1200×630을 확인한다. [이미지 출처](../../docs/reference/27-landing-seo.md#스마트스토어-og-이미지-교체--2026-11-17)
 
 ## 검증
 

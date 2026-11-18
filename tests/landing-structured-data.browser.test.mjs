@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const appUrl = process.env.LANDING_APP_URL;
+const siteOrigin = process.env.LANDING_SITE_ORIGIN || 'https://www.manspick.co.kr';
 
 test(
   'landing publishes linked business, service and package data in its initial HTML',
@@ -14,6 +15,7 @@ test(
     const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
     assert.ok(canonical, 'home has a canonical URL');
     const origin = new URL(canonical).origin;
+    assert.equal(origin, siteOrigin, 'business and service identify the selected public site');
     const script = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s);
     assert.ok(script, 'structured data is available without JavaScript execution');
     const data = JSON.parse(script[1]);

@@ -1,5 +1,15 @@
 # 랜딩 검색 공개 — 2026-11-17
 
+## 현재 정책 — 2026-11-18 갱신
+
+사용자가 Cloudflare 새 앱의 noindex도 제거하도록 요청했다. 아래 초기 정책·과거 배포 기록의 테스트 주소 제외 설명은 당시 상태이며 현재는 다음 정책을 따른다.
+
+- `https://manspick-landing-test.winningant8.workers.dev`의 랜딩·약관·개인정보와 공개 이미지·정적 안내서는 검색을 허용한다. HTML 메타태그, Next 응답 헤더, ASSETS `_headers`를 함께 적용한다.
+- test 빌드의 canonical·JSON-LD·사이트맵·robots·공유 URL은 실제 Cloudflare 주소를 사용한다. production 빌드의 기본 대표 주소는 기존 `https://www.manspick.co.kr`을 유지한다.
+- 개발 서버·다른 빌드 모드·임의 미리보기 호스트와 추천·API·고객·어드민의 검색 제외는 유지한다. 기존 Vercel 사이트와 DNS 연결은 변경하지 않는다.
+- HTTP 검사는 `LANDING_INDEXABLE=true`, `LANDING_SITE_ORIGIN=https://manspick-landing-test.winningant8.workers.dev`를 지정한다. 같은 코드가 기존 두 배포 주소만 공개하는지, 알 수 없는 호스트와 비공개 경로는 제외하는지 검사한다.
+- 기존 SEO 설정·메타데이터·사이트맵 생성기를 재사용하며 새 의존성은 추가하지 않는다. 두 주소가 비슷한 내용을 제공하므로 실제 색인과 검색 결과의 대표 주소 선택은 검색엔진이 결정한다.
+
 ## 범위와 구현 계획
 
 사용자가 랜딩 검색 공개를 허용했다. 기존 카피·이미지·통계·좌석/최근 신청/열람자 연출은 유지한다. 추천·고객·어드민의 검색 제외와 인증·파일 보호도 유지한다.
@@ -165,3 +175,12 @@ Vercel 프로젝트 접근 권한과 도메인 등록기관/DNS 변경 권한은
 - 세 작업트리의 파일 일치, Markdown 구조, 공개 링크 9개와 홈 앵커 4개, 빌드 산출물 일치를 검사했다. 타입·ESLint·Markdown 포맷·SEO 단위 7개·test SSG 빌드·Wrangler dry-run을 통과했다.
 - 운영과 테스트의 실제 `/llms.txt` 응답에서 200·text/plain·원문 일치와 홈 앵커를 확인했다. 테스트 배포의 기존 HTTP·구조화 데이터 검사 5개도 통과했다. 원격에서 불가능한 Host 시뮬레이션 2개는 제외했다.
 - `llms.txt`는 보조 안내서이며 검색 색인·AI 수집·인용을 보장하지 않는다. 외부 채널 로그인·보안 확인이나 실제 AI 인용 효과 측정은 하지 않았다.
+
+## Cloudflare 새 앱 검색 공개 배포 — 2026-11-18
+
+사용자가 새 Cloudflare 랜딩의 noindex 제거를 명시적으로 요청해 기존 `manspick-landing-test`를 갱신했다. Worker 버전은 `041a3c10-0bda-4659-abf6-9d2d1ff7c083`이다.
+
+- HTML은 `index, follow`이며 공개 페이지·OG·robots·사이트맵·llms.txt 응답에 `X-Robots-Tag: noindex`가 없다. canonical·구조화 데이터·사이트맵은 실제 Cloudflare 주소와 일치한다.
+- 추천·API·고객·어드민은 검색 제외를 유지한다. 실제 고객·어드민 배포도 noindex임을 확인했다. 기존 www 주소는 Vercel 응답을 유지하며 DNS·도메인 연결은 변경하지 않았다.
+- 타입·앱 및 변경 테스트 ESLint·포맷·SEO 단위 7개·test SSG 빌드·Wrangler dry-run을 통과했다. 로컬 HTTP/SSG/구조화 데이터 검사 7개, 원격 검사 6개를 통과했다. 원격의 Host 시뮬레이션 2개는 로컬에서 검증했다.
+- 실제 배포 HTML/RSC가 이번 빌드와 일치하고 캐시 HIT를 반환하는 것까지 확인했다. 검색엔진 등록·색인 완료 여부와 실제 검색 순위는 확인하지 않았다.

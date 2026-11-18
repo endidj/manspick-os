@@ -3,12 +3,12 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { staticAssetsAdapter } from '@vinext/cloudflare/cache/static-assets-adapter';
 import { defineConfig } from 'vite';
 import vinext from 'vinext';
-import { resolveSiteSettings } from './src/features/seo/settings.ts';
+import { cloudflareOrigin, resolveSiteSettings } from './src/features/seo/settings.ts';
 
 export default defineConfig(({ command, mode }) => {
   const site = resolveSiteSettings(
-    process.env.NEXT_PUBLIC_SITE_ORIGIN,
-    command === 'build' && mode === 'production',
+    mode === 'test' ? cloudflareOrigin : process.env.NEXT_PUBLIC_SITE_ORIGIN,
+    command === 'build' && ['production', 'test'].includes(mode),
   );
   return {
     define: {
@@ -21,9 +21,7 @@ export default defineConfig(({ command, mode }) => {
       // Vinext의 NEXT_PUBLIC_* 자동 주입이 빌드의 검색 정책을 덮어쓰지 않게 합니다.
       'process.env.MANSPICK_SITE_ORIGIN': JSON.stringify(site.origin),
       'process.env.MANSPICK_SITE_INDEXABLE': JSON.stringify(String(site.indexable)),
-      'process.env.MANSPICK_DEPLOYMENT_ORIGIN': JSON.stringify(
-        mode === 'test' ? 'https://manspick-landing-test.winningant8.workers.dev' : site.origin,
-      ),
+      'process.env.MANSPICK_DEPLOYMENT_ORIGIN': JSON.stringify(site.origin),
       ...(mode === 'test'
         ? {
             'process.env.NEXT_PUBLIC_CUSTOMER_APP_ORIGIN': JSON.stringify(

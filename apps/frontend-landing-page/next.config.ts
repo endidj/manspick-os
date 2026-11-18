@@ -1,8 +1,10 @@
 // Vinext에서 읽는 공개 사이트의 Next.js 호환 설정입니다.
 import type { NextConfig } from 'next';
-import { productionOrigin } from './src/features/seo/settings.ts';
+import { cloudflareOrigin, productionOrigin } from './src/features/seo/settings.ts';
 
-const productionHost = new URL(productionOrigin).hostname.replaceAll('.', '\\.');
+const publicHosts = `(${[productionOrigin, cloudflareOrigin]
+  .map((origin) => new URL(origin).hostname.replaceAll('.', '\\.'))
+  .join('|')})`;
 const excluded = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, noimageindex' }];
 
 const config: NextConfig = {
@@ -12,7 +14,7 @@ const config: NextConfig = {
     return [
       {
         source: '/:path*',
-        missing: [{ type: 'host', value: productionHost }],
+        missing: [{ type: 'host', value: publicHosts }],
         headers: excluded,
       },
       ...['/recommend/:path*', '/api/:path*'].map((source) => ({ source, headers: excluded })),

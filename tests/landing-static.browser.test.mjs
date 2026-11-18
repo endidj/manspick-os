@@ -7,6 +7,10 @@ import path from 'node:path';
 const appUrl = process.env.LANDING_APP_URL;
 const buildRoot = process.env.LANDING_BUILD_ROOT;
 const indexable = process.env.LANDING_INDEXABLE === 'true';
+const publicOrigins = [
+  'https://www.manspick.co.kr',
+  'https://manspick-landing-test.winningant8.workers.dev',
+];
 
 test(
   'landing serves prebuilt HTML and RSC while query routes remain dynamic',
@@ -30,7 +34,11 @@ test(
         assert.equal(response.status, 200, url);
         assert.equal(response.headers.get('x-vinext-cache'), 'HIT', url);
         assert.equal(response.headers.get('cache-control'), 'public, max-age=0, must-revalidate');
-        assert.match(response.headers.get('x-robots-tag'), /noindex/);
+        assert.equal(
+          /noindex/.test(response.headers.get('x-robots-tag') ?? ''),
+          !publicOrigins.includes(new URL(appUrl).origin),
+          `${url}: only known public hosts may omit search exclusion headers`,
+        );
         const body = await response.text();
         const generated = await readFile(
           path.join(server, 'prerendered-routes', `${file}.${rsc ? 'rsc' : 'html'}`),

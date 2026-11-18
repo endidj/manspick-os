@@ -1,8 +1,10 @@
 // 공개 사이트의 검색 허용 범위와 구형 주소의 이동 계약을 검사합니다.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   brandedPageTitle,
+  cloudflareOrigin,
   productionOrigin,
   resolveSiteSettings,
   serializeStructuredData,
@@ -23,7 +25,7 @@ test('page titles include the full brand without depending on a parent title tem
   );
 });
 
-test('only an explicit production build at the canonical origin can be indexed', () => {
+test('only an explicit public build at a known site origin can be indexed', () => {
   assert.deepEqual(resolveSiteSettings(), { origin: productionOrigin, indexable: false });
   assert.deepEqual(resolveSiteSettings(undefined, true), {
     origin: productionOrigin,
@@ -31,6 +33,11 @@ test('only an explicit production build at the canonical origin can be indexed',
   });
   assert.equal(resolveSiteSettings(`${productionOrigin}/`, true).indexable, true);
   assert.equal(resolveSiteSettings(productionOrigin, false).indexable, false);
+  assert.deepEqual(resolveSiteSettings(cloudflareOrigin, true), {
+    origin: cloudflareOrigin,
+    indexable: true,
+  });
+  assert.equal(resolveSiteSettings(cloudflareOrigin, false).indexable, false);
   for (const origin of [
     'https://manspick.kr',
     'https://manspick.co.kr',
@@ -46,7 +53,10 @@ test('only an explicit production build at the canonical origin can be indexed',
     'https://10.1.1.2',
     'https://172.16.1.2',
     'https://preview.example.com',
-    'https://manspick-landing-test.winningant8.workers.dev',
+    'http://manspick-landing-test.winningant8.workers.dev',
+    'https://manspick-landing-test.winningant8.workers.dev.evil.example',
+    'https://manspick-landing-test.winningant8.workers.dev:3000',
+    'https://preview-manspick-landing-test.winningant8.workers.dev',
     'https://manspick-site.vercel.app',
     'https://manspick.pages.dev',
   ]) {
@@ -76,7 +86,28 @@ test('HTTP rules keep preview hosts, recommendations and API responses excluded'
   const rules = await config.headers?.();
   assert.ok(rules);
   const preview = rules.find((rule) => rule.source === '/:path*');
-  assert.deepEqual(preview?.missing, [{ type: 'host', value: 'www\\.manspick\\.co\\.kr' }]);
+  assert.ok(preview?.missing);
+  assert.equal(preview.missing.length, 1);
+  assert.equal(preview.missing[0].type, 'host');
+  const publicHosts = new RegExp(`^(?:${preview.missing[0].value})$`);
+  for (const origin of [productionOrigin, cloudflareOrigin]) {
+    const host = new URL(origin).hostname;
+    assert.ok(publicHosts.test(host), host);
+    assert.equal(publicHosts.test(`${host}.evil.example`), false);
+    assert.equal(publicHosts.test(`preview-${host}`), false);
+  }
+  assert.equal(publicHosts.test('localhost'), false);
+  assert.equal(publicHosts.test('preview.example.com'), false);
+  const assetHeaders = (
+    await readFile(
+      new URL('../apps/frontend-landing-page/public/_headers', import.meta.url),
+      'utf8',
+    )
+  ).replaceAll('\r\n', '\n');
+  assert.match(assetHeaders, /^\/\*\n\s+X-Robots-Tag: noindex/m);
+  for (const origin of [productionOrigin, cloudflareOrigin]) {
+    assert.ok(assetHeaders.includes(`${origin}/*\n  ! X-Robots-Tag`), origin);
+  }
   for (const source of ['/:path*', '/recommend/:path*', '/api/:path*']) {
     assert.match(
       rules
