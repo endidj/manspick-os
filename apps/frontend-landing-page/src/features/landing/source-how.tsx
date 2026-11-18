@@ -52,15 +52,6 @@ export function SourceHow() {
                 {'감성 핫플레이스 선정\n          '}
               </h3>
               {'\n          '}
-              <p className="text-zinc-400 text-[15px] sm:text-base md:text-lg leading-[1.75] break-keep mb-5 md:mb-6">
-                {'\n            "내가 방문하는 공간이 곧 나의 취향을 표현해준다." '}
-                <br />
-                <br />
-                {
-                  '\n            서울/경기 인스타 스팟 가득한 실내외 N개 이상의 감성 공간에서 촬영합니다. 사진을 본 사람들의 첫 반응이 달라집니다.\n          '
-                }
-              </p>
-              {'\n          '}
               <div className="glass rounded-2xl p-4 max-w-md">
                 {'\n            '}
                 <p className="text-sm text-white font-medium flex items-center gap-2">
@@ -241,15 +232,6 @@ export function SourceHow() {
                 {'패션 인플루언서의 스타일링\n          '}
               </h3>
               {'\n          '}
-              <p className="text-zinc-400 text-[15px] sm:text-base md:text-lg leading-[1.75] break-keep mb-5 md:mb-6">
-                {'\n            "다듬어지지 않은 원석은 결코 빛이 날 수 없다." '}
-                <br />
-                <br />
-                {
-                  '\n            사진을 찍을 때 피사체의 치밀한 준비는 결과물을 좌우합니다. 46,000명의 팔로워를 보유한 패션 인플루언서팀이 직접 촬영 시 스타일링을 체크하고 코디를 제안합니다.\n          '
-                }
-              </p>
-              {'\n          '}
               <div className="glass rounded-2xl p-4 max-w-md">
                 {'\n            '}
                 <p className="text-sm text-white font-medium flex items-center gap-2">
@@ -284,12 +266,6 @@ export function SourceHow() {
                 <br />
                 {'자연스러운 보정\n          '}
               </h3>
-              {'\n          '}
-              <p className="text-zinc-400 text-[15px] sm:text-base md:text-lg leading-[1.75] break-keep mb-6 md:mb-7">
-                {
-                  '\n            절대 어설프게 티나는 보정을 하지 않습니다. 장점은 극대화하고, 불필요한 구조나 요소들을 정리합니다.\n          '
-                }
-              </p>
               {'\n          '}
               <ul className="space-y-3 text-sm">
                 {'\n            '}
@@ -486,20 +462,11 @@ export function SourceHow() {
                 {'Cross Check'}
               </p>
               {'\n          '}
-              <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight mb-5 md:mb-6 break-keep">
+              <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight break-keep">
                 {'\n            남녀 호불호 없는 사진을 위한,'}
                 <br />
                 {'20대 여성 보정가와 교차검증\n          '}
               </h3>
-              {'\n          '}
-              <p className="text-zinc-400 text-[15px] sm:text-base md:text-lg leading-[1.75] break-keep mb-5 md:mb-6">
-                {'\n            "여자들이 좋아하는 사진을 얻고 싶으시다구요?" '}
-                <br />
-                <br />
-                {
-                  '\n            맨즈픽은 20대 여성 보정가팀과 인플루언서팀의 시선을 담아 남녀노소 호불호 없는 프로필 사진을 제공합니다. 최종 컷은 두 시선을 모두 통과한 결과물입니다.\n          '
-                }
-              </p>
               {'\n        '}
             </div>
             {'\n      '}
@@ -523,15 +490,6 @@ export function SourceHow() {
                 <br />
                 {'감성있는 구도와 스팟\n          '}
               </h3>
-              {'\n          '}
-              <p className="text-zinc-400 text-[15px] sm:text-base md:text-lg leading-[1.75] break-keep mb-5 md:mb-6">
-                {'\n            "한 끗 차이의 위트를 담은 촬영." '}
-                <br />
-                <br />
-                {
-                  '\n            같은 공간이라도 누가 찍느냐가 정말 중요합니다. 수만명에게 패션과 사랑으로 사진 받고 있는 인플루언서팀이 끊임없이 고민한 구도와 포즈로 촬영해드립니다.\n          '
-                }
-              </p>
               {'\n          '}
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
                 {'\n            '}

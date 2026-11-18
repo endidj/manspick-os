@@ -541,25 +541,25 @@ export function SourceNotifications() {
               id="notif-screen"
             >
               {'\n            '}
-              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-4 flex items-start gap-3 transition-all duration-700 ease-out">
+              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-3 flex items-start gap-3 transition-all duration-700 ease-out">
                 {'\n              '}
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shrink-0">
                   {'\n                '}
-                  <SourceIcon name="solar/heart-bold" className="text-white text-sm" />
+                  <SourceIcon name="solar/heart-bold" className={styles.notificationIcon} />
                   {'\n              '}
                 </div>
                 {'\n              '}
                 <div className="min-w-0">
                   {'\n                '}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     {'\n                  '}
-                    <span className="text-white text-xs font-bold">{'소개팅 앱'}</span>
+                    <span className={styles.notificationTitle}>{'소개팅 앱'}</span>
                     {'\n                  '}
-                    <span className="text-zinc-600 text-[10px]">{'지금'}</span>
+                    <span className={styles.notificationTime}>{'지금'}</span>
                     {'\n                '}
                   </div>
                   {'\n                '}
-                  <p className="text-zinc-300 text-[13px] leading-snug">
+                  <p className={styles.notificationMessage}>
                     {'OOO님이 먼저 좋아요를 보냈습니다 💘'}
                   </p>
                   {'\n              '}
@@ -567,25 +567,28 @@ export function SourceNotifications() {
                 {'\n            '}
               </div>
               {'\n            '}
-              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-4 flex items-start gap-3 transition-all duration-700 ease-out">
+              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-3 flex items-start gap-3 transition-all duration-700 ease-out">
                 {'\n              '}
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
                   {'\n                '}
-                  <SourceIcon name="solar/ring-bold" className="text-white text-sm" />
+                  <SourceIcon
+                    name="solar/users-group-rounded-bold"
+                    className={styles.notificationIcon}
+                  />
                   {'\n              '}
                 </div>
                 {'\n              '}
                 <div className="min-w-0">
                   {'\n                '}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     {'\n                  '}
-                    <span className="text-white text-xs font-bold">{'결혼정보회사'}</span>
+                    <span className={styles.notificationTitle}>{'결혼정보회사'}</span>
                     {'\n                  '}
-                    <span className="text-zinc-600 text-[10px]">{'3분 전'}</span>
+                    <span className={styles.notificationTime}>{'3분 전'}</span>
                     {'\n                '}
                   </div>
                   {'\n                '}
-                  <p className="text-zinc-300 text-[13px] leading-snug">
+                  <p className={styles.notificationMessage}>
                     {'이번 주 매칭 요청 3건이 도착했습니다'}
                   </p>
                   {'\n              '}
@@ -593,25 +596,28 @@ export function SourceNotifications() {
                 {'\n            '}
               </div>
               {'\n            '}
-              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-4 flex items-start gap-3 transition-all duration-700 ease-out">
+              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-3 flex items-start gap-3 transition-all duration-700 ease-out">
                 {'\n              '}
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shrink-0">
                   {'\n                '}
-                  <SourceIcon name="ri/kakao-talk-fill" className="text-white text-sm" />
+                  <SourceIcon
+                    name="ri/kakao-talk-fill"
+                    className={`${styles.notificationIcon} ${styles.notificationIconOnLight}`}
+                  />
                   {'\n              '}
                 </div>
                 {'\n              '}
                 <div className="min-w-0">
                   {'\n                '}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     {'\n                  '}
-                    <span className="text-white text-xs font-bold">{'카카오톡'}</span>
+                    <span className={styles.notificationTitle}>{'카카오톡'}</span>
                     {'\n                  '}
-                    <span className="text-zinc-600 text-[10px]">{'15분 전'}</span>
+                    <span className={styles.notificationTime}>{'15분 전'}</span>
                     {'\n                '}
                   </div>
                   {'\n                '}
-                  <p className="text-zinc-300 text-[13px] leading-snug">
+                  <p className={styles.notificationMessage}>
                     {'"오빠 프사 바꿨어? 분위기 완전 달라졌다 😳"'}
                   </p>
                   {'\n              '}
@@ -619,25 +625,25 @@ export function SourceNotifications() {
                 {'\n            '}
               </div>
               {'\n            '}
-              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-4 flex items-start gap-3 transition-all duration-700 ease-out">
+              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-3 flex items-start gap-3 transition-all duration-700 ease-out">
                 {'\n              '}
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 flex items-center justify-center shrink-0">
                   {'\n                '}
-                  <SourceIcon name="solar/camera-bold" className="text-white text-sm" />
+                  <SourceIcon name="solar/camera-bold" className={styles.notificationIcon} />
                   {'\n              '}
                 </div>
                 {'\n              '}
                 <div className="min-w-0">
                   {'\n                '}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     {'\n                  '}
-                    <span className="text-white text-xs font-bold">{'Instagram'}</span>
+                    <span className={styles.notificationTitle}>{'Instagram'}</span>
                     {'\n                  '}
-                    <span className="text-zinc-600 text-[10px]">{'1시간 전'}</span>
+                    <span className={styles.notificationTime}>{'1시간 전'}</span>
                     {'\n                '}
                   </div>
                   {'\n                '}
-                  <p className="text-zinc-300 text-[13px] leading-snug">
+                  <p className={styles.notificationMessage}>
                     {'프로필 방문 '}
                     <span className="text-white font-semibold">{'+127명'}</span>
                     {' · 팔로우 요청 '}
@@ -648,25 +654,25 @@ export function SourceNotifications() {
                 {'\n            '}
               </div>
               {'\n            '}
-              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-4 flex items-start gap-3 transition-all duration-700 ease-out">
+              <div className="notif-card opacity-0 translate-y-6 glass rounded-2xl p-3 flex items-start gap-3 transition-all duration-700 ease-out">
                 {'\n              '}
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shrink-0">
                   {'\n                '}
-                  <SourceIcon name="solar/briefcase-bold" className="text-white text-sm" />
+                  <SourceIcon name="solar/suitcase-bold" className={styles.notificationIcon} />
                   {'\n              '}
                 </div>
                 {'\n              '}
                 <div className="min-w-0">
                   {'\n                '}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     {'\n                  '}
-                    <span className="text-white text-xs font-bold">{'LinkedIn'}</span>
+                    <span className={styles.notificationTitle}>{'LinkedIn'}</span>
                     {'\n                  '}
-                    <span className="text-zinc-600 text-[10px]">{'2시간 전'}</span>
+                    <span className={styles.notificationTime}>{'2시간 전'}</span>
                     {'\n                '}
                   </div>
                   {'\n                '}
-                  <p className="text-zinc-300 text-[13px] leading-snug">
+                  <p className={styles.notificationMessage}>
                     {'헤드헌터로부터 연결 요청이 도착했습니다'}
                   </p>
                   {'\n              '}

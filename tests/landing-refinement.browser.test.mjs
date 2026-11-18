@@ -59,6 +59,18 @@ test(
           await page.locator('#before-after + #profile-notifications #notif-screen').count(),
           1,
         );
+        const notificationIcons = page.locator('#notif-screen .notif-card svg');
+        assert.equal(await notificationIcons.count(), 5);
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll('#notif-screen .notif-card svg')].every(
+            (icon) => icon.getBBox().width > 0 && icon.getBoundingClientRect().width === 24,
+          ),
+        );
+        assert.equal(
+          await page.locator('#how h3 + p').count(),
+          0,
+          'the five know-how titles have no description paragraphs',
+        );
         const heroBottomGap = await hero.evaluate(
           (el) =>
             el.getBoundingClientRect().bottom -
@@ -75,7 +87,7 @@ test(
         );
         assert.match(
           await hero.locator('h1').innerText(),
-          /인기있는 남자의\s+프로필 사진은\s+어떻게 다를까요\?/,
+          /인기있는 남자의\s+프로필 사진은\s+무엇이 다를까요\?/,
         );
         assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저/);
         assert.ok(
