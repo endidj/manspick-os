@@ -152,24 +152,15 @@ export function SourceHero() {
 
 function SourceAudience() {
   return (
-    <div id="hero-audience" className="relative pt-10 md:pt-12">
+    <div id="hero-audience" className={`${styles.audience} relative`}>
       {'\n    '}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {'\n      '}
-        <p className={`${styles.audienceLabel} text-center mb-6 md:mb-10`}>
+        <p className={`${styles.audienceLabel} text-center`}>
           {'\n        누가 맨즈픽을 찾아주나요?\n      '}
         </p>
         {'\n      '}
-        <div className="marquee-row overflow-hidden relative">
-          {'\n        '}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-zinc-950 to-transparent z-10">
-            {'\n        '}
-          </div>
-          {'\n        '}
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-zinc-950 to-transparent z-10">
-            {'\n        '}
-          </div>
-          {'\n        '}
+        <div className={`${styles.audienceMarquee} marquee-row overflow-hidden relative`}>
           <div className="flex w-max marquee-track gap-8 md:gap-14 whitespace-nowrap">
             {'\n          '}
             <span className="shrink-0 text-lg md:text-2xl font-display font-semibold text-zinc-500 hover:text-white transition">

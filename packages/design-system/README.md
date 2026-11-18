@@ -127,7 +127,7 @@ import { Icon } from '@manspick/design-system/icons';
 - 앱 색상은 semantic `--mp-color-*`, 글자 크기·굵기·행간은 `--mp-type-*`를 먼저 사용한다. 내부 화면의 보라/분홍 상태와 채널 미리보기·사진 오버레이는 공통 semantic 토큰으로 확장했다. 화면 CSS에 HEX/RGB·반복 글자 크기를 복사하지 않는다.
 - Pretendard/Geist WOFF2를 자체 호스팅하며 OFL·해시·출처를 [fonts README](src/assets/fonts/README.md)에 보관한다. Pretendard는 공식 dynamic subset 92개를 `unicode-range`로 선택 로딩하고, Geist는 기존 약70KB 가변 파일을 사용한다. 전체 Pretendard 원본은 보존하지만 앱 CSS에서 참조하지 않으며 폰트를 전역 preload하지 않는다.
 - SVG는 Solar 아이콘 51개, 일반 채널 시연 아이콘 2개와 호환 도형 5개를 포함합니다. [아이콘 출처와 라이선스](src/assets/icons/README.md)
-- Icon 기본24px, CSS mask/currentColor. label이 없으면 장식용, 있으면 role=img. PhotoTile의 image에 native image/Next Image를 전달하고 URL·비공개 접근 정책은 앱에서 결정한다.
+- Icon 기본24px, SVG sprite/currentColor. label이 없으면 장식용, 있으면 role=img. PhotoTile의 image에 native image/Next Image를 전달하고 URL·비공개 접근 정책은 앱에서 결정한다.
 - 브랜드 이미지 47개 항목은 540×720 시연 SVG를 공유합니다. /assets의 brandImages·BrandImageName으로 참조하고, Storybook에서 각 이미지 항목의 로딩과 크기를 확인합니다. [브랜드 이미지](src/assets/brand/README.md)
 
 ## 소비자가 지켜야 할 계약

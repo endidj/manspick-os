@@ -13,9 +13,10 @@ export function SourceIcon({ className = '', style, name, ...props }: SourceIcon
     name === 'solar/briefcase-bold'
   ) {
     return (
-      <span
+      <svg
         {...props}
         aria-hidden="true"
+        focusable="false"
         className={className}
         style={{ display: 'inline-block', width: 0, height: 0, verticalAlign: 0, ...style }}
       />

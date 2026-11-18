@@ -4,4 +4,4 @@
 - `ri/kakao-talk-fill`과 `mdi/instagram`은 화면 코드의 호환 키입니다. 공개 검토본은 두 위치에 각각 직접 그린 일반 대화·사진 도형을 사용합니다.
 - `compat/`는 앱이 쓰던 clock·search·settings·logout·plus 도형을 포함합니다.
 
-SVG는 24×24 viewBox를 사용합니다. 컴포넌트가 SVG의 alpha를 CSS mask로 사용해 `currentColor`를 적용합니다. [아이콘 목록과 SHA-256](icon-manifest.json)
+SVG는 24×24 viewBox를 사용합니다. 컴포넌트는 원본에서 생성한 `sprite.svg`를 `<svg><use>`로 불러오고 `currentColor`를 적용합니다. 아이콘을 수정한 뒤에는 저장소 루트에서 `node scripts/generate-icon-sprite.mjs`로 갱신합니다. [아이콘 목록과 SHA-256](icon-manifest.json)
