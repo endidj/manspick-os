@@ -34,13 +34,11 @@ export function SourceHero() {
           {'\n      '}
           <div className={`${styles.content} flex flex-col items-center text-center`}>
             {'\n\n        '}
-            <div className="reveal inline-flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs text-zinc-300 mb-6 sm:mb-7 max-w-[92vw]">
+            <div className={`${styles.creatorBadge} reveal inline-flex items-center gap-2`}>
               {'\n          '}
               <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shrink-0"></span>
               {'\n          '}
-              <span className="truncate">
-                {'46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영'}
-              </span>
+              <span>{'46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영'}</span>
               {'\n        '}
             </div>
             <h1 className={`${styles.title} reveal font-display`}>

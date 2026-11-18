@@ -16,6 +16,20 @@
   margin-bottom: 0;
 }
 
+.hero .creatorBadge {
+  max-width: 100%;
+  padding: var(--mp-space-8) var(--mp-space-16);
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-color-bg-surface);
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-label-m-weight);
+  line-height: var(--mp-type-label-s-line-height);
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
 .hero .title {
   color: var(--mp-color-text-primary);
   font-size: clamp(var(--mp-type-display-l-size), 11.4vw, var(--mp-site-type-font-size-3rem));
