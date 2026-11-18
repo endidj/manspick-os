@@ -8,10 +8,7 @@ import { SourceIcon } from './source-icon';
 export function SourceHero() {
   return (
     <>
-      <section
-        id="hero"
-        className={`${styles.hero} relative mesh-bg overflow-hidden pt-28 sm:pt-32`}
-      >
+      <section id="hero" className={`${styles.hero} relative mesh-bg overflow-hidden`}>
         <div className={styles.backdrop} aria-hidden="true">
           <SourceImage
             name="스타일링 포트폴리오 1.png"
@@ -34,23 +31,18 @@ export function SourceHero() {
           {'\n      '}
           <div className={`${styles.content} flex flex-col items-center text-center`}>
             {'\n\n        '}
-            <div className={`${styles.creatorBadge} reveal inline-flex items-center gap-2`}>
-              {'\n          '}
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shrink-0"></span>
-              {'\n          '}
-              <span>{'46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영'}</span>
-              {'\n        '}
+            <div className={`${styles.creatorBadge} reveal`}>
+              <strong>46K</strong> 인플루언서가 찍어주는 프로필 사진
             </div>
             <h1 className={`${styles.title} reveal font-display`}>
-              <span className={styles.accent}>매력적인 남자</span>는
-              <br />왜 <span className={styles.underline}>프로필 사진</span>부터
-              <br className={styles.mobileBreak} /> 다를까요?
+              <span className={styles.accent}>매력적인 남자</span>의 <br />
+              <span className={styles.underline}>프로필 사진</span>은{' '}
+              <br className={styles.mobileBreak} />
+              어떻게 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>
-              7명의 전문가가 패션·헤어·보정까지 알아서 다 해드립니다.
-            </p>
+            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션 헤어 보정까지</p>
             <div
-              className="reveal flex flex-col sm:flex-row items-center gap-3 justify-center"
+              className="reveal flex flex-col sm:flex-row items-center gap-1 sm:gap-2 justify-center"
               style={{ transitionDelay: '280ms' } as CSSProperties}
             >
               {'\n          '}
@@ -70,10 +62,10 @@ export function SourceHero() {
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Vinext의 이 경로 간 클라이언트 전환 오류를 피해 문서 탐색을 사용합니다. */}
               <a
                 href="/recommend"
-                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 text-base rounded-full`}
+                className={`${styles.recommendLink} cta-primary inline-flex items-center justify-center gap-2 rounded-full`}
               >
                 나한테 딱 맞는 패키지는?
-                <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
+                <SourceIcon name="solar/arrow-right-linear" className="arrow text-base" />
               </a>
             </div>
             <div

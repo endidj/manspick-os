@@ -64,7 +64,7 @@ test(
         );
         assert.match(
           await hero.locator('h1').innerText(),
-          /매력적인 남자는\s*왜 프로필 사진부터\s*다를까요\?/,
+          /매력적인 남자의\s+프로필 사진은\s+어떻게 다를까요\?/,
         );
         assert.doesNotMatch(await hero.innerText(), /113만 유튜버|변신 사례 먼저/);
         assert.ok(
@@ -81,8 +81,12 @@ test(
         );
         assert.ok(await backdrop.evaluate((el) => el.getBoundingClientRect().bottom < 0));
         await page.evaluate(() => window.scrollTo(0, 0));
-        const badge = hero.getByText('46K 인플루언서가 직접 찍어주는 · 남성 전문 프로필 촬영');
+        const badge = hero.getByText('46K 인플루언서가 찍어주는 프로필 사진', { exact: true });
         assert.equal(await badge.isVisible(), true);
+        const badgeBox = await badge.boundingBox();
+        const navBox = await page.locator('#main-nav').boundingBox();
+        assert.ok(badgeBox.y > navBox.y + navBox.height);
+        assert.ok(badgeBox.y < 135);
         const proofBox = await hero
           .getByText('평범남 1,127명+ 호감형으로 바뀌었습니다')
           .boundingBox();
@@ -90,18 +94,17 @@ test(
           .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
           .boundingBox();
         assert.ok(proofBox.y > consultationBox.y + consultationBox.height);
-        const subtitle = hero.getByText('7명의 전문가가 패션·헤어·보정까지 알아서 다 해드립니다.', {
+        const subtitle = hero.getByText('7명의 전문가가 패션 헤어 보정까지', {
           exact: true,
         });
         assert.equal(await subtitle.locator('strong').count(), 0);
         assert.equal(
           await subtitle.evaluate(
             (el) =>
-              el.getBoundingClientRect().height <=
-              parseFloat(getComputedStyle(el).lineHeight) * 2 + 2,
+              el.getBoundingClientRect().height <= parseFloat(getComputedStyle(el).lineHeight) + 2,
           ),
           true,
-          'subtitle stays within two readable lines',
+          'subtitle stays on one line',
         );
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -112,7 +115,7 @@ test(
         assert.equal(
           await page
             .locator('#main-nav')
-            .getByRole('link', { name: '바로 상담', exact: true })
+            .getByRole('link', { name: '무료 상담', exact: true })
             .getAttribute('href'),
           'https://pf.kakao.com/_kNxoMn',
         );

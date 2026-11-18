@@ -103,9 +103,9 @@ export function SourceNavigation() {
               {'\n          '}
               <SourceIcon name="solar/magic-stick-3-bold" className="text-base" />
               {'\n          '}
-              <span className="hidden sm:inline">{'바로 상담'}</span>
+              <span className="hidden sm:inline">{'무료 상담'}</span>
               {'\n          '}
-              <span className="sm:hidden">{'바로 상담'}</span>
+              <span className="sm:hidden">{'무료 상담'}</span>
               {'\n        '}
             </a>
             {'\n        '}

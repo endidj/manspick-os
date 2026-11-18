@@ -2,9 +2,7 @@
 .hero {
   min-height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  padding-bottom: 40px;
+  padding-block: clamp(96px, 12dvh, 120px) 40px;
 }
 
 .hero .content {
@@ -18,16 +16,21 @@
 
 .hero .creatorBadge {
   max-width: 100%;
-  padding: var(--mp-space-8) var(--mp-space-16);
+  padding: 6px var(--mp-space-12);
   border: 1px solid var(--mp-color-border-strong);
   border-radius: var(--mp-radius-full);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-accent-tint);
   color: var(--mp-color-text-primary);
   font-size: var(--mp-type-label-s-size);
-  font-weight: var(--mp-type-label-m-weight);
+  font-weight: var(--mp-type-label-s-weight);
   line-height: var(--mp-type-label-s-line-height);
   word-break: keep-all;
   text-wrap: balance;
+}
+
+.hero .creatorBadge strong {
+  color: var(--mp-color-text-accent);
+  font-weight: var(--mp-type-label-m-weight);
 }
 
 .hero .title {
@@ -62,7 +65,7 @@
 .hero .recommendLink {
   padding: var(--mp-space-12) var(--mp-space-16);
   color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-body-m-size);
+  font-size: var(--mp-type-label-s-size);
   font-weight: var(--mp-type-label-s-weight);
   background: transparent;
   border: 0;
