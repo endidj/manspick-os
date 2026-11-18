@@ -167,7 +167,7 @@ function attachNavigation(scope: Scope) {
     menu?.classList.toggle('hidden', !open);
     toggle?.setAttribute('aria-expanded', String(open));
     toggle?.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
-    scope.all('[data-menu-icon]').forEach((icon) => {
+    scope.all<SVGSVGElement>('[data-menu-icon]').forEach((icon) => {
       icon.style.display = (icon.dataset.menuIcon === 'close') === open ? 'inline-block' : 'none';
     });
   };

@@ -59,7 +59,12 @@ test(
           await page.locator('#before-after + #profile-notifications #notif-screen').count(),
           1,
         );
-        assert.ok(await hero.evaluate((el) => el.getBoundingClientRect().height >= innerHeight));
+        const heroBottomGap = await hero.evaluate(
+          (el) =>
+            el.getBoundingClientRect().bottom -
+            el.querySelector('#hero-audience').getBoundingClientRect().bottom,
+        );
+        assert.ok(heroBottomGap <= 96, 'hero ends close to the audience marquee');
         assert.equal(await hero.locator('h1 span').first().innerText(), '인기있는 남자');
         assert.equal(
           await hero
@@ -100,7 +105,7 @@ test(
           .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
           .boundingBox();
         assert.ok(proofBox.y > consultationBox.y + consultationBox.height);
-        const statsTitle = '7명의 전문가가 패션 헤어 보정까지';
+        const statsTitle = '7명의 전문가가 패션·헤어·보정까지';
         assert.equal(await hero.getByText(statsTitle, { exact: true }).count(), 0);
         const heading = page.locator('#before-after').getByRole('heading', { name: statsTitle });
         assert.match(
@@ -121,7 +126,13 @@ test(
         );
         if (width < 1024) {
           await page.waitForSelector('[data-motion-ready="true"]');
+          await page.waitForFunction(() => {
+            const icon = document.querySelector('svg[data-menu-icon="open"]');
+            return icon?.getBBox().width > 0;
+          });
           await page.locator('#mobile-menu-toggle').click();
+          assert.equal(await page.locator('svg[data-menu-icon="close"]').isVisible(), true);
+          assert.equal(await page.locator('svg[data-menu-icon="open"]').isVisible(), false);
           const first = page.locator('#mobile-menu a').first();
           assert.equal((await first.innerText()).trim(), '나한테 딱 맞는 패키지는?');
           assert.equal(await first.getAttribute('href'), '/recommend');

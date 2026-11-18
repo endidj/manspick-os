@@ -137,9 +137,12 @@ export const SizesAndColors: Story = {
       const style = getComputedStyle(icon);
       await expect(style.width).toBe(`${size}px`);
       await expect(style.height).toBe(`${size}px`);
-      await expect(style.backgroundColor).toBe(style.color);
-      await expect(style.maskImage).toContain('svg');
-      await expect(style.maskSize).toBe('contain');
+      await expect(icon.localName).toBe('svg');
+      await expect(icon).toHaveAttribute('viewBox', '0 0 24 24');
+      await expect(icon.querySelector('use')).toHaveAttribute(
+        'href',
+        expect.stringContaining('#solar-camera-bold'),
+      );
     }
   },
 };

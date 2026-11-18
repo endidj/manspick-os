@@ -10,7 +10,7 @@ export function createScope(root: HTMLElement) {
   let active = true;
   const query = <T extends HTMLElement = HTMLElement>(selector: string) =>
     root.querySelector<T>(selector);
-  const all = <T extends HTMLElement = HTMLElement>(selector: string) =>
+  const all = <T extends Element = HTMLElement>(selector: string) =>
     Array.from(root.querySelectorAll<T>(selector));
   const later = (callback: () => void, delay: number) => {
     const id = window.setTimeout(() => {

@@ -127,7 +127,7 @@ import { Icon } from '@manspick/design-system/icons';
 - 앱 색상은 semantic `--mp-color-*`, 글자 크기·굵기·행간은 `--mp-type-*`를 먼저 사용한다. 내부 화면의 보라/분홍 상태와 채널 미리보기·사진 오버레이는 공통 semantic 토큰으로 확장했다. 화면 CSS에 HEX/RGB·반복 글자 크기를 복사하지 않는다.
 - Pretendard/Geist WOFF2를 자체 호스팅하며 OFL·해시·출처를 [fonts README](src/assets/fonts/README.md)에 보관한다. Pretendard는 공식 dynamic subset 92개를 `unicode-range`로 선택 로딩하고, Geist는 기존 약70KB 가변 파일을 사용한다. 전체 Pretendard 원본은 보존하지만 앱 CSS에서 참조하지 않으며 폰트를 전역 preload하지 않는다.
 - 원본 SVG **53개**(Solar51, Kakao1, Instagram1)는 변경 없이 보관하고 SHA-256을 기록했다. [icons README](src/assets/icons/README.md). `Icon name`은 원본 이름53개와 기존 별칭20개를 허용한다. 그 중 원본에 없는 호환 도형5개는 별도다.
-- Icon 기본24px, CSS mask/currentColor. label이 없으면 장식용, 있으면 role=img. PhotoTile의 image에 native image/Next Image를 전달하고 URL·비공개 접근 정책은 앱에서 결정한다.
+- Icon 기본24px, SVG sprite/currentColor. label이 없으면 장식용, 있으면 role=img. PhotoTile의 image에 native image/Next Image를 전달하고 URL·비공개 접근 정책은 앱에서 결정한다.
 - 브랜드 사진 **47개**를 Figma `99 Assets`(12:4)에서 PNG 3x로 가져왔다. 540×720px 원본 22,612,477바이트를 보존하고 같은 크기의 WebP 47개·2,300,354바이트를 앱에서 사용한다. 이전 38개 목록에 styling 2~9·12를 더한 실제 수량이다. [브랜드 README](src/assets/brand/README.md)와 [내보내기 manifest](src/assets/brand/figma-export-manifest.json)에 원본·압축본 해시와 출처를 기록하며, `/assets`의 `brandImages`·`BrandImageName`으로 참조한다. `Foundations/Brand images` Storybook은 47개 로딩을 확인한다. 고객 사진·설문·보정본은 공용 패키지에 저장하지 않는다.
 
 ## 소비자가 지켜야 할 계약
