@@ -19,9 +19,10 @@ export function SourceHero() {
             {'\n\n        '}
             <h1 className={`${styles.title} reveal font-display`}>
               <span>매력있는 남성</span>은
-              <br />왜 <span>프로필 사진</span>부터 다를까요?
+              <br />왜 <span>프로필 사진</span>부터
+              <br className={styles.mobileBreak} /> 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션·헤어·보정까지 알아서</p>
+            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션·헤어·보정까지 한번에</p>
             <div
               className="reveal flex flex-col sm:flex-row gap-3 justify-center"
               style={{ transitionDelay: '280ms' } as CSSProperties}
