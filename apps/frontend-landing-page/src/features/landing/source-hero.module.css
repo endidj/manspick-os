@@ -1,6 +1,19 @@
 /* 메인 메시지와 추천 진입을 선명하게 보여주는 랜딩 전용 스타일입니다. */
 .hero {
-  padding-bottom: 24px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  padding-bottom: 64px;
+}
+
+.hero .content {
+  gap: clamp(32px, 4.5vh, 48px);
+}
+
+.hero .content > * {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .hero .title {
@@ -12,7 +25,7 @@
   letter-spacing: -0.03em;
 }
 
-.hero .title span {
+.hero .title .accent {
   color: var(--mp-color-text-accent);
 }
 
@@ -24,9 +37,12 @@
   line-height: 1.7;
   white-space: nowrap;
 }
-.hero .subtitle strong {
-  color: var(--mp-color-text-primary);
-  font-weight: var(--mp-type-h3-weight);
+.hero .title .underline {
+  text-decoration-line: underline;
+  text-decoration-style: double;
+  text-decoration-color: var(--mp-color-text-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.14em;
 }
 
 .hero .recommendLink {
@@ -52,10 +68,6 @@
 }
 
 @media (min-width: 640px) {
-  .hero {
-    padding-bottom: 32px;
-  }
-
   .hero .proof {
     font-size: var(--mp-type-body-m-size);
   }
