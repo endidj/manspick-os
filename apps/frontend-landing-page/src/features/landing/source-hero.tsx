@@ -40,7 +40,6 @@ export function SourceHero() {
               <br className={styles.mobileBreak} />
               어떻게 다를까요?
             </h1>
-            <p className={`${styles.subtitle} reveal`}>7명의 전문가가 패션 헤어 보정까지</p>
             <div
               className="reveal flex flex-col sm:flex-row items-center gap-1 sm:gap-2 justify-center"
               style={{ transitionDelay: '280ms' } as CSSProperties}
@@ -140,10 +139,6 @@ export function SourceHero() {
               </div>
               {'\n        '}
             </div>
-            <div id="hero-scroll-hint" className={styles.scrollHint} aria-hidden="true">
-              <span>SCROLL</span>
-              <span className={styles.scrollArrow}>↓</span>
-            </div>
             {'\n      '}
           </div>
           {'\n    '}
@@ -161,7 +156,7 @@ function SourceAudience() {
       {'\n    '}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {'\n      '}
-        <p className="text-center text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
+        <p className={`${styles.audienceLabel} text-center mb-6 md:mb-10`}>
           {'\n        누가 맨즈픽을 찾아주나요?\n      '}
         </p>
         {'\n      '}

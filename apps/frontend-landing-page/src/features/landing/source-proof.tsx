@@ -380,7 +380,9 @@ export function SourceProof() {
         {'\n\n    '}
         {'\n    '}
         <div className="reveal max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14 md:mt-16 lg:mt-20">
-          {'\n      '}
+          <h3 className="font-display text-2xl md:text-3xl font-bold text-white text-center break-keep mb-6 md:mb-8">
+            7명의 전문가가 패션 헤어 보정까지
+          </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden">
             {'\n        '}
             <div className="bg-zinc-950 p-5 sm:p-7 lg:p-10">

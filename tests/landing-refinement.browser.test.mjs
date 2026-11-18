@@ -53,7 +53,7 @@ test(
         );
         assert.equal(await page.locator('#hero + section').getAttribute('id'), 'real-impact');
         const hero = page.locator('#hero');
-        assert.equal(await hero.locator('#hero-scroll-hint').count(), 1);
+        assert.equal(await hero.locator('#hero-scroll-hint').count(), 0);
         assert.equal(await hero.locator('#hero-audience .marquee-track').count(), 1);
         assert.equal(
           await page.locator('#before-after + #profile-notifications #notif-screen').count(),
@@ -100,24 +100,18 @@ test(
           .getByRole('link', { name: '맨즈픽 무료 상담', exact: true })
           .boundingBox();
         assert.ok(proofBox.y > consultationBox.y + consultationBox.height);
-        const subtitle = hero.getByText('7명의 전문가가 패션 헤어 보정까지', {
-          exact: true,
-        });
-        assert.equal(await subtitle.locator('strong').count(), 0);
-        assert.equal(
-          await subtitle.evaluate(
-            (el) =>
-              el.getBoundingClientRect().height <= parseFloat(getComputedStyle(el).lineHeight) + 2,
-          ),
-          true,
-          'subtitle stays on one line',
+        const statsTitle = '7명의 전문가가 패션 헤어 보정까지';
+        assert.equal(await hero.getByText(statsTitle, { exact: true }).count(), 0);
+        const heading = page.locator('#before-after').getByRole('heading', { name: statsTitle });
+        assert.match(
+          await heading.evaluate((el) => el.nextElementSibling.textContent),
+          /잘생겨진 남자 수/,
         );
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           true,
         );
         await page.screenshot({ path: `${directory}/hero-${width}.png` });
-        assert.equal(await page.locator('#hero-scroll-hint').isVisible(), true);
         assert.equal(
           await page
             .locator('#main-nav')
