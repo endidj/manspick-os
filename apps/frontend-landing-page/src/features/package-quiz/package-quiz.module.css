@@ -436,25 +436,6 @@
   outline: 2px solid #2d76f6;
   outline-offset: 4px;
 }
-.resultLinks {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.resultLinks button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #71717a;
-  font-size: 14px;
-  line-height: 20px;
-  padding: 0;
-  border: 0;
-  background: none;
-  transition: color 0.15s;
-}
-.resultLinks button:hover {
-  color: white;
-}
 .note {
   color: #71717a;
   font-size: 12px;
@@ -546,28 +527,7 @@
 .summary {
   margin-top: 6px;
 }
-.summary > button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #71717a;
-  font-size: 11px;
-  line-height: 16.5px;
-  transition: color 0.15s;
-}
-.summary > button:hover {
-  color: #d4d4d8;
-}
-.summary > button > span {
-  transition: transform 0.2s;
-}
-.summary > button[aria-expanded='true'] > span {
-  transform: rotate(180deg);
-}
-.summaryList:not([hidden]) {
+.summaryList {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -648,4 +608,10 @@
   .quiz *::after {
     transition: none;
   }
+}
+
+.navigation {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 40;
 }

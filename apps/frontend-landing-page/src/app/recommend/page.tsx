@@ -1,6 +1,4 @@
 // 원본 상담 상품과 패키지 직접 선택 주소를 서버 메타데이터에 연결합니다.
-import Link from 'next/link';
-import { Icon } from '@manspick/design-system/icons';
 import {
   PackageQuiz,
   directPackage,
@@ -28,19 +26,6 @@ export default async function RecommendPage({
   const initialPackage = directPackage(query.pkg, marketingPackages);
   return (
     <div className={styles.shell}>
-      <nav className={styles.navigation} aria-label="추천 페이지 탐색">
-        <div className={styles.navInner}>
-          <Link href="/" prefetch={false} aria-label="MANSPICK 홈" className={styles.brand}>
-            <span className={styles.camera}>
-              <Icon name="solar/camera-bold" size={14} />
-            </span>
-            <span>MANSPICK</span>
-          </Link>
-          <Link href="/" prefetch={false} className={styles.homeLink}>
-            <Icon name="solar/arrow-left-linear" size={16} /> 메인으로
-          </Link>
-        </div>
-      </nav>
       <main id="main-content" className={styles.main}>
         <PackageQuiz
           key={initialPackage ?? 'quiz'}
