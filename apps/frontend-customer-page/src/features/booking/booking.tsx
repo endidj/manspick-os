@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button, Notice, Loading, TimeSlot } from '@manspick/design-system/components';
-import { ChoiceCard, TextField, RadioPills, Dialog } from '@manspick/design-system/patterns';
+import { ChoiceCard, TextField, RadioPills } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
 import { api } from '@manspick/web/client';
 import { money } from '@manspick/web/format';
@@ -55,7 +55,6 @@ export function Booking() {
   const [time, setTime] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
   const [result, setResult] = useState<BookingResultDTO>();
   const bookingToken = result?.bookingAccess?.token ?? result?.localAccess?.token;
   const detailsReady = Boolean(
@@ -222,7 +221,6 @@ export function Booking() {
         if (result || step === 1) window.location.assign(landingOrigin || '/');
         else back(bookingPaths[step - 2]!);
       }}
-      onHelp={() => setHelpOpen(true)}
       step={
         !result
           ? { title: step === 3 ? '촬영 일정 선택' : '촬영 옵션 선택', current: step === 3 ? 2 : 1 }
@@ -625,11 +623,6 @@ export function Booking() {
           )}
         </>
       )}
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen} title="예약을 도와드릴게요">
-        <p>
-          상담을 진행한 맨즈픽 카카오채널로 문의해주세요. 공식 상담 주소가 아직 등록되지 않았어요.
-        </p>
-      </Dialog>
     </CustomerShell>
   );
 }

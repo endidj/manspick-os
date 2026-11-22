@@ -230,7 +230,6 @@ export function CustomerApp({ token }: { token: string }) {
     <CustomerShell
       onBack={() => back(scene === 'home' ? '/' : customerParent(token, scene, surveyPage))}
       onHome={verified ? () => navigate('home') : undefined}
-      onHelp={onHelp}
       step={verified ? sceneSteps[scene] : undefined}
       footer={verified && scene === 'home' ? <KakaoButton onClick={onHelp} /> : undefined}
     >

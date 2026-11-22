@@ -1,10 +1,9 @@
 // 고객 원본의 상단바·일곱 단계 표시·하단 행동 영역을 배치합니다.
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { AppBar, AppBarBrand, Button, StepHeader } from '@manspick/design-system/components';
-import { Dialog } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
 import styles from './customer-shell.module.css';
 
@@ -15,7 +14,6 @@ export function CustomerShell({
   backLabel = '뒤로가기',
   step,
   footer,
-  onHelp,
   onHome,
 }: {
   children: ReactNode;
@@ -24,11 +22,8 @@ export function CustomerShell({
   backLabel?: string;
   step?: { title: string; current: number };
   footer?: ReactNode;
-  onHelp?: () => void;
   onHome?: () => void;
 }) {
-  const [helpOpen, setHelpOpen] = useState(false);
-
   return (
     <div className={styles.shell}>
       <AppBar
@@ -52,9 +47,14 @@ export function CustomerShell({
         }
         actions={
           actions ?? (
-            <button className={styles.helpLink} onClick={onHelp ?? (() => setHelpOpen(true))}>
+            <a
+              className={styles.helpLink}
+              href="https://pf.kakao.com/_kNxoMn"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Icon name="chat" size={16} /> 문의하기
-            </button>
+            </a>
           )
         }
       />
@@ -63,9 +63,6 @@ export function CustomerShell({
         {children}
       </main>
       {footer && <footer className={styles.footer}>{footer}</footer>}
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen} title="카카오채널 문의">
-        <p>상담을 진행한 카카오채널로 연락해주세요. 공식 채널 주소는 아직 등록되지 않았어요.</p>
-      </Dialog>
     </div>
   );
 }
