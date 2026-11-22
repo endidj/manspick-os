@@ -18,9 +18,12 @@ const symbols = await Promise.all(
       path === 'site/gallery-wide-bold-duotone.svg'
         ? 'solar-gallery-wide-bold-duotone'
         : path.slice(0, -4).replace('/', '-');
-    const fill = svg[1].includes('fill="none"') ? 'none' : 'currentColor';
+    const attributes = svg[1]
+      .replace(/\s(?:xmlns|width|height)="[^"]*"/g, '')
+      .replace(/\b(fill|stroke)="white"/g, '$1="currentColor"')
+      .trim();
     const artwork = svg[2].trim().replace(/\b(fill|stroke)="white"/g, '$1="currentColor"');
-    return `  <symbol id="${id}" viewBox="0 0 24 24" fill="${fill}">${artwork}</symbol>`;
+    return `  <symbol id="${id}" ${attributes}>${artwork}</symbol>`;
   }),
 );
 

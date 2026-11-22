@@ -7,13 +7,6 @@
   color: var(--mp-site-color-f5f5f5);
   background: var(--mp-site-color-0a0a0a);
 }
-/* 짧은 전환부와 긴 콘텐츠 섹션의 간격을 구분합니다. */
-.root :global(#main-content > section[id]:not(#hero)) {
-  padding-block: clamp(64px, 7vw, 104px);
-}
-.root :global(#main-content > :is(#real-impact, #profile-notifications)) {
-  padding-block: clamp(48px, 5vw, 72px);
-}
 .root :global(h1),
 .root :global(h2),
 .root :global(h3) {

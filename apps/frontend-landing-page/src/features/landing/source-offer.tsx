@@ -369,7 +369,6 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-500 mt-4">{'이동: 도보'}</p>
               {'\n          '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- 추천 화면은 안정적인 문서 탐색을 사용합니다. */}
               <a
                 href="/recommend?pkg=one"
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 glass hover:bg-white/10 text-white font-semibold py-3 rounded-full"
@@ -546,7 +545,6 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-400 mt-4">{'이동: 도보'}</p>
               {'\n          '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- 추천 화면은 안정적인 문서 탐색을 사용합니다. */}
               <a
                 href="/recommend?pkg=hybrid"
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 rounded-full"
@@ -727,7 +725,6 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-500 mt-4">{'이동: 차량 이동'}</p>
               {'\n          '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- 추천 화면은 안정적인 문서 탐색을 사용합니다. */}
               <a
                 href="/recommend?pkg=allday"
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 glass hover:bg-white/10 text-white font-semibold py-3 rounded-full"
@@ -827,18 +824,6 @@ export function SourceOffer() {
           {'\n    '}
         </div>
         {'\n  '}
-        <div className="mt-8 flex justify-center px-4">
-          <a
-            href="https://pf.kakao.com/_kNxoMn"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cta-primary inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-6 py-3 text-base rounded-full"
-          >
-            <SourceIcon name="solar/bolt-bold" className="text-xl" />
-            맨즈픽 무료 상담
-            <SourceIcon name="solar/arrow-right-linear" className="arrow text-xl" />
-          </a>
-        </div>
       </section>
       <section id="faq" className="py-20 md:py-24 lg:py-32">
         {'\n    '}
@@ -1186,7 +1171,7 @@ export function SourceOffer() {
               {'\n          '}
               <SourceIcon name="ri/kakao-talk-fill" className="text-xl md:text-3xl shrink-0" />
               {'\n          '}
-              <span className="whitespace-nowrap">{'맨즈픽 무료 상담'}</span>
+              <span className="whitespace-nowrap">{'카카오톡으로 1:1 상담하기'}</span>
               {'\n          '}
               <SourceIcon
                 name="solar/arrow-right-linear"

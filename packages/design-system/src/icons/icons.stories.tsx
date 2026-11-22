@@ -2,7 +2,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, within } from 'storybook/test';
 import { Icon } from './icons';
-import { FIGMA_ICON_NAMES, figmaIconManifest, iconAliases } from './manifest';
+import {
+  FIGMA_ICON_NAMES,
+  figmaIconManifest,
+  iconAliases,
+  compatibilityIconManifest,
+} from './manifest';
 import type { IconAlias } from './manifest';
 
 const meta = {
@@ -111,6 +116,31 @@ export const CompatibilityAliases: Story = {
       </ul>
     </section>
   ),
+
+  play: async ({ canvasElement }) => {
+    const icon = within(canvasElement).getByRole('img', { name: 'clock' });
+    const reference = icon.querySelector('use')?.getAttribute('href');
+    await expect(reference).toContain('#compat-clock');
+    const response = await fetch(reference!.split('#')[0]);
+    await expect(response.ok).toBe(true);
+    const sprite = new DOMParser().parseFromString(await response.text(), 'image/svg+xml');
+    for (const [name, url] of Object.entries(compatibilityIconManifest)) {
+      const source = await fetch(url);
+      const original = new DOMParser().parseFromString(await source.text(), 'image/svg+xml');
+      const symbol = sprite.getElementById(name.replace('/', '-'));
+      for (const attribute of [
+        'fill',
+        'stroke',
+        'stroke-width',
+        'stroke-linecap',
+        'stroke-linejoin',
+      ]) {
+        await expect(symbol?.getAttribute(attribute)).toBe(
+          original.documentElement.getAttribute(attribute),
+        );
+      }
+    }
+  },
 };
 
 export const SizesAndColors: Story = {

@@ -1,5 +1,6 @@
 // 원본 맨즈픽의 화면 동작을 React 화면 수명 안에서 실행하고 모두 정리합니다.
 import { semanticTokens } from '@manspick/design-system/tokens';
+import { attachSourceRadar } from './source-radar';
 import { createScope, type Scope } from './source-scope';
 
 function attachNearbyImages(scope: Scope) {
@@ -516,5 +517,6 @@ export function attachSourceInteractions(root: HTMLElement): () => void {
   attachModals(scope);
   attachRotation(scope);
   attachSourceIndicators(scope);
+  scope.cleanup(attachSourceRadar(root, scope.reduced));
   return scope.dispose;
 }

@@ -2,7 +2,7 @@
 
 `solar/` 51개, `ri/` 1개, `mdi/` 1개는 Figma `Manspick OS — Customer UI`의 `98 Icons`(14:2)에서 브라우저로 직접 내보낸 SVG 53개다. ZIP의 `icon/` 접두사만 디렉터리 위치에서 제거했다. SVG 파일 내용은 수정하지 않았다. `figma-export-manifest.json`에는 원본별 바이트 수와 SHA-256을 기록했다.
 
-각 원본의 viewBox는 `0 0 24 24`다. 컴포넌트는 원본에서 생성한 `sprite.svg`를 `<svg><use>`로 불러오고 `currentColor`로 표시한다. 원본을 수정한 뒤에는 저장소 루트에서 `node scripts/generate-icon-sprite.mjs`로 스프라이트를 갱신한다. 원본 이름은 `solar/camera-bold`, `ri/kakao-talk-fill`, `mdi/instagram`처럼 제공한다.
+각 원본의 viewBox는 `0 0 24 24`다. 컴포넌트는 원본에서 생성한 `sprite.svg`를 `<svg><use>`로 불러오고 `currentColor`로 표현한다. 아이콘을 수정한 뒤에는 저장소 루트에서 `node scripts/generate-icon-sprite.mjs`로 갱신한다. 원본 이름은 `solar/camera-bold`, `ri/kakao-talk-fill`, `mdi/instagram`처럼 제공한다.
 
 `compat/`의 clock·search·settings·logout·plus 5개는 기존 코드에서 사용하던 도형을 보존한 호환 파일이다. 이 파일들은 Figma 원본 53개로 집계하지 않는다.
 
