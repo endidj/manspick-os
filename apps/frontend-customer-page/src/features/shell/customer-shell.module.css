@@ -5,7 +5,8 @@
   margin: 0 auto;
   background: var(--mp-color-bg-base);
 }
-.appBar {
+.shell .appBar {
+  padding-inline-end: var(--mp-space-24);
   border-bottom: 1px solid var(--mp-color-border-subtle);
 }
 .main {
