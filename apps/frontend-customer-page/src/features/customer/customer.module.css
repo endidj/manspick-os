@@ -1,7 +1,7 @@
 /* 고객 원본의 예약 카드·일곱 단계 여정·준비·사진·혜택 장면을 배치합니다. */
 .nextAction {
   display: grid;
-  gap: 16px;
+  gap: var(--mp-space-12);
   padding: 18px;
   border: 1px solid var(--mp-color-border-accent);
   border-radius: var(--mp-radius-16);
@@ -11,7 +11,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--mp-type-body-l-size);
+  font-size: var(--mp-type-h3-size);
+  line-height: var(--mp-type-h3-line-height);
   font-weight: var(--mp-type-body-m-strong-weight);
 }
 .nextAction h2 svg {
@@ -19,29 +20,29 @@
   color: var(--mp-color-text-accent);
 }
 .nextAction p {
-  font-size: var(--mp-type-label-s-size);
+  font-size: var(--mp-type-body-m-size);
 }
 .reservationCard,
 .journeyCard {
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  padding: 18px;
+  padding: var(--mp-space-16);
   background: var(--mp-color-bg-surface);
 }
 .reservationCard {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 .reservationCard > div {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  font-size: var(--mp-type-label-s-size);
-  line-height: var(--mp-type-body-m-line-height);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-label-m-line-height);
 }
 .reservationCard svg {
   flex-shrink: 0;
-  color: var(--mp-color-text-secondary);
+  color: var(--mp-color-text-tertiary);
   margin-top: 2px;
 }
 .reservationCard a {
@@ -50,14 +51,14 @@
 .journeyCard {
   display: grid;
   gap: 0;
-  padding-block: 10px;
+  padding-block: var(--mp-space-16);
 }
 .journeyRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--mp-space-12);
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
   padding: 8px 0;
   border: 0;
   background: none;
@@ -71,6 +72,11 @@
 }
 .journeyRow[data-current] {
   color: var(--mp-color-text-primary);
+  font-weight: var(--mp-type-label-m-weight);
+}
+.journeyRow[data-completed],
+.journeyRow[data-completed] .journeyState {
+  color: var(--mp-color-text-tertiary);
 }
 .journeyNumber {
   display: grid;
@@ -97,6 +103,14 @@
   margin-left: auto;
   font-size: var(--mp-type-overline-size);
   color: var(--mp-color-text-accent);
+}
+.paymentCard {
+  padding: var(--mp-space-16);
+  background: var(--mp-color-bg-glass);
+}
+.paymentCard strong {
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
 }
 .lastFour {
   font-size: var(--mp-type-h1-size);
@@ -141,8 +155,12 @@
   gap: 6px;
   font-size: var(--mp-type-caption-size);
 }
-.dayTitle {
+.dayCard p svg {
   color: var(--mp-color-text-accent);
+  flex: none;
+}
+.dayTitle {
+  color: var(--mp-color-text-primary);
   font-size: var(--mp-type-display-l-size);
   font-weight: var(--mp-type-display-l-weight);
   font-family: var(--mp-type-display-l-family);
@@ -151,13 +169,12 @@
 .redPill {
   padding: 4px 8px;
   border-radius: var(--mp-radius-full);
-  background: color-mix(in srgb, var(--mp-color-status-success) 12%, transparent);
+  background: var(--mp-color-bg-elevated);
   color: var(--mp-color-status-success);
   font-size: var(--mp-type-overline-size);
 }
 .redPill {
   color: var(--mp-color-status-danger);
-  background: color-mix(in srgb, var(--mp-color-status-danger) 12%, transparent);
 }
 .progressTrack {
   height: 5px;
@@ -172,7 +189,7 @@
 }
 .guideList {
   display: grid;
-  gap: 10px;
+  gap: var(--mp-space-8);
 }
 .guideItem {
   padding: 16px;
@@ -188,8 +205,8 @@
 .warningTags span {
   padding: 4px 8px;
   border-radius: var(--mp-radius-full);
-  color: var(--mp-color-status-warning);
-  background: color-mix(in srgb, var(--mp-color-status-warning) 12%, transparent);
+  color: var(--mp-color-text-secondary);
+  background: var(--mp-color-bg-elevated);
   font-size: var(--mp-type-caption-size);
 }
 .completionHeader {
@@ -201,6 +218,19 @@
 }
 .completionHeader h1 {
   font-size: var(--mp-type-h2-size);
+}
+.dayCard .shootDayHeading {
+  font-size: var(--mp-type-body-l-size);
+  line-height: var(--mp-type-h3-line-height);
+}
+.planFacts {
+  gap: var(--mp-space-12);
+  padding: var(--mp-space-16);
+}
+.planFacts dl {
+  padding: 0;
+  border: 0;
+  line-height: var(--mp-type-label-s-line-height);
 }
 .successMark {
   display: grid;
@@ -241,15 +271,15 @@
 }
 .dayTimeline {
   list-style: none;
-  padding: 0 0 0 5px;
+  padding: 0;
   margin: 0;
 }
 .dayTimeline li {
   position: relative;
-  min-height: 87px;
-  padding: 0 0 24px 35px;
-  border-left: 1px solid var(--mp-color-border-strong);
-  margin-left: 8px;
+  min-height: 60px;
+  padding: 0 0 var(--mp-space-12) 24px;
+  border-left: 2px solid var(--mp-color-border-strong);
+  margin-left: 11px;
 }
 .dayTimeline li:last-child {
   border-left-color: transparent;
@@ -262,31 +292,39 @@
   font-weight: var(--mp-type-body-m-strong-weight);
 }
 .dayTimeline p {
-  margin-top: 7px;
+  margin-top: var(--mp-space-4);
   font-size: var(--mp-type-caption-size);
 }
 .dayDot {
   position: absolute;
-  left: -10px;
+  left: -13px;
   top: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border: 1px solid var(--mp-color-border-strong);
   border-radius: 50%;
   background: var(--mp-color-bg-base);
 }
+.dayTimeline li[data-completed]:not(:last-child) {
+  border-left-color: var(--mp-color-status-success);
+}
 .dayTimeline [data-completed] .dayDot {
-  color: var(--mp-color-status-success);
-  background: var(--mp-color-bg-surface);
+  color: var(--mp-color-bg-base);
+  background: var(--mp-color-status-success);
   border-color: transparent;
 }
 .dayTimeline [data-current] .dayDot {
-  color: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+  background: var(--mp-color-action-primary);
   border-color: var(--mp-color-action-primary);
 }
+.dayTimeline [data-completed] strong,
 .dayTimeline [data-current] strong {
+  color: var(--mp-color-text-primary);
+}
+.dayTimeline [data-current] p {
   color: var(--mp-color-text-accent);
 }
 .mapPlaceholder {
@@ -313,36 +351,69 @@
   font-size: var(--mp-type-label-s-size);
   text-decoration: none;
 }
+.selectionBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.selectionBadges > span,
+.benefitCard :global(.badge) {
+  border-radius: var(--mp-radius-full);
+  padding: 6px 10px;
+}
 .photoFilters {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  overflow-x: auto;
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-color-bg-elevated);
 }
 .photoFilter {
-  padding: 7px 12px;
-  border: 1px solid var(--mp-color-border-subtle);
-  border-radius: var(--mp-radius-full);
-  background: var(--mp-color-bg-elevated);
-  color: var(--mp-color-text-secondary);
+  flex: 1 0 auto;
+  padding: 8px;
+  border: none;
+  border-radius: var(--mp-radius-8);
+  background: transparent;
+  color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
   cursor: pointer;
 }
 .photoFilter[data-active] {
-  border-color: var(--mp-color-border-accent);
-  background: var(--mp-color-bg-accent-tint);
-  color: var(--mp-color-text-accent);
+  background: var(--mp-color-bg-base);
+  color: var(--mp-color-text-primary);
 }
-.compactPhoto {
-  aspect-ratio: 3/4;
+.selectionGrid,
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
 }
-.compactPhoto > :last-child:not(:first-child) {
+.resultGrid {
+  gap: 6px;
+}
+.resultPhoto img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+}
+.revisionPhoto:not([data-selected]) img {
+  opacity: 0.45;
+}
+.revisionPhoto button > span[aria-hidden] {
   display: none;
 }
-.compactPhoto img {
-  aspect-ratio: 3/4;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.selectionSummary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: var(--mp-type-label-s-size);
+  color: var(--mp-color-text-secondary);
 }
 .selectedCount {
   color: var(--mp-color-text-accent);
@@ -361,25 +432,52 @@
 .selectionProgress [data-active] {
   background: var(--mp-color-action-primary);
 }
+.deliveryFiles {
+  display: grid;
+  gap: 10px;
+}
+.deliveryNotice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
+}
+.deliveryNotice svg {
+  color: var(--mp-color-text-accent);
+  flex-shrink: 0;
+}
 .deliveryCard {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 18px 16px;
+  padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
   background: var(--mp-color-bg-surface);
 }
 .deliveryCard strong {
+  display: block;
   font-size: var(--mp-type-body-m-strong-size);
   font-weight: var(--mp-type-body-m-strong-weight);
+  line-height: var(--mp-type-body-m-strong-line-height);
 }
 .deliveryCard p {
-  margin-top: 6px;
+  margin-top: 2px;
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
 }
-.deliveryCard[data-locked] {
-  opacity: 0.6;
+.deliveryCard[data-locked] strong {
+  color: var(--mp-color-text-secondary);
+}
+.deliveryCard[data-locked] .deliveryIcon {
+  color: var(--mp-color-text-tertiary);
+  background: var(--mp-color-bg-elevated);
 }
 .deliveryIcon {
   display: grid;
@@ -393,59 +491,78 @@
 }
 .openFile {
   margin-left: auto;
-  padding: 7px 12px;
-  border: 1px solid var(--mp-color-border-accent);
-  border-radius: var(--mp-radius-8);
-  background: var(--mp-color-bg-accent-tint);
-  color: var(--mp-color-text-accent);
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
   font-size: var(--mp-type-caption-size);
   text-decoration: none;
   white-space: nowrap;
 }
 .openFile:disabled {
   color: var(--mp-color-text-secondary);
-  border-color: var(--mp-color-border-subtle);
   background: var(--mp-color-bg-elevated);
 }
-.revisionHeading {
-  display: flex;
+.revisionCard {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  font-size: var(--mp-type-label-s-size);
+  padding: 16px;
+  border: 1px solid var(--mp-color-border-subtle);
+  border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-surface);
 }
-.revisionHeading img {
+.revisionCard img {
   object-fit: cover;
   border-radius: var(--mp-radius-8);
 }
-.revisionInput textarea {
-  min-height: 90px;
+.revisionCard > div {
+  display: contents;
+}
+.revisionCard label {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+}
+.revisionCard textarea {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 56px;
+}
+.benefitList {
+  display: grid;
+  gap: 16px;
 }
 .benefitCard {
   display: grid;
-  gap: 20px;
-  padding: 20px;
+  gap: 12px;
+  padding: 18px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
   background: var(--mp-color-bg-surface);
 }
 .benefitIntro {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 }
-.benefitIntro h2 {
+.benefitCard .benefitIntro h2 {
   font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-body-m-strong-weight);
+  line-height: var(--mp-type-body-m-line-height);
 }
-.benefitIntro p {
-  font-size: var(--mp-type-label-s-size);
-  margin-top: 8px;
+.benefitCard .benefitIntro p {
+  font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
+  margin-top: 4px;
 }
 .benefitIcon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-accent-tint);
   color: var(--mp-color-text-accent);
@@ -453,6 +570,14 @@
 .benefitIcon[data-tone='pink'] {
   color: var(--mp-color-status-pink);
   background: color-mix(in srgb, var(--mp-color-status-pink) 12%, transparent);
+}
+.benefitIcon[data-tone='green'] {
+  color: var(--mp-color-status-success);
+  background: color-mix(in srgb, var(--mp-color-status-success) 15%, transparent);
+}
+.benefitIcon[data-tone='purple'] {
+  color: var(--mp-color-status-purple-label);
+  background: color-mix(in srgb, var(--mp-color-status-purple-label) 15%, transparent);
 }
 .textAction {
   display: inline-flex;

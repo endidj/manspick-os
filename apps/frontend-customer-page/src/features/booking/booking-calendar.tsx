@@ -10,10 +10,12 @@ export type CalendarDay = { date: string; slots: { time: string; available: bool
 
 export function BookingCalendar({
   days,
+  horizonWeeks,
   value,
   onValueChange,
 }: {
   days: CalendarDay[];
+  horizonWeeks: number;
   value: string;
   onValueChange: (value: string) => void;
 }) {
@@ -77,7 +79,9 @@ export function BookingCalendar({
           );
         })}
       </div>
-      <p className={styles.legend}>● 예약 가능 · 흐린 날짜는 예약할 수 없어요</p>
+      <p className={styles.legend}>
+        <span>예약 가능</span> 흐린 날짜는 마감 · {horizonWeeks}주 앞까지 예약
+      </p>
     </section>
   );
 }

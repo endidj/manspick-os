@@ -195,7 +195,7 @@ test(
         'booking consent labels and previous/next routes retain entered details',
         async (page) => {
           await page.goto(`${appUrl}/start`);
-          await page.getByRole('button', { name: '다음: 기본정보 남기기' }).click();
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await expectPath(page, '/start/details');
           for (const label of [
             '개인정보 수집·이용 동의 (필수)',
@@ -256,7 +256,7 @@ test(
         'completed bookings cannot be resubmitted through browser history',
         async (page, requests) => {
           await page.goto(`${appUrl}/start`);
-          await page.getByRole('button', { name: '다음: 기본정보 남기기' }).click();
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await fillBookingDetails(page);
           await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
           await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
@@ -301,7 +301,7 @@ test(
               paymentState: 'pending',
             });
             await page.goto(`${appUrl}/start`);
-            await page.getByRole('button', { name: '다음: 기본정보 남기기' }).click();
+            await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
             await fillBookingDetails(page);
             await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
             await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
@@ -672,11 +672,72 @@ test(
         },
       );
 
+      await scenario(
+        'bank transfer home shows the reserved time, account and deposit amount',
+        async (page, requests) => {
+          Object.assign(requests.shoot, {
+            status: 'payment_pending',
+            stage: 2,
+            paymentState: 'pending',
+            paymentInstructions: {
+              bankName: '테스트은행',
+              accountNumber: '000-123',
+              accountHolder: '테스트',
+            },
+          });
+          await page.goto(`${appUrl}/s/demo-token`);
+          await signIn(page);
+          await page
+            .getByRole('heading', { name: '테스트 고객님, 입금하면 예약이 확정돼요' })
+            .waitFor();
+          await page.getByText(/테스트은행 000-123 · 190,000원/).waitFor();
+          await page.getByText(/13:00 – 15:00/).waitFor();
+          await page.getByRole('button', { name: '입금 안내 보기' }).click();
+          await expectPath(page, '/s/demo-token/payment');
+          await page.getByRole('button', { name: '입금했어요' }).waitFor();
+        },
+      );
+
+      await scenario(
+        'prepaid platform customers see staff verification without a bank transfer request',
+        async (page, requests) => {
+          Object.assign(requests.shoot, {
+            status: 'payment_pending',
+            stage: 2,
+            paymentState: 'pending',
+            payments: [{ kind: 'base', channel: 'smartstore', state: 'pending' }],
+          });
+          await page.goto(`${appUrl}/s/demo-token`);
+          await signIn(page);
+          await page.getByText('스마트스토어에서 결제하신 내역을 확인하고 있어요.').waitFor();
+          await page.getByRole('button', { name: '확인 상태 보기' }).click();
+          await page.getByRole('heading', { name: '결제 확인을 기다리고 있어요' }).waitFor();
+          assert.equal(await page.getByRole('textbox', { name: '입금자명' }).count(), 0);
+          assert.equal(await page.getByRole('button', { name: '입금했어요' }).count(), 0);
+        },
+      );
+
+      await scenario(
+        'a shared plan opens the outfit uploader even without an outfit guide',
+        async (page) => {
+          await page.goto(`${appUrl}/s/demo-token/plan`);
+          await signIn(page);
+          await page.getByRole('button', { name: '의상 사진 올리기' }).click();
+          const dialog = page.getByRole('dialog', { name: /의상/ });
+          await dialog.waitFor();
+          assert.equal(await dialog.locator('input[type=file]').count(), 1);
+          await dialog.getByRole('button', { name: '확인', exact: true }).click();
+          await dialog.waitFor({ state: 'hidden' });
+          await expectPath(page, '/s/demo-token/preparation');
+        },
+      );
+
       for (const [state, cta] of [
         ['partial-survey', '설문 이어서 작성하기'],
         ['prepared', '준비 안내 다시 보기'],
         ['outfits-missing', '의상 사진 올리기'],
         ['review-pending', '후기 진행상태 보기'],
+        ['review-approved', '원본 전달 상태 보기'],
         ['review-rejected', '후기 다시 확인하기'],
         ['originals-ready', '원본 사진 확인하기'],
       ]) {
@@ -697,7 +758,12 @@ test(
                   {
                     id: 'review',
                     type: 'review',
-                    state: state === 'review-rejected' ? 'rejected' : 'new',
+                    state:
+                      state === 'review-approved'
+                        ? 'complete'
+                        : state === 'review-rejected'
+                          ? 'rejected'
+                          : 'new',
                   },
                 ];
                 if (state === 'originals-ready')
@@ -729,6 +795,15 @@ test(
                   ? '/s/demo-token/preparation'
                   : '/s/demo-token/review',
             );
+            if (state === 'outfits-missing') {
+              await page.getByRole('dialog', { name: /의상/ }).waitFor();
+            }
+            if (state === 'review-approved') {
+              await page.getByRole('button', { name: '제출한 후기 보기' }).click();
+              const dialog = page.getByRole('dialog', { name: '제출한 후기' });
+              await dialog.getByText(/후기가 확인됐어요/).waitFor();
+              assert.equal(await dialog.locator('input[type=file]').count(), 0);
+            }
           },
         );
       }

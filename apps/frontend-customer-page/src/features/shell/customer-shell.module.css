@@ -1,4 +1,7 @@
 /* 고객 앱의 공통 폭·여백·카드와 폼 배치를 정의합니다. */
+.skipLink:not(:focus) {
+  clip-path: inset(50%);
+}
 .shell {
   max-width: 480px;
   min-height: 100dvh;
@@ -9,14 +12,21 @@
   padding-inline-end: var(--mp-space-24);
   border-bottom: 1px solid var(--mp-color-border-subtle);
 }
+.brandBar {
+  padding-inline: var(--mp-space-24);
+}
 .main {
   padding: 24px;
   display: grid;
-  gap: 24px;
+  gap: var(--mp-space-20);
   min-width: 0;
 }
-.stepHeader {
-  padding: 16px 24px;
+.shell .stepHeader {
+  padding: 14px 24px 16px;
+}
+.stepHeader > div:first-child {
+  line-height: var(--mp-type-label-s-line-height);
+  margin-bottom: var(--mp-space-8);
 }
 .helpLink {
   display: inline-flex;
@@ -29,13 +39,19 @@
   color: var(--mp-color-text-secondary);
   cursor: pointer;
 }
+.accountAction {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--mp-color-text-tertiary);
+}
 .footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
   display: grid;
   gap: 12px;
-  padding: 16px 24px 24px;
+  padding: 16px 24px max(32px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--mp-color-border-subtle);
   background: var(--mp-color-bg-surface);
 }
@@ -99,6 +115,12 @@
   display: grid;
   gap: 16px;
   min-width: 0;
+}
+.main header.stack {
+  gap: 6px;
+}
+.stepHeader + .main header.stack {
+  gap: var(--mp-space-4);
 }
 .card {
   padding: 20px;
@@ -196,7 +218,8 @@
   .main {
     padding: 20px 16px;
   }
-  .stepHeader,
+  .shell .stepHeader,
+  .brandBar,
   .footer {
     padding-inline: 16px;
   }

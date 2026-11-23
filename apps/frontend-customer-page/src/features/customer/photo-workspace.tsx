@@ -12,7 +12,7 @@ import { SceneFooter } from '../shell';
 import type { CustomerViewProps } from './view-types';
 import { resolveJourney } from './journey';
 import { UploadList } from './uploads';
-import { packageName, shootDate } from './presentation';
+import { packageName, reviewState, shootDate } from './presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
@@ -21,6 +21,7 @@ export function PhotoWorkspace({
   busy,
   onAction,
   onNavigate,
+  onHelp,
   scene,
 }: CustomerViewProps & { scene: 'selection' | 'results' | 'revision' | 'extra-retouch' }) {
   const extra = scene === 'extra-retouch';
@@ -30,7 +31,7 @@ export function PhotoWorkspace({
   const [filter, setFilter] = useState('all');
   const [comments, setComments] = useState<Record<string, string>>({});
   const [revisionPhotos, setRevisionPhotos] = useState<string[]>([]);
-  const [openFiles, setOpenFiles] = useState(false);
+  const [openFiles, setOpenFiles] = useState<'retouched' | 'original' | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const basePicks =
@@ -43,7 +44,7 @@ export function PhotoWorkspace({
   );
   const required = extra ? 0 : shoot.package.retouchCount;
   const extraQuantity = Math.max(0, selected.length - required);
-  const selectionLimit = shoot.extraRetouchAvailable ? 100 : required;
+  const selectionLimit = shoot.extraRetouchAvailable ? 100 : Math.min(100, required);
   const directorSelecting = !extra && resolveJourney(shoot).state === 'director-selection';
   const submitted = shoot.selections.some(
     (selection) => selection.round === (extra ? 'extra' : 'base'),
@@ -59,6 +60,10 @@ export function PhotoWorkspace({
     (!extra && shoot.status !== 'selection_pending');
   const retouchedLink = shoot.fileLinks.find((link) => link.kind === 'retouched');
   const originalLink = shoot.fileLinks.find((link) => link.kind === 'original');
+  const delivered = results.length > 0 || Boolean(retouchedLink);
+  const review = reviewState(shoot);
+  const selectionTarget = Math.min(required, candidates.length, selectionLimit);
+  const stillNeeded = Math.max(0, selectionTarget - selected.length);
   const remaining = Math.max(0, 3 - shoot.revisionCount);
   const pendingPayments = shoot.payments.filter(
     (payment) =>
@@ -109,6 +114,15 @@ export function PhotoWorkspace({
     }
   }
 
+  const revisionHelp = remaining === 0 && (
+    <Notice className={styles.deliveryNotice}>
+      수정 3회를 모두 사용했어요.
+      <button className={styles.textAction} onClick={onHelp}>
+        카톡으로 문의하기
+      </button>
+    </Notice>
+  );
+
   if (scene === 'revision')
     return (
       <>
@@ -121,11 +135,11 @@ export function PhotoWorkspace({
             여러 장을 보내도 1회로 세요. (남은 수정 {remaining}회)
           </p>
         </header>
-        <div className={layout.photoGrid}>
+        <div className={styles.resultGrid}>
           {results.map((photo) => (
             <PhotoTile
               key={photo.id}
-              className={styles.compactPhoto}
+              className={styles.revisionPhoto}
               label={`사진 ${photo.cutNo}`}
               selected={revisionPhotos.includes(photo.id)}
               disabled={busy || remaining === 0 || pendingRevision}
@@ -143,14 +157,10 @@ export function PhotoWorkspace({
         {revisionPhotos.map((id) => {
           const photo = results.find((item) => item.id === id)!;
           return (
-            <section className={layout.card} key={id}>
-              <div className={styles.revisionHeading}>
-                <Image unoptimized width={48} height={64} src={photo.url} alt="" />
-                <span>사진 {photo.cutNo} · 어떻게 고칠까요?</span>
-              </div>
+            <section className={styles.revisionCard} key={id}>
+              <Image unoptimized width={48} height={60} src={photo.url} alt="" />
               <TextArea
-                label={`사진 ${photo.cutNo} 수정 의견`}
-                className={styles.revisionInput}
+                label={`사진 ${photo.cutNo} · 어떻게 고칠까요?`}
                 value={comments[id] ?? ''}
                 onValueChange={(value) => setComments((previous) => ({ ...previous, [id]: value }))}
                 maxLength={1000}
@@ -159,10 +169,12 @@ export function PhotoWorkspace({
             </section>
           );
         })}
-        <Notice>
-          수정본이 완성되면 이곳에서 확인할 수 있어요. 여러 사진의 의견을 함께 보내도 1회로
-          집계돼요.
-        </Notice>
+        {revisionHelp || (
+          <Notice className={styles.deliveryNotice}>
+            <Icon name="solar/magic-stick-3-bold" size={16} />
+            수정본이 완성되면 결과물 화면에서 바로 받을 수 있어요.
+          </Notice>
+        )}
         <SceneFooter>
           <Button
             fullWidth
@@ -193,12 +205,14 @@ export function PhotoWorkspace({
           <h1>
             {results.length
               ? `보정본 ${results.length}장이 도착했어요 🎉`
-              : pendingPayments.length
-                ? '추가 보정 입금을 확인하고 있어요'
-                : '보정본을 준비하고 있어요'}
+              : retouchedLink
+                ? '보정본이 도착했어요 🎉'
+                : pendingPayments.length
+                  ? '추가 보정 입금을 확인하고 있어요'
+                  : '보정본을 준비하고 있어요'}
           </h1>
           <p>
-            {results.length
+            {delivered
               ? '고르신 사진을 담당 보정가가 완성했어요. 지금 바로 받아보세요.'
               : pendingPayments.length
                 ? '입금 후 알려주시면 직원 확인 뒤 보정이 시작돼요.'
@@ -215,10 +229,10 @@ export function PhotoWorkspace({
           />
         ))}
         {results.length ? (
-          <div className={layout.photoGrid}>
+          <div className={styles.resultGrid}>
             {results.map((photo) => (
               <button
-                className={styles.imageButton}
+                className={`${styles.imageButton} ${styles.resultPhoto}`}
                 key={photo.id}
                 onClick={() => setPreview(photo.url)}
                 aria-label={`보정 사진 ${photo.cutNo} 확대`}
@@ -234,6 +248,7 @@ export function PhotoWorkspace({
             ))}
           </div>
         ) : (
+          !delivered &&
           !pendingPayments.length && (
             <EmptyState
               title="사진을 완성하고 있어요"
@@ -241,77 +256,93 @@ export function PhotoWorkspace({
             />
           )
         )}
-        {results.length > 0 && (
+        {delivered && (
           <>
-            <section className={styles.deliveryCard}>
-              <span className={styles.deliveryIcon}>
-                <Icon name="solar/gallery-bold" size={21} />
-              </span>
-              <div>
-                <strong>보정본 {results.length}장</strong>
-                <p>
-                  {retouchedLink
-                    ? `외부 드라이브 폴더${retouchedLink.publishedAt ? ` · ${shootDate(retouchedLink.publishedAt)} 전달` : ''}`
-                    : '사진별로 내려받을 수 있어요'}
-                </p>
-              </div>
-              {retouchedLink ? (
-                <a
-                  className={styles.openFile}
-                  href={retouchedLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  열기
-                </a>
-              ) : (
-                <button className={styles.openFile} onClick={() => setOpenFiles(true)}>
-                  열기
-                </button>
-              )}
-            </section>
-            <section
-              className={styles.deliveryCard}
-              data-locked={(!originalLink && !shoot.originals.length) || undefined}
-            >
-              <span className={styles.deliveryIcon}>
-                <Icon name="download" size={21} />
-              </span>
-              <div>
-                <strong>원본 전체</strong>
-                <p>
-                  {originalLink || shoot.originals.length
-                    ? '후기 확인이 완료되어 열렸어요'
-                    : '후기 작성 확인 후 열려요'}
-                </p>
-              </div>
-              {originalLink ? (
-                <a
-                  className={styles.openFile}
-                  href={originalLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  열기
-                </a>
-              ) : (
-                <button
-                  className={styles.openFile}
-                  disabled={!shoot.originals.length}
-                  onClick={() => onNavigate('review')}
-                >
-                  {shoot.originals.length ? '열기' : '잠김'}
-                </button>
-              )}
-            </section>
-            <Notice>수정은 전체 3번까지 가능해요. 고칠 사진을 골라 요청해주세요.</Notice>
+            <div className={styles.deliveryFiles}>
+              <section className={styles.deliveryCard}>
+                <span className={styles.deliveryIcon}>
+                  <Icon name="solar/gallery-bold" size={21} />
+                </span>
+                <div>
+                  <strong>보정본{results.length > 0 && ` ${results.length}장`}</strong>
+                  <p>
+                    {retouchedLink
+                      ? `외부 드라이브 폴더${retouchedLink.publishedAt ? ` · ${shootDate(retouchedLink.publishedAt)} 전달` : ''}`
+                      : '사진별로 내려받을 수 있어요'}
+                  </p>
+                </div>
+                {retouchedLink ? (
+                  <a
+                    className={styles.openFile}
+                    href={retouchedLink.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    열기
+                  </a>
+                ) : (
+                  <button className={styles.openFile} onClick={() => setOpenFiles('retouched')}>
+                    열기
+                  </button>
+                )}
+              </section>
+              <section
+                className={styles.deliveryCard}
+                data-locked={(!originalLink && !shoot.originals.length) || undefined}
+              >
+                <span className={styles.deliveryIcon}>
+                  <Icon name="download" size={21} />
+                </span>
+                <div>
+                  <strong>원본 전체</strong>
+                  <p>
+                    {review === 'open'
+                      ? '후기 확인이 완료되어 열렸어요'
+                      : review === 'approved'
+                        ? '후기를 확인했어요. 원본을 준비하고 있어요'
+                        : '후기 작성 확인 후 열려요'}
+                  </p>
+                </div>
+                {originalLink ? (
+                  <a
+                    className={styles.openFile}
+                    href={originalLink.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    열기
+                  </a>
+                ) : (
+                  <button
+                    className={styles.openFile}
+                    disabled={!shoot.originals.length}
+                    onClick={() => setOpenFiles('original')}
+                  >
+                    {shoot.originals.length ? '열기' : '잠김'}
+                  </button>
+                )}
+              </section>
+            </div>
+            {results.length > 0 &&
+              (revisionHelp || (
+                <Notice className={styles.deliveryNotice}>
+                  <Icon name="solar/magic-stick-3-bold" size={16} />
+                  수정은 전체 3번까지 가능해요. 고칠 사진을 골라 요청해주세요.
+                </Notice>
+              ))}
           </>
         )}
         {pendingRevision && <Notice>수정 요청을 보냈어요. 담당 보정가가 확인하고 있어요.</Notice>}
         <SceneFooter>
-          {results.length > 0 && (
+          {delivered && (
             <Button fullWidth onClick={() => onNavigate('review')}>
-              후기 쓰고 원본 받기
+              {review === 'open'
+                ? '원본 전체 받기'
+                : review === 'approved'
+                  ? '원본 전달 상태 보기'
+                  : review === 'pending'
+                    ? '후기 진행상태 보기'
+                    : '후기 쓰고 원본 받기'}
             </Button>
           )}
           <Button
@@ -323,8 +354,12 @@ export function PhotoWorkspace({
             수정 요청하기 · {remaining}회 남음
           </Button>
         </SceneFooter>
-        <Dialog open={openFiles} onOpenChange={setOpenFiles} title="보정본 내려받기">
-          <UploadList items={results} />
+        <Dialog
+          open={openFiles !== null}
+          onOpenChange={(open) => !open && setOpenFiles(null)}
+          title={openFiles === 'original' ? '원본 전체 내려받기' : '보정본 내려받기'}
+        >
+          <UploadList items={openFiles === 'original' ? shoot.originals : results} />
         </Dialog>
         <Dialog
           open={Boolean(preview)}
@@ -359,7 +394,7 @@ export function PhotoWorkspace({
             ? '추가로 보정할 사진을 골라주세요'
             : directorSelecting
               ? '디렉터가 사진을 고르는 중이에요'
-              : `보정할 사진 ${required}장을 골라주세요`}
+              : `보정할 사진 ${selectionTarget || required}장을 골라주세요`}
         </h1>
         <p>
           디렉터가 먼저 고른 후보 {candidates.length}장이에요.
@@ -368,10 +403,12 @@ export function PhotoWorkspace({
             ? '지금은 후보 사진을 둘러보실 수 있어요.'
             : extra
               ? `이미 보정한 사진은 제외했어요. 1장당 ${money(shoot.retouchUnitPrice)}이에요.`
-              : '마음에 드는 사진을 고르면 보정을 시작해요.'}
+              : shoot.extraRetouchAvailable
+                ? `${required}장보다 더 고르면 1장당 ${money(shoot.retouchUnitPrice)}이 추가돼요.`
+                : '마음에 드는 사진을 고르면 보정을 시작해요.'}
         </p>
       </header>
-      <div className={layout.row}>
+      <div className={styles.selectionBadges}>
         <Badge tone="blue">
           {packageName(shoot.packageId, shoot.package.name)} ·{' '}
           {extra ? '추가 보정' : `보정 ${required}장`}
@@ -391,10 +428,11 @@ export function PhotoWorkspace({
       )}
       {candidates.length ? (
         <>
-          <div className={styles.photoFilters}>
+          <div className={styles.photoFilters} role="group" aria-label="의상별 후보">
             <button
               className={styles.photoFilter}
               data-active={filter === 'all' || undefined}
+              aria-pressed={filter === 'all'}
               onClick={() => setFilter('all')}
             >
               전체 {candidates.length}
@@ -404,16 +442,16 @@ export function PhotoWorkspace({
                 key={id}
                 className={styles.photoFilter}
                 data-active={filter === id || undefined}
+                aria-pressed={filter === id}
                 onClick={() => setFilter(id)}
               >
                 {label} {candidates.filter((photo) => String(photo.outfitNo) === id).length}
               </button>
             ))}
           </div>
-          <div className={layout.photoGrid}>
+          <div className={styles.selectionGrid}>
             {visibleCandidates.map((photo) => (
               <PhotoTile
-                className={styles.compactPhoto}
                 key={photo.id}
                 label={`촬영 후보 ${photo.cutNo}번`}
                 selected={selected.includes(photo.id)}
@@ -440,20 +478,24 @@ export function PhotoWorkspace({
       )}
       {!directorSelecting && (
         <SceneFooter>
-          <div className={layout.between}>
+          <div className={styles.selectionSummary} aria-live="polite">
             <span>
               <strong className={styles.selectedCount}>{selected.length}</strong>
-              {extra ? '장 선택' : ` / ${required}장 선택`}
+              {extra ? '장 선택' : ` / ${selectionTarget || required}장 선택`}
             </span>
             <span>
               {extraQuantity
                 ? `추가 ${extraQuantity}장 · ${money(extraQuantity * shoot.retouchUnitPrice)}`
-                : `${Math.max(0, required - selected.length)}장 더 고를 수 있어요`}
+                : stillNeeded
+                  ? `${stillNeeded}장 더 골라주세요`
+                  : selected.length
+                    ? '선택을 완료했어요'
+                    : '사진을 골라주세요'}
             </span>
           </div>
           {!extra && (
             <div className={styles.selectionProgress}>
-              {Array.from({ length: required }, (_, index) => (
+              {Array.from({ length: selectionTarget || required }, (_, index) => (
                 <span key={index} data-active={index < selected.length || undefined} />
               ))}
             </div>
@@ -461,18 +503,16 @@ export function PhotoWorkspace({
           <Button
             fullWidth
             disabled={
-              locked || !selected.length || (!shoot.extraRetouchAvailable && extraQuantity > 0)
+              locked ||
+              !selected.length ||
+              stillNeeded > 0 ||
+              (!shoot.extraRetouchAvailable && extraQuantity > 0)
             }
             loading={busy}
             onClick={() => (extraQuantity ? setConfirmOpen(true) : void submitSelection())}
           >
             {extra ? '추가 보정 신청하기' : '선택 완료하고 보정 요청'}
           </Button>
-          <p>
-            {extraQuantity
-              ? '추가 금액 입금을 직원이 확인한 후 보정을 시작해요.'
-              : '선택 완료 후에는 바꿀 수 없어요. 천천히 골라주세요.'}
-          </p>
         </SceneFooter>
       )}
       <Dialog

@@ -7,7 +7,7 @@
   display: grid;
   flex: 1;
   gap: 8px;
-  text-align: center;
+  text-align: left;
   color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-overline-size);
 }
@@ -16,8 +16,8 @@
   background: var(--mp-color-bg-elevated);
   border-radius: var(--mp-radius-full);
 }
-.pageProgress [data-active] {
-  color: var(--mp-color-text-accent);
+.pageProgress [aria-current='step'] {
+  color: var(--mp-color-text-primary);
 }
 .pageProgress [data-active] i {
   background: var(--mp-color-action-primary);
@@ -26,12 +26,53 @@
   display: grid;
   gap: 28px;
 }
+.fields input:not([type='checkbox'], [type='radio'], [type='file']) {
+  min-height: 52px;
+}
+.fields input:not([type='checkbox'], [type='radio'], [type='file'])[value]:not([value='']) {
+  background: var(--mp-color-bg-elevated);
+  border-color: var(--mp-color-border-accent);
+}
+.fields textarea {
+  min-height: 96px;
+}
+.fields label[for]:not(:has(input)) > span[aria-hidden='true'],
+.fields legend > span[aria-hidden='true'] {
+  display: none;
+}
+.fields label[for]:not(:has(input)):has(> span[aria-hidden='true'])::after,
+.fields legend:has(> span[aria-hidden='true'])::after {
+  content: '필수';
+  float: right;
+  color: var(--mp-color-text-accent);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+}
+.fields section label[for]:not(:has(input)):has(> span[aria-hidden='true'])::after {
+  display: none;
+}
 .fieldTitle {
   padding: 0;
   margin-bottom: 8px;
   font-size: var(--mp-type-body-m-size) !important;
   font-weight: var(--mp-type-body-m-strong-weight);
   line-height: var(--mp-type-body-m-line-height);
+}
+.optional {
+  float: right;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+}
+.notice {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  font-size: var(--mp-type-caption-size);
+}
+.notice p {
+  font-size: inherit;
+  line-height: 1.6;
 }
 .required {
   font-size: var(--mp-type-caption-size);
@@ -52,7 +93,7 @@
   color: var(--mp-color-text-tertiary);
 }
 .starRating [data-filled] {
-  color: var(--mp-color-brand-kakao);
+  color: var(--mp-color-status-warning);
 }
 .sizes {
   display: grid;
@@ -78,15 +119,27 @@
 }
 .uploadTile {
   min-width: 0;
-  min-height: 130px;
-  padding: 12px;
+  min-height: 120px;
+  padding: 34px 8px 8px;
   border-radius: var(--mp-radius-12);
 }
 .uploadTile span {
   font-size: var(--mp-type-caption-size);
 }
-.uploadTile small {
+.uploadTile span + span {
   display: none;
+}
+.addPhoto {
+  position: relative;
+}
+.addPhoto > svg {
+  position: absolute;
+  z-index: 1;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  color: var(--mp-color-text-accent);
 }
 .purposePills {
   display: flex;
@@ -110,23 +163,51 @@
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
 }
+.purposeChoice > span[aria-hidden='true'] {
+  width: auto;
+  height: auto;
+  margin-right: 6px;
+}
+.fields fieldset > div > label > span:has(svg) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fields fieldset > div > label:has(input:checked) > span > svg {
+  color: var(--mp-color-text-accent);
+}
 .purposeChoice:has(input:focus-visible) {
   outline: 2px solid var(--mp-color-text-accent);
   outline-offset: 3px;
 }
 .inquiryChip {
-  padding: 8px 12px;
-  border: 1px solid var(--mp-color-border-subtle);
-  border-radius: var(--mp-radius-full);
-  background: var(--mp-color-bg-elevated);
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
+  text-decoration: underline;
   cursor: pointer;
 }
-.strength > div > label {
+.strength > div:has(input) {
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border-radius: var(--mp-radius-12);
+  background: var(--mp-color-bg-elevated);
+}
+.fields .strength > div > label {
   flex: 1;
-  padding-inline: 5px;
+  min-height: 38px;
+  padding-inline: 2px;
   min-width: 0;
+  border: 0;
+  border-radius: var(--mp-radius-8);
+  background: transparent;
+}
+.fields .strength > div > label:has(input:checked) {
+  background: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
 }
 .strengthHint {
   display: flex;
@@ -172,10 +253,10 @@
   font-size: var(--mp-type-caption-size);
 }
 .safety .consentCard {
-  padding: 12px 0 0;
-  border: 0;
-  border-top: 1px solid var(--mp-color-border-subtle);
-  border-radius: 0;
+  padding: 16px;
+  min-height: 60px;
+  align-items: center;
+  background: var(--mp-color-bg-elevated);
 }
 .saveStatus {
   display: flex;
@@ -188,7 +269,7 @@
   display: grid;
   justify-items: center;
   gap: 20px;
-  padding: 32px 0 8px;
+  padding: 16px 0 0;
   text-align: center;
 }
 .complete p {
@@ -213,6 +294,37 @@
   color: var(--mp-color-status-success);
   flex-shrink: 0;
 }
+.completeRow:nth-child(2) svg {
+  color: var(--mp-color-text-accent);
+}
+.completeRow:nth-child(3) svg {
+  color: var(--mp-color-text-tertiary);
+}
+.completeSummary {
+  gap: 10px;
+  padding: 16px;
+}
+.completeSummary dl {
+  padding: 0;
+  border: none;
+}
+.completeLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.completeLinks button {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--mp-color-text-accent);
+  font: inherit;
+  font-size: var(--mp-type-caption-size);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .consentChoice {
   display: flex;
   align-items: flex-start;
@@ -221,11 +333,31 @@
 }
 /* 작고 둥근 선택 칩과 별점은 고객 설문 원본의 밀도를 따릅니다. */
 .fields > fieldset > div > label {
-  min-height: 32px;
+  min-height: 40px;
   padding: 6px 12px;
 }
-.starRating > div > label {
-  min-height: 40px;
+.fields > fieldset:has(> div > label > input[type='radio']):not(.strength) {
+  display: flex;
+  flex-direction: column;
+}
+.fields > fieldset:has(> div > label > input[type='radio']):not(.strength) > div:has(> label) {
+  order: 1;
+  margin-top: 4px;
+}
+.fields > fieldset:has(> div > label > input[type='radio']):not(.strength) > div[id] {
+  margin: 0 0 8px;
+}
+.fields > div:has(> label + input + div[id]),
+.fields > div:has(> label + textarea + div[id]) {
+  display: flex;
+  flex-direction: column;
+}
+.fields > div:has(> label + input + div[id]) input,
+.fields > div:has(> label + textarea + div[id]) textarea {
+  order: 1;
+}
+.fields .starRating > div > label {
+  min-height: 32px;
   padding: 0;
   border: 0;
   background: none;
@@ -237,4 +369,7 @@
 .starRating > div > label > span {
   display: grid;
   place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
 }

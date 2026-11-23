@@ -7,9 +7,12 @@ import { AppBar, AppBarBrand, Button, StepHeader } from '@manspick/design-system
 import { Icon } from '@manspick/design-system/icons';
 import styles from './customer-shell.module.css';
 
+export const kakaoChannelUrl = 'https://pf.kakao.com/_kNxoMn';
+
 export function CustomerShell({
   children,
   actions,
+  accountAction,
   onBack,
   backLabel = '뒤로가기',
   step,
@@ -18,6 +21,7 @@ export function CustomerShell({
 }: {
   children: ReactNode;
   actions?: ReactNode;
+  accountAction?: ReactNode;
   onBack?: () => void;
   backLabel?: string;
   step?: { title: string; current: number };
@@ -27,7 +31,7 @@ export function CustomerShell({
   return (
     <div className={styles.shell}>
       <AppBar
-        className={styles.appBar}
+        className={onBack ? styles.appBar : `${styles.appBar} ${styles.brandBar}`}
         onBack={onBack}
         backLabel={backLabel}
         brand={
@@ -47,14 +51,17 @@ export function CustomerShell({
         }
         actions={
           actions ?? (
-            <a
-              className={styles.helpLink}
-              href="https://pf.kakao.com/_kNxoMn"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon name="chat" size={16} /> 문의하기
-            </a>
+            <>
+              {accountAction}
+              <a
+                className={styles.helpLink}
+                href={kakaoChannelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name="chat" size={16} /> 문의하기
+              </a>
+            </>
           )
         }
       />
@@ -78,7 +85,7 @@ export function KakaoButton({
     <Button
       fullWidth
       variant="kakao"
-      leadingIcon={<Icon name="ri/kakao-talk-fill" size={18} />}
+      leadingIcon={<Icon name="chat" size={18} />}
       onClick={onClick}
     >
       {children}

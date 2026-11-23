@@ -1,6 +1,7 @@
 // 공용 디자인 시스템과 검색 비공개 메타데이터를 고객 앱에 적용합니다.
 import type { Metadata } from 'next';
 import '@manspick/design-system/styles.css';
+import styles from '../features/shell/customer-shell.module.css';
 
 export const metadata: Metadata = {
   title: '맨즈픽 · 나의 촬영',
@@ -12,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <body>
-        <a className="skip-link" href="#main">
+        <a className={`skip-link ${styles.skipLink}`} href="#main">
           본문으로 이동
         </a>
         {children}

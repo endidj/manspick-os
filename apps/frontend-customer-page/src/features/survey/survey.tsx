@@ -44,6 +44,15 @@ const purposes = [
   { value: '비즈니스', label: '비즈니스 프로필' },
 ];
 
+function pillLabel(label: string, checked: boolean) {
+  return (
+    <>
+      {checked && <Icon name="solar/check-circle-bold" size={14} />}
+      {label}
+    </>
+  );
+}
+
 export function Survey({
   shoot,
   busy,
@@ -66,7 +75,9 @@ export function Survey({
   const [savingPage, setSavingPage] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [consentOpen, setConsentOpen] = useState(false);
-  const [addons, setAddons] = useState<AddonDTO[]>([]);
+  const [addons, setAddons] = useState<Pick<AddonDTO, 'id' | 'name' | 'price' | 'quantityMode'>[]>(
+    [],
+  );
   const [addonsFailed, setAddonsFailed] = useState(false);
   const edited = useRef(false);
   const editVersion = useRef(0);
@@ -74,6 +85,12 @@ export function Survey({
   const saveRef = useRef(onAction);
   const pending = useRef<Promise<unknown>>(Promise.resolve());
   const value = (key: string) => String(answers[key] ?? '');
+  const interests = Array.isArray(answers.additionalAddonInterest)
+    ? answers.additionalAddonInterest
+    : undefined;
+  const outfitDeadline = shoot.outfitDueAt
+    ? `${shootDate(shoot.outfitDueAt)}까지`
+    : '촬영 이틀 전까지';
   const wardrobe = shoot.addons.some(
     (addon) => ['rental', 'outfit', 'shopping'].includes(addon.id) && addon.quantity > 0,
   );
@@ -92,9 +109,25 @@ export function Survey({
   }, [shoot.survey, savingPage]);
   useEffect(() => {
     let active = true;
-    api<{ addons: AddonDTO[] }>('/catalog')
+    api<{ addons: AddonDTO[]; retouchUnitPrice?: number; extraRetouchAvailable?: boolean }>(
+      '/catalog',
+    )
       .then((catalog) => {
-        if (active) setAddons(catalog.addons.filter((addon) => addon.id !== 'extra_retouch'));
+        if (!active) return;
+        const options = catalog.addons.filter((addon) => addon.id !== 'extra_retouch');
+        setAddons(
+          catalog.extraRetouchAvailable && catalog.retouchUnitPrice !== undefined
+            ? [
+                ...options,
+                {
+                  id: 'extra_retouch',
+                  name: '보정본 추가',
+                  price: catalog.retouchUnitPrice,
+                  quantityMode: 'photo',
+                },
+              ]
+            : options,
+        );
       })
       .catch(() => {
         if (active) setAddonsFailed(true);
@@ -194,7 +227,11 @@ export function Survey({
       </header>
       <div className={styles.pageProgress} aria-label={`설문 ${page}/4`}>
         {pageLabels.map((label, index) => (
-          <span key={label} data-active={index < page || undefined}>
+          <span
+            key={label}
+            data-active={index < page || undefined}
+            aria-current={index + 1 === page ? 'step' : undefined}
+          >
             <i />
             {label}
           </span>
@@ -256,19 +293,22 @@ export function Survey({
                       />
                     </a>
                   ))}
-                <UploadDropzone
-                  multiple={false}
-                  className={styles.uploadTile}
-                  label="추가"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={busy || closed || savingPage}
-                  onFilesSelected={(files) => {
-                    if (files[0]) void onUpload(files[0], 'survey');
-                  }}
-                />
+                <div className={styles.addPhoto}>
+                  <Icon name="solar/camera-bold" size={20} />
+                  <UploadDropzone
+                    multiple={false}
+                    className={styles.uploadTile}
+                    label="추가"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={busy || closed || savingPage}
+                    onFilesSelected={(files) => {
+                      if (files[0]) void onUpload(files[0], 'survey');
+                    }}
+                  />
+                </div>
               </div>
             </section>
-            <Notice>
+            <Notice className={styles.notice}>
               <strong>사진은 왜 필요한가요?</strong>
               <p>
                 얼굴형 · 분위기에 맞는 코디와 촬영 장소를 고르는 데 써요. 촬영 외 용도로 쓰지
@@ -285,13 +325,13 @@ export function Survey({
               value={value('style')}
               onValueChange={(next) => put('style', next)}
               options={[
-                { value: '캐주얼', label: '캐주얼' },
-                { value: '댄디', label: '댄디' },
-                { value: '기타', label: '그 외' },
+                { value: '캐주얼', label: pillLabel('캐주얼', value('style') === '캐주얼') },
+                { value: '댄디', label: pillLabel('댄디', value('style') === '댄디') },
+                { value: '기타', label: pillLabel('그 외', value('style') === '기타') },
               ]}
             />
             {wardrobe && (
-              <Notice>
+              <Notice className={styles.notice}>
                 <strong>의류 대여 · 1코디 제작 · 동행쇼핑을 신청하셨네요</strong>
                 <p>아래 체형 · 사이즈 정보가 꼭 필요해요. 신청하지 않으셨다면 선택 항목이에요.</p>
               </Notice>
@@ -333,10 +373,13 @@ export function Survey({
                 { value: '1500000', label: '50~150만' },
                 { value: '3000000', label: '150~300만' },
                 { value: '5000000', label: '300만 이상' },
-              ]}
+              ].map((option) => ({
+                ...option,
+                label: pillLabel(option.label, option.value === value('budget')),
+              }))}
             />
-            <Notice tone="warning">
-              <strong>의상 사진은 촬영 이틀 전까지 ‘촬영 준비’에서 올려주세요</strong>
+            <Notice tone="warning" className={styles.notice}>
+              <strong>의상 사진은 {outfitDeadline} ‘촬영 준비’에서 올려주세요</strong>
               <p>입으실 옷 · 신발 사진을 보면 부족한 부분은 피드백과 대체 코디를 제안드려요.</p>
             </Notice>
           </>
@@ -361,6 +404,11 @@ export function Survey({
                     key={purpose.value}
                     type="checkbox"
                     title={purpose.label}
+                    leadingIcon={
+                      ((answers.purposes as string[]) ?? []).includes(purpose.value) ? (
+                        <Icon name="solar/check-circle-bold" size={14} />
+                      ) : undefined
+                    }
                     checked={((answers.purposes as string[]) ?? []).includes(purpose.value)}
                     onCheckedChange={(checked) =>
                       put(
@@ -426,10 +474,10 @@ export function Survey({
         {page === 4 && (
           <>
             <fieldset className={layout.fieldSet}>
-              <legend className={styles.fieldTitle}>추가로 신청하고 싶은 옵션이 있나요?</legend>
-              <p className={layout.small}>
-                상담 희망을 설문에 저장해요. 신청 확정과 결제는 담당자가 안내해요.
-              </p>
+              <legend className={styles.fieldTitle}>
+                추가로 신청하고 싶은 옵션이 있나요? <span className={styles.optional}>선택</span>
+              </legend>
+              <p className={layout.small}>선택하시면 담당자가 결제 안내를 따로 드려요.</p>
               {addonsFailed && (
                 <Notice>
                   옵션 목록을 불러오지 못했어요. 설문은 계속 제출할 수 있고, 추가 옵션은 담당자에게
@@ -442,22 +490,35 @@ export function Survey({
                     className={styles.purposeChoice}
                     key={addon.id}
                     type="checkbox"
-                    title={addon.name}
-                    checked={((answers.additionalAddonInterest as string[]) ?? []).includes(
-                      addon.id,
-                    )}
+                    title={`${addon.name} +${addon.price.toLocaleString('ko-KR')}${addon.quantityMode === 'outfit' ? '/벌' : addon.quantityMode === 'photo' ? '/장' : ''}`}
+                    checked={interests?.includes(addon.id) ?? false}
+                    leadingIcon={
+                      interests?.includes(addon.id) ? (
+                        <Icon name="solar/check-circle-bold" size={14} />
+                      ) : undefined
+                    }
                     onCheckedChange={(checked) =>
                       put(
                         'additionalAddonInterest',
                         checked
-                          ? [...((answers.additionalAddonInterest as string[]) ?? []), addon.id]
-                          : ((answers.additionalAddonInterest as string[]) ?? []).filter(
-                              (item) => item !== addon.id,
-                            ),
+                          ? [...(interests ?? []), addon.id]
+                          : (interests?.filter((item) => item !== addon.id) ?? []),
                       )
                     }
                   />
                 ))}
+                <ChoiceCard
+                  type="checkbox"
+                  className={styles.purposeChoice}
+                  title="없어요"
+                  checked={interests?.length === 0}
+                  leadingIcon={
+                    interests?.length === 0 ? (
+                      <Icon name="solar/check-circle-bold" size={14} />
+                    ) : undefined
+                  }
+                  onCheckedChange={(checked) => put('additionalAddonInterest', checked ? [] : null)}
+                />
                 <button type="button" className={styles.inquiryChip} onClick={onHelp}>
                   그 외 옵션 문의
                 </button>
@@ -469,7 +530,7 @@ export function Survey({
               value={value('referral')}
               onValueChange={(next) => put('referral', next)}
               options={['인스타그램', '네이버 검색', '크몽 · 숨고 · 프립', '지인 소개', '기타'].map(
-                (label) => ({ value: label, label }),
+                (label) => ({ value: label, label: pillLabel(label, value('referral') === label) }),
               )}
             />
             <RadioPills
@@ -483,8 +544,14 @@ export function Survey({
               }
               onValueChange={(next) => put('reviewParticipation', next === 'true')}
               options={[
-                { value: 'true', label: '혜택 받을게요' },
-                { value: 'false', label: '괜찮아요' },
+                {
+                  value: 'true',
+                  label: pillLabel('혜택 받을게요', answers.reviewParticipation === true),
+                },
+                {
+                  value: 'false',
+                  label: pillLabel('괜찮아요', answers.reviewParticipation === false),
+                },
               ]}
             />
             <section className={layout.stack}>
@@ -512,11 +579,12 @@ export function Survey({
             </section>
             <section className={`${layout.card} ${styles.safety}`}>
               <h2 className={styles.fieldTitle}>
-                <Icon name="shield" size={18} /> 촬영 전 주의사항 (필수)
+                <Icon name="shield" size={18} /> 촬영 전 주의사항 (필독)
               </h2>
               <p>· 촬영 전날은 음주 · 과식 · 무리한 운동을 피하고 충분히 주무세요.</p>
               <p>· 촬영 장소는 코디와 설문을 보고 정해지면 바로 안내드려요.</p>
-              <p>· 의상 · 신발 사진은 촬영 이틀 전까지 ‘촬영 준비’ 화면에서 올려주세요.</p>
+              <p>· 의상 · 신발 사진은 {outfitDeadline} ‘촬영 준비’ 화면에서 올려주세요.</p>
+              <p>· 상담은 오전 11시~오후 8시, 촬영 중에는 답변이 늦을 수 있어요.</p>
               <label className={styles.consentCard}>
                 <input
                   type="checkbox"
@@ -550,22 +618,24 @@ export function Survey({
             </Button>
           </div>
         )}
-        <p className={styles.saveStatus} role="status">
-          <Icon name="solar/check-circle-bold" size={12} />
-          {closed
-            ? '제출한 답변을 확인하는 화면이에요'
-            : saveState === 'saving'
-              ? '저장 중이에요'
-              : saveState === 'error'
-                ? '저장하지 못했어요. 다시 시도해주세요.'
-                : saveState === 'saved'
-                  ? '저장했어요'
-                  : '자동 저장돼요'}{' '}
-          ·{' '}
-          {shoot.survey?.dueAt
-            ? `${shootDate(shoot.survey.dueAt)}까지 제출`
-            : '촬영 3일 전까지 제출'}
-        </p>
+        {(page < 4 || (saveState !== 'idle' && saveState !== 'saved')) && (
+          <p className={styles.saveStatus} role="status">
+            <Icon name="solar/check-circle-bold" size={12} />
+            {closed
+              ? '제출한 답변을 확인하는 화면이에요'
+              : saveState === 'saving'
+                ? '저장 중이에요'
+                : saveState === 'error'
+                  ? '저장하지 못했어요. 다시 시도해주세요.'
+                  : saveState === 'saved'
+                    ? '저장했어요'
+                    : '자동 저장돼요'}{' '}
+            ·{' '}
+            {shoot.survey?.dueAt
+              ? `${shootDate(shoot.survey.dueAt)}까지 제출`
+              : '촬영 3일 전까지 제출'}
+          </p>
+        )}
       </SceneFooter>
       <Dialog open={consentOpen} onOpenChange={setConsentOpen} title="선택 포트폴리오 동의">
         <p>
@@ -608,7 +678,7 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
           장소 · 코디가 정해지면 바로 안내
         </p>
       </section>
-      <section className={layout.card}>
+      <section className={`${layout.card} ${styles.completeSummary}`}>
         <p className={layout.small}>제출한 내용</p>
         <InfoRow label="촬영 계기" value={String(answer.motivation ?? '')} />
         <InfoRow
@@ -621,7 +691,10 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
         />
         <InfoRow
           label="스타일"
-          value={[answer.style, answer.topSize, answer.bottomSize, answer.shoeSize]
+          value={[
+            answer.style,
+            [answer.topSize, answer.bottomSize, answer.shoeSize].filter(Boolean).join(' / '),
+          ]
             .filter(Boolean)
             .join(' · ')}
         />
@@ -632,16 +705,12 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
               ? `${shootDate(shoot.survey.dueAt)}까지 다시 열어 고칠 수 있어요`
               : '편집 기한은 담당자에게 확인해주세요'}
         </p>
-        {editable && (
-          <button className={layout.textLink} onClick={() => onNavigate('survey')}>
-            제출한 내용 수정하기
-          </button>
-        )}
+        <div className={styles.completeLinks}>
+          {editable && <button onClick={() => onNavigate('survey')}>제출한 내용 수정하기</button>}
+          <button onClick={() => onNavigate('home')}>나의 촬영 홈으로</button>
+        </div>
       </section>
       <SceneFooter>
-        <Button fullWidth onClick={() => onNavigate('home')}>
-          나의 촬영 홈으로
-        </Button>
         <Button variant="secondary" fullWidth onClick={() => onNavigate('preparation')}>
           촬영 준비 안내 보기
         </Button>

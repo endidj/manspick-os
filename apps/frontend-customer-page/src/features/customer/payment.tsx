@@ -4,10 +4,10 @@
 import { useEffect, useState } from 'react';
 import { Button, Notice } from '@manspick/design-system/components';
 import { InfoRow, SummaryCard, TextField } from '@manspick/design-system/patterns';
-import { money } from '@manspick/web/format';
+import { dateTime, money } from '@manspick/web/format';
 import type { ShootDetail } from '@manspick/contracts';
 import { SceneFooter } from '../shell';
-import { packageSummary, shootDate } from './presentation';
+import { packageSummary, prepaidPlatform, shootDate } from './presentation';
 import type { CustomerScene } from './journey';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
@@ -56,6 +56,9 @@ export function PaymentView({
     (r) => r.type === 'deposit' && ['new', 'processing'].includes(r.state),
   );
   const instructions = shoot.paymentInstructions;
+  const platform = prepaidPlatform(
+    shoot.payments.find((payment) => payment.kind === 'base')?.channel,
+  );
 
   async function copy(value: string) {
     try {
@@ -89,11 +92,11 @@ export function PaymentView({
           <h1>예약이 확정됐어요</h1>
           <p>
             {needsSurvey
-              ? '입금 확인이 끝났어요. 이제 설문을 작성하고 촬영을 준비해주세요.'
-              : '입금 확인이 끝났어요. 나의 촬영 홈에서 다음 진행상태를 확인해주세요.'}
+              ? '결제 확인이 끝났어요. 이제 설문을 작성하고 촬영을 준비해주세요.'
+              : '결제 확인이 끝났어요. 나의 촬영 홈에서 다음 진행상태를 확인해주세요.'}
           </p>
         </header>
-        <Notice tone="success">입금 확인 완료 · 예약한 일정이 확정됐어요.</Notice>
+        <Notice tone="success">결제 확인 완료 · 예약한 일정이 확정됐어요.</Notice>
         <SummaryCard
           label="예약한 촬영"
           value={
@@ -127,27 +130,44 @@ export function PaymentView({
     <>
       <header className={layout.stack}>
         <p className={layout.overline}>STEP 2 · 결제</p>
-        <h1>{requested ? '입금 확인을 기다리고 있어요' : '입금하면 예약이 확정돼요'}</h1>
+        <h1>
+          {platform
+            ? '결제 확인을 기다리고 있어요'
+            : requested
+              ? '입금 확인을 기다리고 있어요'
+              : '입금하면 예약이 확정돼요'}
+        </h1>
         <p>
-          {requested
-            ? '직원이 입금자명과 금액을 확인하고 있어요. 확인이 끝나면 설문을 작성할 수 있어요.'
-            : '아래 입금 확인 기한 안에 입금해주세요. 입금이 확인되면 확정 안내를 보내드려요.'}
+          {platform ? (
+            `${platform}에서 결제하신 내역을 직원이 확인하면 예약이 확정돼요.`
+          ) : requested ? (
+            '직원이 입금자명과 금액을 확인하고 있어요. 확인이 끝나면 설문을 작성할 수 있어요.'
+          ) : (
+            <>
+              {instructions
+                ? '아래 계좌로 기한 안에 입금해주세요.'
+                : '입금 계좌는 카카오채널로 문의해주세요.'}
+              <br />
+              직원이 입금을 확인하면 예약이 확정돼요.
+            </>
+          )}
         </p>
       </header>
       {shoot.holdExpiresAt && (
-        <Notice tone="warning">
+        <Notice tone="warning" role="note">
           <strong>
-            <HoldCountdown until={shoot.holdExpiresAt} /> · {shootDate(shoot.holdExpiresAt, true)}
+            <HoldCountdown until={shoot.holdExpiresAt} /> · {dateTime(shoot.holdExpiresAt)}
             까지
           </strong>
           <p>기한이 지나면 잡아둔 일정이 해제될 수 있어요.</p>
         </Notice>
       )}
       <SummaryCard
+        className={styles.paymentCard}
         label="예약한 촬영"
         value={
           <>
-            {shootDate(shoot.startsAt, true)}
+            {dateTime(shoot.startsAt)}
             <br />
             {packageSummary(shoot)}
           </>
@@ -158,8 +178,11 @@ export function PaymentView({
           </button>
         }
       />
-      {instructions ? (
+      {platform ? (
+        <SummaryCard className={styles.paymentCard} label="결제 경로" value={platform} />
+      ) : instructions ? (
         <SummaryCard
+          className={styles.paymentCard}
           label="입금 계좌"
           value={
             <>
@@ -178,12 +201,11 @@ export function PaymentView({
           }
         />
       ) : (
-        <Notice>
-          입금 계좌는 상담 채널에서 확인해주세요. 등록된 계좌가 없어 임의 계좌를 표시하지 않습니다.
-        </Notice>
+        <Notice>입금 계좌는 맨즈픽 카카오채널에서 확인해주세요.</Notice>
       )}
       <SummaryCard
-        label="입금할 금액"
+        className={styles.paymentCard}
+        label={platform ? '촬영 금액' : '입금할 금액'}
         value={money(shoot.totalAmount)}
         action={
           <button className={styles.textAction} onClick={() => copy(String(shoot.totalAmount))}>
@@ -196,38 +218,41 @@ export function PaymentView({
           {copyMessage}
         </p>
       )}
-      <TextField
-        label="입금자명"
-        value={depositor}
-        onValueChange={setDepositor}
-        maxLength={40}
-        hint="예약자 이름과 다르게 입금하시면 꼭 적어주세요."
-      />
-      {requested && (
+      {!platform && (
+        <TextField
+          label="입금자명"
+          value={depositor}
+          onValueChange={setDepositor}
+          maxLength={40}
+          hint="예약자 이름과 다르게 입금하시면 꼭 적어주세요."
+        />
+      )}
+      {!platform && requested && (
         <Notice tone="success">입금 확인을 요청했어요. 직원이 확인하면 예약이 확정돼요.</Notice>
       )}
       <SceneFooter>
-        <Button
-          fullWidth
-          loading={busy}
-          disabled={busy || !depositor.trim() || requested || shoot.paymentState !== 'pending'}
-          onClick={() => onAction({ type: 'request_deposit', depositor: depositor.trim() })}
-        >
-          {requested ? '입금 확인 요청 완료' : '입금했어요'}
-        </Button>
-        <Button
-          variant="secondary"
-          fullWidth
-          loading={refreshing}
-          disabled={busy}
-          onClick={() => void onRefresh()}
-        >
-          입금 확인 상태 새로고침
-        </Button>
-        <Button variant="ghost" fullWidth onClick={() => onNavigate('home')}>
-          나의 촬영 홈으로
-        </Button>
-        <p>입금자명과 금액을 직원이 확인하면 바로 확정돼요.</p>
+        {!platform && (
+          <Button
+            fullWidth
+            loading={busy}
+            disabled={busy || !depositor.trim() || requested || shoot.paymentState !== 'pending'}
+            onClick={() => onAction({ type: 'request_deposit', depositor: depositor.trim() })}
+          >
+            {requested ? '입금 확인 요청 완료' : '입금했어요'}
+          </Button>
+        )}
+        {(requested || platform) && (
+          <Button
+            variant={platform ? 'primary' : 'secondary'}
+            fullWidth
+            loading={refreshing}
+            disabled={busy}
+            onClick={() => void onRefresh()}
+          >
+            {platform ? '결제 확인 상태 새로고침' : '입금 확인 상태 새로고침'}
+          </Button>
+        )}
+        {!platform && <p>입금자명과 금액을 직원이 확인하면 바로 확정돼요.</p>}
       </SceneFooter>
     </>
   );

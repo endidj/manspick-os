@@ -3,11 +3,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Loading, Notice } from '@manspick/design-system/components';
-import { Dialog, TextField } from '@manspick/design-system/patterns';
+import { TextField } from '@manspick/design-system/patterns';
+import { Icon } from '@manspick/design-system/icons';
 import { api, action } from '@manspick/web/client';
 import type { SessionDTO, ShootDetail } from '@manspick/contracts';
 import { Survey, SurveyComplete } from '../survey';
-import { CustomerShell, KakaoButton } from '../shell';
+import { CustomerShell, KakaoButton, kakaoChannelUrl } from '../shell';
 import { CustomerHome } from './customer-home';
 import { PhotoWorkspace } from './photo-workspace';
 import { ReviewView } from './customer-scenes';
@@ -44,6 +45,7 @@ export function CustomerApp({ token }: { token: string }) {
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [outfitsOpen, setOutfitsOpen] = useState(false);
   const dataVersion = useRef(0);
   const mutations = useRef(0);
   const root = customerPath(token, 'home');
@@ -51,7 +53,6 @@ export function CustomerApp({ token }: { token: string }) {
   const route = customerRoute(pathname.slice(root.length).split('/').filter(Boolean));
   const scene = route?.scene ?? 'home';
   const surveyPage = route?.surveyPage ?? 1;
-  const [helpOpen, setHelpOpen] = useState(false);
   const refresh = useCallback(async (id: string) => {
     const version = ++dataVersion.current;
     const latest = await api<ShootDetail>(`/shoots/${id}`);
@@ -197,7 +198,6 @@ export function CustomerApp({ token }: { token: string }) {
       setShoot(undefined);
       setLast4('');
       navigatePath(root, true);
-      setHelpOpen(false);
     } catch (failure) {
       setError((failure as Error).message);
     } finally {
@@ -206,6 +206,7 @@ export function CustomerApp({ token }: { token: string }) {
   }
 
   function navigate(next: CustomerScene) {
+    setOutfitsOpen(false);
     const resumePage = shoot?.survey?.submittedAt
       ? 1
       : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
@@ -215,7 +216,12 @@ export function CustomerApp({ token }: { token: string }) {
     window.scrollTo({ top: 0 });
   }
 
-  const onHelp = () => setHelpOpen(true);
+  function openOutfits() {
+    navigate('preparation');
+    setOutfitsOpen(true);
+  }
+
+  const onHelp = () => window.open(kakaoChannelUrl, '_blank', 'noopener,noreferrer');
   // 촬영을 불러온 분기에서만 아래 화면 props를 사용합니다.
   const viewProps = {
     shoot: shoot!,
@@ -228,8 +234,27 @@ export function CustomerApp({ token }: { token: string }) {
 
   return (
     <CustomerShell
-      onBack={() => back(scene === 'home' ? '/' : customerParent(token, scene, surveyPage))}
+      onBack={
+        verified && scene === 'home'
+          ? undefined
+          : () => back(scene === 'home' ? '/' : customerParent(token, scene, surveyPage))
+      }
       onHome={verified ? () => navigate('home') : undefined}
+      accountAction={
+        verified &&
+        scene === 'home' && (
+          <button
+            type="button"
+            className={layout.accountAction}
+            aria-label="안전하게 로그아웃"
+            title="안전하게 로그아웃"
+            disabled={busy}
+            onClick={logout}
+          >
+            <Icon name="logout" size={16} />
+          </button>
+        )
+      }
       step={verified ? sceneSteps[scene] : undefined}
       footer={verified && scene === 'home' ? <KakaoButton onClick={onHelp} /> : undefined}
     >
@@ -268,7 +293,12 @@ export function CustomerApp({ token }: { token: string }) {
             {announcement}
           </span>
           {scene === 'home' && (
-            <CustomerHome shoot={viewProps.shoot} onNavigate={navigate} onHelp={onHelp} />
+            <CustomerHome
+              shoot={viewProps.shoot}
+              onNavigate={navigate}
+              onHelp={onHelp}
+              onOpenOutfits={openOutfits}
+            />
           )}
           {scene === 'payment' && (
             <PaymentView {...viewProps} refreshing={refreshing} onRefresh={checkStatus} />
@@ -282,8 +312,14 @@ export function CustomerApp({ token }: { token: string }) {
           {scene === 'survey-complete' && shoot?.survey?.submittedAt && (
             <SurveyComplete {...viewProps} />
           )}
-          {scene === 'preparation' && <PreparationView {...viewProps} />}
-          {scene === 'plan' && <PlanView {...viewProps} />}
+          {scene === 'preparation' && (
+            <PreparationView
+              {...viewProps}
+              outfitsOpen={outfitsOpen}
+              onOutfitsOpenChange={setOutfitsOpen}
+            />
+          )}
+          {scene === 'plan' && <PlanView {...viewProps} onOpenOutfits={openOutfits} />}
           {scene === 'shoot-day' && <ShootDayView {...viewProps} />}
           {(scene === 'selection' ||
             scene === 'results' ||
@@ -294,27 +330,6 @@ export function CustomerApp({ token }: { token: string }) {
           {scene === 'review' && <ReviewView {...viewProps} />}
         </>
       )}
-      <Dialog
-        open={helpOpen}
-        onOpenChange={setHelpOpen}
-        title="촬영 준비를 도와드릴게요"
-        actions={
-          <>
-            <Button fullWidth onClick={() => setHelpOpen(false)}>
-              확인
-            </Button>
-            {verified && (
-              <Button variant="ghost" fullWidth disabled={busy} onClick={logout}>
-                안전하게 로그아웃
-              </Button>
-            )}
-          </>
-        }
-      >
-        <p>
-          예약 상담을 진행한 카카오채널로 문의해주세요. 공식 상담 주소는 아직 등록되지 않았어요.
-        </p>
-      </Dialog>
     </CustomerShell>
   );
 }
