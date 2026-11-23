@@ -8,7 +8,7 @@ export type ChoiceCardProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'type' | 'title' | 'checked' | 'defaultChecked' | 'onChange' | 'children'
 > & {
-  title: string;
+  title: ReactNode;
   description?: ReactNode;
   leadingIcon?: ReactNode;
   type?: 'radio' | 'checkbox';

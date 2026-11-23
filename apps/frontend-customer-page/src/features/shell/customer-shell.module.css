@@ -8,6 +8,9 @@
   margin: 0 auto;
   background: var(--mp-color-bg-base);
 }
+.shell :where(input[type='checkbox'], input[type='radio']) {
+  padding: 0;
+}
 .shell .appBar {
   padding-inline-end: var(--mp-space-24);
   border-bottom: 1px solid var(--mp-color-border-subtle);
@@ -78,40 +81,37 @@
 .footerActions > :last-child {
   flex: 1;
 }
-.main h1 {
+/* 화면별 카드와 안내문의 글자 스타일이 빌드 시 CSS 청크 순서에 좌우되지 않게 합니다. */
+:where(.main) h1 {
   font-size: var(--mp-type-h1-size);
   line-height: var(--mp-type-h1-line-height);
   letter-spacing: -0.035em;
-}
-.main h1 {
   font-weight: var(--mp-type-h1-weight);
-}
-.main p {
-  color: var(--mp-color-text-secondary);
 }
 .main a {
   text-underline-offset: 3px;
 }
-.card h2 {
-  font-size: var(--mp-type-body-l-size);
-}
-.card h3 {
-  font-size: var(--mp-type-label-m-size);
-}
-.main h2 {
+:where(.main) h2 {
   font-size: var(--mp-type-h2-size);
   line-height: var(--mp-type-h2-line-height);
   letter-spacing: -0.025em;
 }
-.main h3 {
+:where(.main) h3 {
   font-size: var(--mp-type-h3-size);
   line-height: var(--mp-type-h3-line-height);
 }
-.main p {
+:where(.main) p {
+  color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-body-m-size);
   line-height: var(--mp-type-body-m-line-height);
 }
-.stack {
+:where(.card) h2 {
+  font-size: var(--mp-type-body-l-size);
+}
+:where(.card) h3 {
+  font-size: var(--mp-type-label-m-size);
+}
+:where(.stack) {
   display: grid;
   gap: 16px;
   min-width: 0;
@@ -122,7 +122,7 @@
 .stepHeader + .main header.stack {
   gap: var(--mp-space-4);
 }
-.card {
+:where(.card) {
   padding: 20px;
   display: grid;
   gap: 16px;
@@ -227,7 +227,7 @@
     margin-inline: -16px;
     margin-bottom: -20px;
   }
-  .card {
+  :where(.card) {
     padding: 16px;
   }
 }

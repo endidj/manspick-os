@@ -15,6 +15,7 @@
     "./icons": "./src/icons/index.ts",
     "./tokens": "./src/tokens/index.ts",
     "./assets": "./src/assets/index.ts",
+    "./assets/icons/solar/check-read-bold.svg": "./src/assets/icons/solar/check-read-bold.svg",
     "./styles": "./src/styles/base.css",
     "./styles.css": "./src/styles/base.css",
     "./styles/tokens.css": "./src/styles/tokens.css",

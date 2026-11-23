@@ -129,7 +129,8 @@
   border: 0;
 }
 .sectionTitle {
-  font-size: var(--mp-type-body-l-size) !important;
+  font-size: var(--mp-type-body-l-size);
+  line-height: var(--mp-type-body-m-line-height);
 }
 .cyan {
   color: var(--mp-color-text-accent);
@@ -145,15 +146,14 @@
 }
 .dayCard h1 {
   font-size: var(--mp-type-h2-size);
-}
-.dayCard h2 {
-  font-size: var(--mp-type-body-l-size);
+  line-height: var(--mp-type-h2-line-height);
 }
 .dayCard p {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 1.5;
 }
 .dayCard p svg {
   color: var(--mp-color-text-accent);
@@ -164,20 +164,22 @@
   font-size: var(--mp-type-display-l-size);
   font-weight: var(--mp-type-display-l-weight);
   font-family: var(--mp-type-display-l-family);
+  line-height: var(--mp-type-display-l-line-height);
 }
 .greenPill,
 .redPill {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: var(--mp-radius-full);
   background: var(--mp-color-bg-elevated);
   color: var(--mp-color-status-success);
   font-size: var(--mp-type-overline-size);
+  line-height: var(--mp-type-caption-line-height);
 }
 .redPill {
   color: var(--mp-color-status-danger);
 }
 .progressTrack {
-  height: 5px;
+  height: 4px;
   border-radius: var(--mp-radius-full);
   background: var(--mp-color-bg-elevated);
   overflow: hidden;
@@ -187,20 +189,39 @@
   height: 100%;
   background: var(--mp-color-action-primary);
 }
+.guideSection {
+  display: grid;
+  gap: var(--mp-space-12);
+  margin-top: var(--mp-space-4);
+}
 .guideList {
   display: grid;
   gap: var(--mp-space-8);
+  margin-top: var(--mp-space-12);
 }
-.guideItem {
-  padding: 16px;
+.guideList .guideItem {
+  padding: var(--mp-space-12) var(--mp-space-16);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
+}
+.preparationWarning:global(.notice-warning) {
+  padding: var(--mp-space-16);
+  border-radius: var(--mp-radius-16);
+}
+.preparationWarning strong {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-body-m-strong-size);
+  line-height: var(--mp-type-body-m-strong-line-height);
+}
+.preparationWarning strong span {
+  margin-right: var(--mp-space-4);
+  color: var(--mp-color-status-warning);
 }
 .warningTags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-block: 10px;
+  margin-block: var(--mp-space-12);
 }
 .warningTags span {
   padding: 4px 8px;
@@ -213,19 +234,42 @@
   display: grid;
   justify-items: center;
   gap: 16px;
-  padding: 24px 0 8px;
+  padding: var(--mp-space-16) 0 var(--mp-space-4);
   text-align: center;
 }
 .completionHeader h1 {
-  font-size: var(--mp-type-h2-size);
+  font-size: var(--mp-type-h1-size);
+  line-height: var(--mp-type-h1-line-height);
 }
 .dayCard .shootDayHeading {
-  font-size: var(--mp-type-body-l-size);
+  font-size: var(--mp-type-h3-size);
   line-height: var(--mp-type-h3-line-height);
+  font-weight: var(--mp-type-body-m-strong-weight);
+  letter-spacing: normal;
 }
-.planFacts {
+.planDetails,
+.planFacts,
+.locationCard {
   gap: var(--mp-space-12);
+}
+.planDetails {
+  padding: 18px var(--mp-space-20);
+}
+.planDetails p {
+  color: var(--mp-color-text-primary);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.planDetails p:first-child svg {
+  color: var(--mp-color-status-success);
+}
+.planFacts,
+.locationCard {
   padding: var(--mp-space-16);
+}
+.planFacts p,
+.locationCard p {
+  line-height: var(--mp-type-caption-line-height);
 }
 .planFacts dl {
   padding: 0;
@@ -245,7 +289,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: var(--mp-type-label-s-size) !important;
+  font-size: var(--mp-type-label-s-size);
 }
 .iconText svg {
   flex-shrink: 0;
@@ -294,6 +338,8 @@
 .dayTimeline p {
   margin-top: var(--mp-space-4);
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
+  color: var(--mp-color-text-tertiary);
 }
 .dayDot {
   position: absolute;
@@ -305,7 +351,7 @@
   place-items: center;
   border: 1px solid var(--mp-color-border-strong);
   border-radius: 50%;
-  background: var(--mp-color-bg-base);
+  background: var(--mp-color-bg-elevated);
 }
 .dayTimeline li[data-completed]:not(:last-child) {
   border-left-color: var(--mp-color-status-success);
@@ -331,24 +377,30 @@
   display: grid;
   place-items: center;
   gap: 12px;
-  min-height: 128px;
+  min-height: 120px;
   padding: 20px;
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-elevated);
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
 }
-.secondaryLink {
+.locationActions {
+  gap: var(--mp-space-8);
+}
+.locationActions .secondaryLink,
+.locationActions button[data-size='sm'] {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 12px;
-  border: 1px solid var(--mp-color-border-strong);
+  min-height: 38px;
+  padding: var(--mp-space-8);
+  border: 0;
   border-radius: var(--mp-radius-12);
-  color: var(--mp-color-text-primary);
-  font-size: var(--mp-type-label-s-size);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
   text-decoration: none;
 }
 .selectionBadges {
@@ -360,6 +412,12 @@
 .benefitCard :global(.badge) {
   border-radius: var(--mp-radius-full);
   padding: 6px 10px;
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-caption-line-height);
+}
+.benefitCard :global(.badge) {
+  padding-block: var(--mp-space-4);
 }
 .photoFilters {
   display: flex;
@@ -370,7 +428,8 @@
   background: var(--mp-color-bg-elevated);
 }
 .photoFilter {
-  flex: 1 0 auto;
+  flex: 1 0 0;
+  min-width: max-content;
   padding: 8px;
   border: none;
   border-radius: var(--mp-radius-8);
@@ -389,6 +448,23 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
+}
+.candidateGallery {
+  container-type: inline-size;
+}
+.selectionGrid[data-scrollable] {
+  /* 세 열의 4:5 사진을 네 줄까지 표시하고 나머지는 같은 영역에서 스크롤합니다. */
+  max-height: calc((100cqw - 8px) * 5 / 3 + 12px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  align-content: start;
+}
+.candidateGallery .candidateHint {
+  margin-top: var(--mp-space-20);
+  text-align: center;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
 }
 .resultGrid {
   gap: 6px;
@@ -436,11 +512,11 @@
   display: grid;
   gap: 10px;
 }
-.deliveryNotice {
+.deliveryNotice:global(.notice) {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  padding: var(--mp-space-16);
   border: 0;
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-elevated);

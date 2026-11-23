@@ -7,7 +7,7 @@
   clip-path: inset(50%);
   overflow: hidden;
 }
-.notice {
+div.notice {
   display: grid;
   gap: 4px;
   padding: 12px 14px;
@@ -17,11 +17,11 @@
   font-size: inherit;
   line-height: 1.6;
 }
-.sectionTitle {
+h2.sectionTitle {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--mp-type-body-l-size) !important;
+  font-size: var(--mp-type-body-l-size);
 }
 .sectionTitle span {
   margin-left: 6px;
@@ -34,74 +34,121 @@
   display: grid;
   gap: 12px;
 }
-.packageWrap {
-  position: relative;
+.addonList {
+  gap: 8px;
 }
-.packageChoice {
+.packageList label.packageChoice {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'radio name price'
+    'radio meta price'
+    '. details details'
+    'recommend recommend recommend';
+  align-items: start;
+  column-gap: 10px;
+  row-gap: 2px;
   padding: 18px;
-  align-items: flex-start;
-  gap: 10px;
   border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-glass);
+  overflow-wrap: anywhere;
 }
-.packageChoice input {
-  margin-top: 6px;
-  flex-shrink: 0;
+.packageList .packageChoice[data-checked] {
+  box-shadow: inset 0 0 0 1px var(--mp-color-action-primary);
+  background: var(--mp-color-bg-accent-tint);
 }
-.packageChoice input[type='radio'] {
+.packageChoice > span,
+.packageChoice > span > span[id],
+.addonChoice > span,
+.addonChoice > span > span[id] {
+  display: contents;
+}
+.packageList .packageChoice input[type='radio'] {
+  grid-area: radio;
+  align-self: center;
   appearance: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
   border: 1px solid var(--mp-color-border-strong);
-  border-radius: var(--mp-radius-full);
+  border-radius: 50%;
   background: transparent;
 }
-.packageChoice input[type='radio']:checked {
+.packageList .packageChoice input:checked {
   border: 6px solid var(--mp-color-action-primary);
 }
 @media (forced-colors: active) {
-  .packageChoice input[type='radio'] {
+  .packageList .packageChoice input[type='radio'] {
     appearance: auto;
   }
 }
-.packageChoice > span {
-  width: 100%;
-}
 .packageChoice > span > span:first-child {
+  grid-area: name;
   font-size: var(--mp-type-body-l-size);
 }
-.packageDescription {
-  display: grid;
-  gap: 10px;
+.packageChoice .best {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-start: 6px;
+  padding: 2px 8px;
+  border-radius: var(--mp-radius-full);
+  background: var(--mp-color-action-primary);
+  color: var(--mp-color-text-on-accent);
+  font-size: var(--mp-type-overline-size);
+  font-weight: var(--mp-type-overline-weight);
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
-.packagePrice {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--mp-color-text-secondary);
+.packageMeta {
+  grid-area: meta;
+  color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
 }
-.packagePrice strong {
+.priceStack {
+  display: grid;
+  grid-area: price;
+  justify-items: end;
+  align-self: center;
+  white-space: nowrap;
+  font-size: var(--mp-type-caption-size);
+  color: var(--mp-color-text-tertiary);
+}
+.priceStack strong {
   color: var(--mp-color-text-primary);
   font-size: var(--mp-type-label-m-size);
   font-weight: var(--mp-type-label-m-weight);
 }
 .packageDetails {
   display: grid;
+  grid-area: details;
   gap: 4px;
+  margin-top: 6px;
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-caption-line-height);
 }
-.best {
-  position: absolute;
-  z-index: 1;
-  top: -7px;
-  right: 16px;
-  padding: 3px 9px;
-  border-radius: var(--mp-radius-full);
-  background: var(--mp-color-action-primary);
-  color: var(--mp-color-text-on-accent);
-  font-size: var(--mp-type-overline-size);
-  font-weight: var(--mp-type-overline-weight);
-  pointer-events: none;
+.packageDetails span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.packageDetails svg {
+  flex-shrink: 0;
+}
+.packageChoice[data-checked] .packageDetails svg,
+.packageChoice[data-checked] .priceStack strong {
+  color: var(--mp-color-text-accent);
+}
+.recommendation {
+  grid-area: recommend;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--mp-radius-8);
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
 }
 .commonCard {
   display: grid;
@@ -111,51 +158,53 @@
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-surface);
 }
-.commonCard h2 {
-  font-size: var(--mp-type-caption-size);
-}
+.commonCard h2,
 .commonCard p {
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
 }
 .addonWrap {
-  position: relative;
-  overflow: hidden;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-surface);
 }
-.addonChoice {
+.addonWrap > label.addonChoice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto 22px;
+  grid-template-areas:
+    'icon title price check'
+    'icon description price check';
   align-items: center;
-  padding: 16px 16px 16px 46px;
+  gap: 2px 10px;
+  padding: 14px 16px;
   border: 0;
-  border-radius: 0;
+  border-radius: inherit;
+  background: transparent;
+  overflow-wrap: anywhere;
 }
 .addonWrap[data-selected] {
   border-color: var(--mp-color-border-accent);
+  background: var(--mp-color-bg-accent-tint);
 }
-.addonIcon {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 16px;
-  transform: translateY(-50%);
-  pointer-events: none;
+.addonChoice .addonIcon {
+  grid-area: icon;
   color: var(--mp-color-text-tertiary);
 }
-.addonWrap:has(select) .addonIcon {
-  top: 32px;
-}
-.addonChoice > span {
-  padding-right: 60px;
-}
 .addonChoice > span > span:first-child {
+  grid-area: title;
   font-size: var(--mp-type-label-s-size);
 }
+.addonDescription {
+  grid-area: description;
+  color: var(--mp-color-text-tertiary);
+}
 .addonPrice {
-  position: absolute;
-  top: 50%;
-  right: 50px;
-  transform: translateY(-50%);
+  grid-area: price;
+  white-space: nowrap;
+  font-weight: var(--mp-type-label-s-weight);
+}
+.addonChoice input {
+  grid-area: check;
 }
 .addonWrap[data-selected] .addonPrice,
 .addonWrap[data-selected] .addonIcon {
@@ -177,6 +226,8 @@
 .footerSummary {
   display: grid;
   gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .footerSummary span {
   font-size: var(--mp-type-caption-size);
@@ -202,6 +253,7 @@
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
   background: var(--mp-color-bg-surface);
+  overflow-wrap: anywhere;
 }
 .selectedOptions p {
   font-size: var(--mp-type-caption-size);
@@ -220,6 +272,15 @@
   font-size: var(--mp-type-caption-size);
   cursor: pointer;
 }
+.detailsForm {
+  gap: 20px;
+}
+.detailsForm input:is([autocomplete='name'], [type='tel']):not([value='']) {
+  border-color: var(--mp-color-border-accent);
+}
+.detailsForm label[for]:has(+ input[autocomplete], + input[placeholder]) {
+  color: var(--mp-color-text-secondary);
+}
 div:has(> input.amountField) {
   position: relative;
 }
@@ -233,7 +294,7 @@ div:has(> input.amountField) > label {
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
 }
-input.amountField {
+.detailsForm input.amountField {
   min-height: 52px;
   padding-left: 112px;
   text-align: right;
@@ -253,19 +314,45 @@ input.amountField {
   gap: 10px;
   font-size: var(--mp-type-caption-size);
 }
-.consents input {
-  width: 20px;
-  height: 20px;
+.consents label > span {
+  flex: 1;
+}
+.consents small {
+  flex: none;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-overline-size);
+}
+.addonWrap .addonChoice input[type='checkbox'],
+.consents input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  padding: 0;
   margin: 0;
   flex-shrink: 0;
-  accent-color: var(--mp-color-action-primary);
+}
+@media (forced-colors: none) {
+  .addonChoice input[type='checkbox'],
+  .consents input[type='checkbox'] {
+    appearance: none;
+    border: 1.5px solid var(--mp-color-border-strong);
+    border-radius: 6px;
+    background: transparent;
+  }
+  .addonChoice input[type='checkbox']:checked,
+  .consents input[type='checkbox']:checked {
+    border-color: var(--mp-color-action-primary);
+    background: var(--mp-color-action-primary)
+      url('@manspick/design-system/assets/icons/solar/check-read-bold.svg') center / 16px 16px
+      no-repeat;
+  }
 }
 .consents a {
   white-space: nowrap;
   font-size: var(--mp-type-overline-size);
 }
 .consents a,
-.required {
+.consents .required {
   color: var(--mp-color-text-accent);
 }
 .calendar {
@@ -279,7 +366,12 @@ input.amountField {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+}
+.monthHeader > button {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
 }
 .monthHeader h3 {
   font-size: var(--mp-type-label-m-size);
@@ -292,17 +384,17 @@ input.amountField {
 .dateGrid > button {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 48px;
 }
 .weekday {
-  padding: 4px 0 12px;
+  padding: 4px 0 8px;
   text-align: center;
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-overline-size);
 }
 .legend {
   margin-top: 16px;
-  font-size: var(--mp-type-overline-size) !important;
+  font-size: var(--mp-type-overline-size);
   color: var(--mp-color-text-secondary);
 }
 .legend span {
@@ -339,71 +431,14 @@ input.amountField {
   font-weight: var(--mp-type-label-m-weight);
   text-decoration: none;
 }
-.priceStack {
-  display: grid;
-  justify-items: end;
-  gap: 4px;
-}
-.priceStack s {
-  color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-caption-size);
-}
 .channelPills > div > label {
   min-height: 32px;
   padding: 6px 12px;
   font-size: var(--mp-type-caption-size);
 }
-.channelPills + div:has(input.amountField) {
-  margin-top: -8px;
-}
-/* 패키지의 가격과 추천 설명은 원본 카드의 오른쪽·하단에 놓습니다. */
-.packageChoice {
-  position: relative;
-}
-.packagePrice {
-  padding-right: 90px;
-  min-height: 18px;
-  font-size: var(--mp-type-caption-size);
-}
-.priceStack {
-  position: absolute;
-  top: 22px;
-  right: 18px;
-}
-.packageDetails span {
-  display: flex;
-  align-items: center;
+.channelPills > div {
   gap: 6px;
 }
-.packageDetails svg {
-  flex-shrink: 0;
-}
-.packageChoice[data-checked] .packageDetails svg {
-  color: var(--mp-color-text-accent);
-}
-.packageChoice[data-checked] .priceStack strong {
-  color: var(--mp-color-text-accent);
-}
-.recommendation {
-  display: block;
-  margin-top: 4px;
-  margin-left: -30px;
-  padding: 8px 10px;
-  border-radius: var(--mp-radius-8);
-  background: var(--mp-color-bg-elevated);
-  color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-caption-size);
-}
-.best {
-  top: 22px;
-  right: auto;
-  left: 128px;
-}
-.addonChoice input {
-  order: 2;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-.addonChoice > span {
-  flex: 1;
+.channelPills + div:has(input.amountField) {
+  margin-top: -8px;
 }

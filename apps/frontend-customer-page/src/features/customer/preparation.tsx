@@ -151,7 +151,7 @@ export function PreparationView({
           {packageName(shoot.packageId, shoot.package.name)} ({shoot.package.outfits}벌)
         </p>
       </section>
-      <section className={layout.stack}>
+      <section className={styles.guideSection}>
         <div className={layout.between}>
           <h2 className={styles.sectionTitle}>촬영 전 확인할 안내</h2>
           <span className={styles.cyan}>
@@ -195,8 +195,10 @@ export function PreparationView({
           <Notice>촬영 준비 안내를 정리하고 있어요. 담당자에게 준비 일정을 확인해주세요.</Notice>
         )}
       </section>
-      <Notice tone="warning">
-        <strong>⚠ 촬영 전날엔 이것만 피해주세요</strong>
+      <Notice tone="warning" className={styles.preparationWarning}>
+        <strong>
+          <span aria-hidden="true">⚠</span> 촬영 전날엔 이것만 피해주세요
+        </strong>
         <div className={styles.warningTags}>
           {['음주', '과식', '무리한 운동', '수면 부족'].map((label) => (
             <span key={label}>{label}</span>
@@ -309,7 +311,7 @@ export function PlanView({
           설문을 보고 {shoot.customerName}님께 맞춰 준비했어요.
         </p>
       </header>
-      <section className={layout.card}>
+      <section className={`${layout.card} ${styles.planDetails}`}>
         <p className={styles.iconText}>
           <Icon name="solar/check-circle-bold" size={17} />
           컨셉 · {plan.concept}
@@ -483,7 +485,7 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
             );
           })}
       </ol>
-      <section className={layout.card}>
+      <section className={`${layout.card} ${styles.locationCard}`}>
         <strong className={styles.iconText}>
           <Icon name="solar/map-point-bold" size={17} />
           {location?.meetingPlace || '만남 장소 확인 중'}
@@ -498,7 +500,7 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
           <Icon name="solar/map-point-bold" size={30} />
           <span>{location?.area || '장소가 정해지면 바로 안내해요'}</span>
         </div>
-        <div className={layout.actions}>
+        <div className={`${layout.actions} ${styles.locationActions}`}>
           {location?.mapUrl ? (
             <a
               className={styles.secondaryLink}
@@ -506,14 +508,14 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
               target="_blank"
               rel="noreferrer"
             >
-              길찾기 ↗
+              길찾기
             </a>
           ) : (
-            <Button variant="secondary" onClick={onHelp}>
+            <Button variant="secondary" size="sm" onClick={onHelp}>
               장소 문의
             </Button>
           )}
-          <Button variant="secondary" onClick={() => setParkingOpen(true)}>
+          <Button variant="secondary" size="sm" onClick={() => setParkingOpen(true)}>
             주차 안내
           </Button>
         </div>

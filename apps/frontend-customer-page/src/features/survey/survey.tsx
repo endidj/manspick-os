@@ -18,6 +18,7 @@ import { api } from '@manspick/web/client';
 import { canEditSurvey, surveyIssues } from '@manspick/domain';
 import type { AddonDTO } from '@manspick/contracts';
 import { SceneFooter, KakaoButton } from '../shell';
+import { compareAddonDisplayOrder } from '../booking/addon-order';
 import type { CustomerViewProps } from '../customer/view-types';
 import { shootDate } from '../customer/presentation';
 import layout from '../shell/customer-shell.module.css';
@@ -114,7 +115,9 @@ export function Survey({
     )
       .then((catalog) => {
         if (!active) return;
-        const options = catalog.addons.filter((addon) => addon.id !== 'extra_retouch');
+        const options = catalog.addons
+          .filter((addon) => addon.id !== 'extra_retouch')
+          .sort(compareAddonDisplayOrder);
         setAddons(
           catalog.extraRetouchAvailable && catalog.retouchUnitPrice !== undefined
             ? [
@@ -266,6 +269,7 @@ export function Survey({
             />
             {text('age', '나이', 'number', true)}
             <TextField
+              className={styles.optionalField}
               label="직업"
               hint="공개를 원하지 않으면 비워두셔도 돼요"
               value={value('occupation')}
@@ -338,7 +342,10 @@ export function Survey({
             )}
             <section className={layout.stack}>
               <h2 className={styles.fieldTitle}>
-                키 · 몸무게 {wardrobe && <span className={styles.required}>필수</span>}
+                키 · 몸무게{' '}
+                <span className={wardrobe ? styles.required : styles.optional}>
+                  {wardrobe ? '필수' : '선택'}
+                </span>
               </h2>
               <div className={layout.gridTwo}>
                 {text('height', '키 (cm)', 'number', wardrobe)}
@@ -347,7 +354,10 @@ export function Survey({
             </section>
             <section className={layout.stack}>
               <h2 className={styles.fieldTitle}>
-                사이즈 {wardrobe && <span className={styles.required}>필수</span>}
+                사이즈{' '}
+                <span className={wardrobe ? styles.required : styles.optional}>
+                  {wardrobe ? '필수' : '선택'}
+                </span>
               </h2>
               <div className={styles.sizes}>
                 {text('topSize', '상의', 'text', wardrobe)}
@@ -356,6 +366,7 @@ export function Survey({
               </div>
             </section>
             <TextArea
+              className={styles.optionalField}
               label="신체 특징"
               hint="어깨가 넓다, 다리가 짧은 편이다 등 편하게 적어주세요"
               value={value('bodyConcerns')}
@@ -441,7 +452,7 @@ export function Survey({
                 </span>
               }
             />
-            <fieldset className={`${layout.fieldSet} ${layout.stack}`}>
+            <fieldset className={`${layout.fieldSet} ${styles.selectorGroup}`}>
               <legend className={styles.fieldTitle}>
                 보정할 사진은 누가 고를까요? <span className={styles.required}>필수</span>
               </legend>

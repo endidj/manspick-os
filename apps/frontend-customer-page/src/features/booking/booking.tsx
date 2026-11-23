@@ -15,6 +15,7 @@ import { customerPath } from '../customer/routes';
 import { addonQuantityLimit, validateCatalogQuantities } from '@manspick/domain';
 import type { OperationsPolicy } from '@manspick/domain';
 import { BookingCalendar, type CalendarDay } from './booking-calendar';
+import { compareAddonDisplayOrder } from './addon-order';
 import { useFlowNavigation } from '../shell/flow-navigation';
 import { bookingPaths, bookingStep } from './routes';
 import layout from '../shell/customer-shell.module.css';
@@ -317,51 +318,52 @@ export function Booking() {
                   <fieldset className={`${layout.fieldSet} ${styles.packageList}`}>
                     <legend className={styles.visuallyHidden}>패키지</legend>
                     {catalog.packages.map((entry) => (
-                      <div key={entry.id} className={styles.packageWrap}>
-                        {entry.id === 'hybrid' && <span className={styles.best}>BEST</span>}
-                        <ChoiceCard
-                          className={styles.packageChoice}
-                          title={packageName(entry.id, entry.name)}
-                          name="package"
-                          checked={packageId === entry.id}
-                          onCheckedChange={() => choosePackage(entry.id)}
-                          description={
-                            <span className={styles.packageDescription}>
-                              <span className={styles.packagePrice}>
-                                <span>
-                                  {durationLabel(entry.duration)} · {entry.outfits}벌
-                                  {entry.spotDescription ? ` · ${entry.spotDescription}` : ''}
-                                </span>
-                                <span className={styles.priceStack}>
-                                  {entry.originalPrice > entry.price && (
-                                    <s>{money(entry.originalPrice)}</s>
-                                  )}
-                                  <strong>{money(entry.price)}</strong>
-                                </span>
-                              </span>
-                              <span className={styles.packageDetails}>
-                                <span>
-                                  <Icon name="solar/check-circle-bold" size={12} /> 보정본{' '}
-                                  {entry.retouchCount}장
-                                </span>
-                                {(packageDetails[entry.id] ?? [entry.description]).map((detail) => (
-                                  <span key={detail}>
-                                    <Icon name="solar/check-circle-bold" size={12} /> {detail}
-                                  </span>
-                                ))}
-                              </span>
-                              <span className={styles.recommendation}>
-                                이런 분께 ·{' '}
-                                {entry.id === 'one'
-                                  ? '데이팅 앱 · 비즈니스 프로필'
-                                  : entry.id === 'hybrid'
-                                    ? '데이팅 + SNS 함께'
-                                    : '이미지 변신'}
-                              </span>
+                      <ChoiceCard
+                        key={entry.id}
+                        className={styles.packageChoice}
+                        title={
+                          <>
+                            <span>{packageName(entry.id, entry.name)}</span>
+                            {entry.id === 'hybrid' && <span className={styles.best}>BEST</span>}
+                          </>
+                        }
+                        name="package"
+                        checked={packageId === entry.id}
+                        onCheckedChange={() => choosePackage(entry.id)}
+                        description={
+                          <>
+                            <span className={styles.packageMeta}>
+                              {durationLabel(entry.duration)} · {entry.outfits}벌
+                              {entry.spotDescription ? ` · ${entry.spotDescription}` : ''}
                             </span>
-                          }
-                        />
-                      </div>
+                            <span className={styles.priceStack}>
+                              {entry.originalPrice > entry.price && (
+                                <s>{money(entry.originalPrice)}</s>
+                              )}
+                              <strong>{money(entry.price)}</strong>
+                            </span>
+                            <span className={styles.packageDetails}>
+                              <span>
+                                <Icon name="solar/check-circle-bold" size={12} /> 보정본{' '}
+                                {entry.retouchCount}장
+                              </span>
+                              {(packageDetails[entry.id] ?? [entry.description]).map((detail) => (
+                                <span key={detail}>
+                                  <Icon name="solar/check-circle-bold" size={12} /> {detail}
+                                </span>
+                              ))}
+                            </span>
+                            <span className={styles.recommendation}>
+                              이런 분께 ·{' '}
+                              {entry.id === 'one'
+                                ? '데이팅 앱 · 비즈니스 프로필'
+                                : entry.id === 'hybrid'
+                                  ? '데이팅 + SNS 함께'
+                                  : '이미지 변신'}
+                            </span>
+                          </>
+                        }
+                      />
                     ))}
                   </fieldset>
                   <section className={styles.commonCard}>
@@ -383,24 +385,27 @@ export function Booking() {
                     <div className={styles.addonList}>
                       {catalog.addons
                         .filter((addon) => pkg && addonQuantityLimit(pkg, addon) > 0)
+                        .sort(compareAddonDisplayOrder)
                         .map((addon) => (
                           <div
                             className={styles.addonWrap}
                             key={addon.id}
                             data-selected={Boolean(extras[addon.id]) || undefined}
                           >
-                            <Icon
-                              className={styles.addonIcon}
-                              name={addonIcons[addon.id] ?? 'solar/check-circle-bold'}
-                              size={18}
-                            />
                             <ChoiceCard
                               type="checkbox"
                               className={styles.addonChoice}
                               title={addon.name}
                               description={
                                 <>
-                                  <span>{addon.description}</span>
+                                  <Icon
+                                    className={styles.addonIcon}
+                                    name={addonIcons[addon.id] ?? 'solar/check-circle-bold'}
+                                    size={18}
+                                  />
+                                  <span className={styles.addonDescription}>
+                                    {addon.description}
+                                  </span>
                                   <span className={styles.addonPrice}>
                                     +{addon.price.toLocaleString('ko-KR')}
                                   </span>
@@ -464,7 +469,7 @@ export function Booking() {
               )}
               {step === 2 && (
                 <form
-                  className={layout.stack}
+                  className={`${layout.stack} ${styles.detailsForm}`}
                   onSubmit={(event) => {
                     event.preventDefault();
                     next();
@@ -538,14 +543,13 @@ export function Booking() {
                         checked={privacy}
                         onChange={(event) => setPrivacy(event.target.checked)}
                       />
-                      <span>
-                        개인정보 수집·이용 동의 <span className={styles.required}>(필수)</span>
-                      </span>
+                      <span>개인정보 수집·이용 동의</span>
                       {landingOrigin && (
                         <a href={`${landingOrigin}/legal`} target="_blank" rel="noreferrer">
                           안내 보기
                         </a>
                       )}
+                      <small className={styles.required}>필수</small>
                     </label>
                     <label>
                       <input
@@ -554,10 +558,8 @@ export function Booking() {
                         checked={notifications}
                         onChange={(event) => setNotifications(event.target.checked)}
                       />
-                      <span>
-                        촬영 안내 알림 수신 동의 (카카오톡){' '}
-                        <span className={styles.required}>(필수)</span>
-                      </span>
+                      <span>촬영 안내 알림 수신 동의 (카카오톡)</span>
+                      <small className={styles.required}>필수</small>
                     </label>
                     <label>
                       <input
@@ -565,9 +567,8 @@ export function Booking() {
                         checked={marketing}
                         onChange={(event) => setMarketing(event.target.checked)}
                       />
-                      <span>
-                        마케팅 정보 수신 동의 <span>(선택)</span>
-                      </span>
+                      <span>마케팅 정보 수신 동의</span>
+                      <small>선택</small>
                     </label>
                   </section>
                   <SceneFooter>

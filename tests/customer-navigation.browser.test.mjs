@@ -24,6 +24,8 @@ function shootFixture() {
     customerName: '테스트 고객',
     packageId: 'hybrid',
     package: packageFixture,
+    retouchUnitPrice: 10000,
+    extraRetouchAvailable: true,
     status: 'preparing',
     stage: 4,
     paymentState: 'confirmed',
@@ -192,17 +194,60 @@ test(
 
     try {
       await scenario(
+        'package labels, BEST and selection controls have separate space',
+        async (page) => {
+          await page.goto(`${appUrl}/start`);
+          const packages = page.getByRole('group', { name: '패키지', exact: true });
+          const radio = packages.getByRole('radio', { checked: true });
+          await radio.waitFor();
+          await page.evaluate(() => document.fonts.ready);
+          for (const width of [320, 390, 1440]) {
+            await page.setViewportSize({ width, height: 844 });
+            const box = await radio.boundingBox();
+            assert.ok(
+              box && box.width <= 22 && box.height <= 22 && box.width === box.height,
+              `Expected a round selection control at ${width}px; got ${JSON.stringify(box)}`,
+            );
+            const [title, badge] = await packages.evaluate((group) => {
+              const nodes = document.createTreeWalker(group, NodeFilter.SHOW_TEXT);
+              const texts = new Map();
+              while (nodes.nextNode()) {
+                const range = document.createRange();
+                range.selectNodeContents(nodes.currentNode);
+                texts.set(
+                  nodes.currentNode.textContent.trim(),
+                  range.getBoundingClientRect().toJSON(),
+                );
+              }
+              return [texts.get('하이브리드'), texts.get('BEST')];
+            });
+            assert.ok(
+              title &&
+                badge &&
+                title.right < badge.left &&
+                title.top < badge.bottom &&
+                badge.top < title.bottom,
+              `Expected BEST beside the package title at ${width}px`,
+            );
+            assert.ok(box.x + box.width < title.left, 'The radio must clear the package name');
+          }
+        },
+      );
+
+      await scenario(
         'booking consent labels and previous/next routes retain entered details',
         async (page) => {
           await page.goto(`${appUrl}/start`);
           await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await expectPath(page, '/start/details');
-          for (const label of [
-            '개인정보 수집·이용 동의 (필수)',
-            '촬영 안내 알림 수신 동의 (카카오톡) (필수)',
-            '마케팅 정보 수신 동의 (선택)',
+          for (const [label, required] of [
+            [/개인정보 수집·이용 동의.*필수/, true],
+            [/촬영 안내 알림 수신 동의 \(카카오톡\).*필수/, true],
+            [/마케팅 정보 수신 동의.*선택/, false],
           ]) {
-            await page.getByText(label, { exact: true }).waitFor();
+            const checkbox = page.getByRole('checkbox', { name: label });
+            await checkbox.waitFor();
+            assert.equal(await checkbox.evaluate((input) => input.required), required);
           }
           for (const width of [390, 1440]) {
             await page.setViewportSize({ width, height: 900 });
@@ -357,6 +402,51 @@ test(
           await page.goto(`${appUrl}/start/complete`);
           await expectPath(page, '/start');
           await page.getByRole('heading', { name: '촬영 옵션을 골라주세요' }).waitFor();
+        },
+      );
+
+      await scenario(
+        'preparation date keeps its card typography in the rendered route',
+        async (page) => {
+          await page.goto(`${appUrl}/s/demo-token/preparation`);
+          await signIn(page);
+          await page.getByRole('heading', { name: '촬영 전 확인할 안내' }).waitFor();
+          const date = page.locator('main h1');
+          const [rendered, cardSize] = await date.evaluate((heading) => {
+            const style = getComputedStyle(heading);
+            return [style.fontSize, style.getPropertyValue('--mp-type-h2-size').trim()];
+          });
+          assert.equal(rendered, cardSize, 'The page heading style must not enlarge the date card');
+        },
+      );
+
+      await scenario(
+        'a full candidate gallery keeps the last photo selectable and resets when filtered',
+        async (page, { shoot }) => {
+          shoot.status = 'selection_pending';
+          shoot.stage = 6;
+          shoot.photos = Array.from({ length: 42 }, (_, index) => ({
+            id: `candidate-${index + 1}`,
+            cutNo: index + 1,
+            kind: 'candidate',
+            outfitNo: index < 22 ? 1 : 2,
+            url: shoot.uploads[0].url,
+          }));
+          await page.goto(`${appUrl}/s/demo-token/selection`);
+          await signIn(page);
+          const gallery = page.getByRole('region', { name: '촬영 후보 사진' });
+          await gallery.waitFor();
+          assert.equal(await gallery.getByRole('button').count(), 42);
+          assert.ok(await gallery.evaluate((el) => el.scrollHeight > el.clientHeight * 2));
+          const last = gallery.getByRole('button', { name: /촬영 후보 42번$/ });
+          await last.click();
+          assert.equal(await last.getAttribute('aria-pressed'), 'true');
+          assert.ok(await gallery.evaluate((el) => el.scrollTop > 0));
+          await page.getByRole('button', { name: '의상 1 22', exact: true }).click();
+          assert.equal(await gallery.getByRole('button').count(), 22);
+          assert.equal(await gallery.evaluate((el) => el.scrollTop), 0);
+          await page.getByRole('button', { name: '전체 42', exact: true }).click();
+          assert.equal(await last.getAttribute('aria-pressed'), 'true');
         },
       );
 

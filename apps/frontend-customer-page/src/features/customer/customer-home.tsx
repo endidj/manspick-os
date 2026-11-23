@@ -173,7 +173,8 @@ export function CustomerHome({
                               title: `${name}님, 보정본을 모두 받으셨어요`,
                               subtitle: '후기를 남겨주시면 원본 사진 전체를 드려요.',
                               task: '후기 남기고 원본 받기',
-                              description: '후기를 확인하면 원본 전체를 보내드려요.',
+                              description:
+                                '후기를 확인하면 원본 전체를 보내드려요.\n지인을 소개하시면 5천원 혜택도 있어요.',
                               cta: '후기 남기기',
                             }
                   : state === 'retouching'

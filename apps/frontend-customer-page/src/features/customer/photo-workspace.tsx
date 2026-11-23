@@ -16,6 +16,8 @@ import { packageName, reviewState, shootDate } from './presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
+const candidatePreviewCount = 12;
+
 export function PhotoWorkspace({
   shoot,
   busy,
@@ -29,6 +31,7 @@ export function PhotoWorkspace({
     extra ? [] : (shoot.selections.find((selection) => selection.round === 'base')?.photoIds ?? []),
   );
   const [filter, setFilter] = useState('all');
+  const [gridScrolled, setGridScrolled] = useState(false);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [revisionPhotos, setRevisionPhotos] = useState<string[]>([]);
   const [openFiles, setOpenFiles] = useState<'retouched' | 'original' | null>(null);
@@ -72,13 +75,19 @@ export function PhotoWorkspace({
   const groups = [
     ...new Map(
       candidates
-        .filter((photo) => photo.outfitNo !== null)
+        .filter((photo) => photo.outfitNo != null)
         .map((photo) => [String(photo.outfitNo), photo.outfitLabel || `의상 ${photo.outfitNo}`]),
     ).entries(),
   ];
   const visibleCandidates = candidates.filter(
     (photo) => filter === 'all' || String(photo.outfitNo) === filter,
   );
+  const moreCandidates = visibleCandidates.length - candidatePreviewCount;
+
+  function filterCandidates(id: string) {
+    setFilter(id);
+    setGridScrolled(false);
+  }
 
   function toggle(id: string) {
     setSelected((previous) =>
@@ -428,41 +437,64 @@ export function PhotoWorkspace({
       )}
       {candidates.length ? (
         <>
-          <div className={styles.photoFilters} role="group" aria-label="의상별 후보">
-            <button
-              className={styles.photoFilter}
-              data-active={filter === 'all' || undefined}
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
-              전체 {candidates.length}
-            </button>
-            {groups.map(([id, label]) => (
+          {groups.length > 0 && (
+            <div className={styles.photoFilters} role="group" aria-label="의상별 후보">
               <button
-                key={id}
                 className={styles.photoFilter}
-                data-active={filter === id || undefined}
-                aria-pressed={filter === id}
-                onClick={() => setFilter(id)}
+                data-active={filter === 'all' || undefined}
+                aria-pressed={filter === 'all'}
+                onClick={() => filterCandidates('all')}
               >
-                {label} {candidates.filter((photo) => String(photo.outfitNo) === id).length}
+                전체 {candidates.length}
               </button>
-            ))}
-          </div>
-          <div className={styles.selectionGrid}>
-            {visibleCandidates.map((photo) => (
-              <PhotoTile
-                key={photo.id}
-                label={`촬영 후보 ${photo.cutNo}번`}
-                selected={selected.includes(photo.id)}
-                selectionOrder={selected.indexOf(photo.id) + 1}
-                disabled={
-                  locked || (!selected.includes(photo.id) && selected.length >= selectionLimit)
-                }
-                onSelectedChange={directorSelecting ? undefined : () => toggle(photo.id)}
-                image={<Image unoptimized width={600} height={800} src={photo.url} alt="" />}
-              />
-            ))}
+              {groups.map(([id, label]) => (
+                <button
+                  key={id}
+                  className={styles.photoFilter}
+                  data-active={filter === id || undefined}
+                  aria-pressed={filter === id}
+                  onClick={() => filterCandidates(id)}
+                >
+                  {label} {candidates.filter((photo) => String(photo.outfitNo) === id).length}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className={styles.candidateGallery}>
+            <div
+              key={filter}
+              className={styles.selectionGrid}
+              data-scrollable={moreCandidates > 0 || undefined}
+              role={moreCandidates > 0 ? 'region' : undefined}
+              aria-label={moreCandidates > 0 ? '촬영 후보 사진' : undefined}
+              tabIndex={moreCandidates > 0 ? 0 : undefined}
+              onScroll={
+                moreCandidates > 0
+                  ? (event) => setGridScrolled(event.currentTarget.scrollTop > 1)
+                  : undefined
+              }
+            >
+              {visibleCandidates.map((photo) => (
+                <PhotoTile
+                  key={photo.id}
+                  label={`촬영 후보 ${photo.cutNo}번`}
+                  selected={selected.includes(photo.id)}
+                  selectionOrder={selected.indexOf(photo.id) + 1}
+                  disabled={
+                    locked || (!selected.includes(photo.id) && selected.length >= selectionLimit)
+                  }
+                  onSelectedChange={directorSelecting ? undefined : () => toggle(photo.id)}
+                  image={<Image unoptimized width={600} height={800} src={photo.url} alt="" />}
+                />
+              ))}
+            </div>
+            {moreCandidates > 0 && (
+              <p className={styles.candidateHint}>
+                {gridScrolled
+                  ? `전체 후보 ${visibleCandidates.length}장`
+                  : `스크롤하면 후보 ${moreCandidates}장이 더 있어요`}
+              </p>
+            )}
           </div>
         </>
       ) : (

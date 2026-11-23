@@ -2,6 +2,7 @@
 .pageProgress {
   display: flex;
   gap: 6px;
+  margin-block: 8px;
 }
 .pageProgress span {
   display: grid;
@@ -27,7 +28,9 @@
   gap: 28px;
 }
 .fields input:not([type='checkbox'], [type='radio'], [type='file']) {
-  min-height: 52px;
+  height: 52px;
+  min-height: 0;
+  padding: 12px 16px;
 }
 .fields input:not([type='checkbox'], [type='radio'], [type='file'])[value]:not([value='']) {
   background: var(--mp-color-bg-elevated);
@@ -35,6 +38,18 @@
 }
 .fields textarea {
   min-height: 96px;
+}
+.fields > div > label[for],
+.fields > fieldset > legend {
+  width: 100%;
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.fields label:has(+ .optionalField)::after {
+  content: '선택';
+  float: right;
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
 }
 .fields label[for]:not(:has(input)) > span[aria-hidden='true'],
 .fields legend > span[aria-hidden='true'] {
@@ -53,10 +68,25 @@
 }
 .fieldTitle {
   padding: 0;
-  margin-bottom: 8px;
+  margin: 0;
   font-size: var(--mp-type-body-m-size) !important;
   font-weight: var(--mp-type-body-m-strong-weight);
   line-height: var(--mp-type-body-m-line-height);
+}
+.fields > section {
+  gap: 12px;
+}
+.fields legend.fieldTitle {
+  margin-bottom: 10px;
+}
+.fieldTitle > .required,
+.fieldTitle > .optional {
+  float: right;
+}
+.fields section h2 + div label[for]:not(:has(input)) {
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
 }
 .optional {
   float: right;
@@ -64,7 +94,7 @@
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
 }
-.notice {
+div.notice {
   display: grid;
   gap: 4px;
   padding: 12px 14px;
@@ -113,11 +143,10 @@
 .uploadGrid img {
   display: block;
   width: 100%;
-  height: 100%;
-  aspect-ratio: 3/4;
+  height: 120px;
   object-fit: cover;
 }
-.uploadTile {
+.uploadGrid .uploadTile {
   min-width: 0;
   min-height: 120px;
   padding: 34px 8px 8px;
@@ -147,10 +176,12 @@
   gap: 8px;
   margin-top: 12px;
 }
-.purposeChoice {
+.purposePills > label.purposeChoice {
   display: inline-flex;
-  gap: 0;
-  padding: 8px 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
   border-radius: var(--mp-radius-full);
 }
 .purposeChoice input {
@@ -159,14 +190,18 @@
   width: 1px;
   height: 1px;
 }
-.purposeChoice > span > span {
+.purposePills > .purposeChoice > span > span {
+  color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
+}
+.purposePills > .purposeChoice[data-checked] > span > span {
+  color: var(--mp-color-text-accent);
 }
 .purposeChoice > span[aria-hidden='true'] {
   width: auto;
   height: auto;
-  margin-right: 6px;
+  margin: 0;
 }
 .fields fieldset > div > label > span:has(svg) {
   display: inline-flex;
@@ -179,6 +214,29 @@
 .purposeChoice:has(input:focus-visible) {
   outline: 2px solid var(--mp-color-text-accent);
   outline-offset: 3px;
+}
+.selectorGroup {
+  display: grid;
+  gap: 12px;
+}
+.selectorGroup > label {
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+.selectorGroup > label > input[type='radio'] {
+  appearance: none;
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: 50%;
+  background: transparent;
+}
+.selectorGroup > label > input[type='radio']:checked {
+  border: 6px solid var(--mp-color-action-primary);
+}
+@media (forced-colors: active) {
+  .selectorGroup > label > input[type='radio'] {
+    appearance: auto;
+  }
 }
 .inquiryChip {
   padding: 4px 0;
@@ -225,11 +283,40 @@
   font-size: var(--mp-type-label-s-size);
   line-height: var(--mp-type-body-m-line-height);
 }
-.consentCard input {
+.consentCard input[type='checkbox'] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  align-self: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  accent-color: var(--mp-color-action-primary);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--mp-color-border-strong);
+  border-radius: 50%;
+  background: transparent;
+}
+.consentCard input[type='checkbox']:checked {
+  background: var(--mp-color-status-success);
+  border-color: var(--mp-color-status-success);
+}
+.consentCard input[type='checkbox']:checked::after {
+  content: '';
+  width: 10px;
+  height: 5px;
+  margin-bottom: 2px;
+  transform: rotate(-45deg);
+  border-left: 2px solid var(--mp-color-bg-base);
+  border-bottom: 2px solid var(--mp-color-bg-base);
+}
+@media (forced-colors: active) {
+  .consentCard input[type='checkbox'] {
+    appearance: auto;
+  }
+  .consentCard input[type='checkbox']::after {
+    display: none;
+  }
 }
 .consentCard span {
   flex: 1;
@@ -251,6 +338,14 @@
 }
 .safety p {
   font-size: var(--mp-type-caption-size);
+}
+.safety h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.safety h2 svg {
+  color: var(--mp-color-status-warning);
 }
 .safety .consentCard {
   padding: 16px;
