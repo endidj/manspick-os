@@ -9,6 +9,10 @@ export const semanticTokens = {
       elevated: primitiveTokens.color.neutral800,
       glass: primitiveTokens.color.white3,
       accentTint: primitiveTokens.color.blue500Alpha12,
+      // 고객 Figma에서 어두운 기본 배경과 합성된 1배율 색상입니다.
+      glassOnBase: '#121212',
+      accentOnBase: '#0e1727',
+      warningOnBase: '#21190a',
       channelPreview: primitiveTokens.color.channelPreview,
     },
     border: {
@@ -23,6 +27,7 @@ export const semanticTokens = {
       onAccent: primitiveTokens.color.white,
       accent: primitiveTokens.color.blue300,
       onLight: primitiveTokens.color.black,
+      onKakao: '#1a1a1a',
       danger: primitiveTokens.color.dangerText,
     },
     action: {

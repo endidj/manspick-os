@@ -243,7 +243,7 @@ export function Survey({
       {validation && <Notice tone="error">{validation}</Notice>}
       {closed && <Notice>설문 편집이 종료됐어요. 변경이 필요하면 담당자에게 알려주세요.</Notice>}
       <fieldset
-        className={`${layout.fieldSet} ${styles.fields}`}
+        className={`${layout.fieldSet} ${styles.fields} ${page === 3 ? styles.photoQuestions : ''}`}
         disabled={busy || closed || savingPage}
       >
         {page === 1 && (
@@ -288,13 +288,23 @@ export function Survey({
                   .filter((asset) => asset.kind === 'survey')
                   .map((asset) => (
                     <a key={asset.id} href={asset.url} target="_blank" rel="noreferrer">
-                      <Image
-                        unoptimized
-                        src={asset.url}
-                        alt={asset.name}
-                        width={120}
-                        height={150}
-                      />
+                      <span className={styles.photoPreview}>
+                        <Icon name="image" size={20} />
+                        {asset.url && (
+                          <Image
+                            key={asset.url}
+                            unoptimized
+                            src={asset.url}
+                            alt=""
+                            width={108}
+                            height={72}
+                            onError={(event) => {
+                              event.currentTarget.hidden = true;
+                            }}
+                          />
+                        )}
+                      </span>
+                      <span>{asset.name}</span>
                     </a>
                   ))}
                 <div className={styles.addPhoto}>
@@ -465,13 +475,13 @@ export function Survey({
               />
               <ChoiceCard
                 title="디렉터에게 맡길게요"
-                description="가장 잘 나온 것으로 알아서 골라드려요"
+                description="가장 잘 나온 컷으로 알아서 골라드려요"
                 name="selector"
                 checked={answers.selector === 'director'}
                 onCheckedChange={() => put('selector', 'director')}
               />
               <p className={layout.small}>
-                촬영 당일 현장에서 마음이 바뀌면 디렉터에게 말씀해주세요. 촬영이 끝날 때 최종
+                촬영 당일 현장에서 마음이 바뀌면 디렉터에게 말씀해 주세요. 촬영이 끝날 때 최종
                 확정돼요.
               </p>
             </fieldset>
@@ -488,7 +498,18 @@ export function Survey({
               <legend className={styles.fieldTitle}>
                 추가로 신청하고 싶은 옵션이 있나요? <span className={styles.optional}>선택</span>
               </legend>
-              <p className={layout.small}>선택하시면 담당자가 결제 안내를 따로 드려요.</p>
+              <p className={layout.small}>
+                선택하시면{' '}
+                <button
+                  type="button"
+                  className={styles.inquiryChip}
+                  aria-label="그 외 옵션 문의"
+                  onClick={onHelp}
+                >
+                  담당자
+                </button>
+                가 결제 안내를 따로 드려요.
+              </p>
               {addonsFailed && (
                 <Notice>
                   옵션 목록을 불러오지 못했어요. 설문은 계속 제출할 수 있고, 추가 옵션은 담당자에게
@@ -530,9 +551,6 @@ export function Survey({
                   }
                   onCheckedChange={(checked) => put('additionalAddonInterest', checked ? [] : null)}
                 />
-                <button type="button" className={styles.inquiryChip} onClick={onHelp}>
-                  그 외 옵션 문의
-                </button>
               </div>
             </fieldset>
             <RadioPills
@@ -603,6 +621,7 @@ export function Survey({
                   onChange={(event) => put('safetyRead', event.target.checked)}
                 />
                 <span>주의사항을 모두 확인했어요</span>
+                <Icon name="chevron" size={16} />
               </label>
             </section>
           </>
@@ -675,7 +694,7 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
           장소와 코디가 정해지면 바로 알려드릴게요.
         </p>
       </header>
-      <section className={layout.card}>
+      <section className={`${layout.card} ${styles.completeSteps}`}>
         <p className={styles.completeRow}>
           <Icon name="solar/check-circle-bold" size={17} />
           설문 제출 완료
@@ -690,7 +709,10 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
         </p>
       </section>
       <section className={`${layout.card} ${styles.completeSummary}`}>
-        <p className={layout.small}>제출한 내용</p>
+        <div className={styles.completeLinks}>
+          <p className={layout.small}>제출한 내용</p>
+          <button onClick={() => onNavigate('home')}>나의 촬영 홈으로</button>
+        </div>
         <InfoRow label="촬영 계기" value={String(answer.motivation ?? '')} />
         <InfoRow
           label="사진"
@@ -709,16 +731,15 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
             .filter(Boolean)
             .join(' · ')}
         />
-        <p className={layout.small}>
-          {!editable
-            ? '설문 편집이 종료됐어요. 변경이 필요하면 담당자에게 알려주세요.'
-            : shoot.survey?.dueAt
-              ? `${shootDate(shoot.survey.dueAt)}까지 다시 열어 고칠 수 있어요`
-              : '편집 기한은 담당자에게 확인해주세요'}
-        </p>
         <div className={styles.completeLinks}>
+          <p className={layout.small}>
+            {!editable
+              ? '설문 편집이 종료됐어요. 변경이 필요하면 담당자에게 알려주세요.'
+              : shoot.survey?.dueAt
+                ? `${shootDate(shoot.survey.dueAt)}까지 다시 열어 고칠 수 있어요`
+                : '편집 기한은 담당자에게 확인해주세요'}
+          </p>
           {editable && <button onClick={() => onNavigate('survey')}>제출한 내용 수정하기</button>}
-          <button onClick={() => onNavigate('home')}>나의 촬영 홈으로</button>
         </div>
       </section>
       <SceneFooter>

@@ -50,6 +50,10 @@
   --mp-color-bg-elevated: var(--mp-primitive-color-neutral-800);
   --mp-color-bg-glass: var(--mp-primitive-color-white-3);
   --mp-color-bg-accent-tint: var(--mp-primitive-color-blue-500-alpha-12);
+  /* 고객 Figma 1× PNG의 기본 배경 위 카드·선택·기한 안내 채움색. */
+  --mp-color-bg-glass-on-base: #121212;
+  --mp-color-bg-accent-on-base: #0e1727;
+  --mp-color-bg-warning-on-base: #21190a;
   --mp-color-border-subtle: var(--mp-primitive-color-white-8);
   --mp-color-border-strong: var(--mp-primitive-color-white-16);
   --mp-color-border-accent: var(--mp-primitive-color-blue-500);
@@ -68,6 +72,7 @@
   --mp-color-status-pink: var(--mp-primitive-color-pink-400);
   --mp-color-channel-preview: var(--mp-primitive-color-channel-preview);
   --mp-color-text-on-light: var(--mp-primitive-color-black);
+  --mp-color-text-on-kakao: #1a1a1a;
   --mp-color-text-danger: var(--mp-primitive-color-danger-text);
   --mp-color-overlay-dialog: rgb(0 0 0 / 72%);
   --mp-color-overlay-photo: rgb(0 0 0 / 70%);

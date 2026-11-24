@@ -7,15 +7,19 @@
 .pageProgress span {
   display: grid;
   flex: 1;
-  gap: 8px;
+  gap: 6px;
   text-align: left;
   color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-overline-size);
+  font-size: var(--mp-type-caption-size);
+  line-height: 17px;
 }
 .pageProgress i {
-  height: 3px;
+  height: 4px;
   background: var(--mp-color-bg-elevated);
   border-radius: var(--mp-radius-full);
+}
+.pageProgress:has(> span:nth-child(3)[aria-current='step']) i {
+  height: 3px;
 }
 .pageProgress [aria-current='step'] {
   color: var(--mp-color-text-primary);
@@ -26,6 +30,13 @@
 .fields {
   display: grid;
   gap: 28px;
+}
+.fields > fieldset:has(> div > label input[type='radio']):not(.selectorGroup) > legend {
+  margin-bottom: 12px;
+}
+.fields + div:has(button),
+.completeSummary + div:has(button) {
+  margin-top: 4px;
 }
 .fields input:not([type='checkbox'], [type='radio'], [type='file']) {
   height: 52px;
@@ -42,14 +53,15 @@
 .fields > div > label[for],
 .fields > fieldset > legend {
   width: 100%;
-  font-size: var(--mp-type-body-m-size);
-  line-height: var(--mp-type-body-m-line-height);
+  font-size: var(--mp-type-label-m-size);
+  line-height: 21px;
+  font-weight: var(--mp-type-caption-weight);
 }
 .fields label:has(+ .optionalField)::after {
   content: '선택';
   float: right;
   color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
 }
 .fields label[for]:not(:has(input)) > span[aria-hidden='true'],
 .fields legend > span[aria-hidden='true'] {
@@ -60,7 +72,7 @@
   content: '필수';
   float: right;
   color: var(--mp-color-text-accent);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   font-weight: var(--mp-type-caption-weight);
 }
 .fields section label[for]:not(:has(input)):has(> span[aria-hidden='true'])::after {
@@ -69,24 +81,65 @@
 .fieldTitle {
   padding: 0;
   margin: 0;
-  font-size: var(--mp-type-body-m-size) !important;
-  font-weight: var(--mp-type-body-m-strong-weight);
-  line-height: var(--mp-type-body-m-line-height);
+  font-size: var(--mp-type-label-m-size) !important;
+  font-weight: var(--mp-type-caption-weight);
+  line-height: 21px;
+  letter-spacing: 0;
 }
 .fields > section {
   gap: 12px;
 }
+.fields > section > div:has(input) {
+  column-gap: 8px;
+}
+.fields > section > div > div:has(> input) {
+  gap: 6px;
+}
+.fields > div:has(> input, > textarea) {
+  gap: 12px;
+}
+.fields .optionalField:is(textarea) {
+  min-height: 88px;
+  background: var(--mp-color-bg-elevated);
+}
+.fields > fieldset:not(.starRating, .strength) > div > label:not(.purposeChoice) {
+  padding-inline: 14px;
+}
+.fields > fieldset:not(.starRating, .strength) > div > label:not(:has(input:checked)),
+.purposePills > label.purposeChoice:not([data-checked]) {
+  background: var(--mp-color-bg-elevated);
+}
+.fields.photoQuestions > div > label,
+.fields.photoQuestions > fieldset > legend {
+  font-size: var(--mp-type-h3-size) !important;
+  line-height: 25px;
+  letter-spacing: -0.01em;
+}
+.fields.photoQuestions > div:has(textarea) {
+  gap: 12px;
+}
+.photoQuestions legend > .required,
+.fields.photoQuestions label[for]:has(> span[aria-hidden='true'])::after,
+.fields.photoQuestions legend:has(> span[aria-hidden='true'])::after {
+  float: none;
+  margin-left: 6px;
+  font-size: var(--mp-type-caption-size);
+  line-height: 17px;
+  vertical-align: middle;
+}
 .fields legend.fieldTitle {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .fieldTitle > .required,
 .fieldTitle > .optional {
   float: right;
+  font-size: var(--mp-type-label-s-size);
 }
 .fields section h2 + div label[for]:not(:has(input)) {
   color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
+  line-height: 17px;
 }
 .optional {
   float: right;
@@ -99,15 +152,28 @@ div.notice {
   gap: 4px;
   padding: 12px 14px;
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-overline-line-height);
+  border-radius: var(--mp-radius-12);
+  border-color: color-mix(in srgb, var(--mp-color-action-primary) 42%, transparent);
+  background: var(--mp-color-bg-accent-tint);
+}
+.notice:global(.notice-warning) {
+  background: color-mix(in srgb, var(--mp-color-status-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-warning) 45%, transparent);
 }
 .notice p {
   font-size: inherit;
-  line-height: 1.6;
+  line-height: var(--mp-type-caption-line-height);
+}
+.notice strong {
+  font-weight: var(--mp-type-caption-weight);
+  font-size: var(--mp-type-label-s-size);
 }
 .required {
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   color: var(--mp-color-text-accent);
   font-weight: var(--mp-type-caption-weight);
+  letter-spacing: 0;
 }
 .starRating > div {
   justify-content: flex-start;
@@ -133,18 +199,56 @@ div.notice {
 .uploadGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 .uploadGrid a {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 20px 17px minmax(0, 1fr);
+  align-items: end;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 120px;
+  padding: 8px;
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-tertiary);
   overflow: hidden;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
 }
-.uploadGrid img {
+.uploadGrid a span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 17px;
+}
+.uploadGrid a > .photoPreview {
+  position: relative;
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 0;
+  border-radius: var(--mp-radius-8);
+}
+.photoPreview:has(img:not([hidden])) {
+  height: 100%;
+}
+.photoPreview img:not([hidden]) {
   display: block;
   width: 100%;
-  height: 120px;
+  height: 100%;
   object-fit: cover;
+}
+.photoPreview:has(img:not([hidden])) svg {
+  display: none;
+}
+.uploadGrid .uploadTile {
+  color: var(--mp-color-text-accent);
+  background: transparent;
 }
 .uploadGrid .uploadTile {
   min-width: 0;
@@ -154,6 +258,7 @@ div.notice {
 }
 .uploadTile span {
   font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-caption-weight);
 }
 .uploadTile span + span {
   display: none;
@@ -192,7 +297,7 @@ div.notice {
 }
 .purposePills > .purposeChoice > span > span {
   color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   font-weight: var(--mp-type-caption-weight);
 }
 .purposePills > .purposeChoice[data-checked] > span > span {
@@ -238,8 +343,13 @@ div.notice {
     appearance: auto;
   }
 }
+.selectorGroup > label > span > span:first-child {
+  font-size: var(--mp-type-body-m-size);
+  line-height: 19px;
+  font-weight: var(--mp-type-caption-weight);
+}
 .inquiryChip {
-  padding: 4px 0;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--mp-color-text-secondary);
@@ -272,14 +382,17 @@ div.notice {
   justify-content: space-between;
   gap: 12px;
 }
+.strength > div:has(.strengthHint) {
+  margin-top: 12px;
+}
 .consentCard {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 16px;
+  padding: 12px 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
   font-size: var(--mp-type-label-s-size);
   line-height: var(--mp-type-body-m-line-height);
 }
@@ -326,6 +439,7 @@ div.notice {
   margin-top: 4px;
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
 }
 .consentCard button {
   padding: 0;
@@ -333,11 +447,33 @@ div.notice {
   background: none;
   color: var(--mp-color-text-secondary);
 }
-.safety {
-  gap: 12px;
+.consentCard:has(> .consentChoice) {
+  min-height: 72px;
+  padding-block: 0;
+  align-items: center;
+}
+.fields > .safety {
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
 }
 .safety p {
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.consentChoice > span,
+.safety .consentCard > span {
+  color: var(--mp-color-text-secondary);
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: 25px;
+  letter-spacing: -0.01em;
+}
+.consentChoice small {
+  letter-spacing: 0;
+  font-weight: var(--mp-type-caption-weight);
+  line-height: 17px;
+  margin-top: 3px;
 }
 .safety h2 {
   display: flex;
@@ -348,17 +484,24 @@ div.notice {
   color: var(--mp-color-status-warning);
 }
 .safety .consentCard {
-  padding: 16px;
-  min-height: 60px;
+  padding: 12px 16px;
+  min-height: 72px;
   align-items: center;
   background: var(--mp-color-bg-elevated);
 }
-.saveStatus {
+.safety .consentCard > span {
+  min-height: 44px;
+}
+.safety .consentCard > svg {
+  color: var(--mp-color-text-tertiary);
+}
+.fields + div > .saveStatus {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: var(--mp-type-overline-size) !important;
+  font-size: var(--mp-type-caption-size) !important;
+  line-height: 17px;
 }
 .complete {
   display: grid;
@@ -368,7 +511,10 @@ div.notice {
   text-align: center;
 }
 .complete p {
-  font-size: var(--mp-type-label-s-size);
+  font-size: var(--mp-type-body-m-size);
+}
+.complete h1 {
+  line-height: 32px;
 }
 .completeMark {
   display: grid;
@@ -383,7 +529,13 @@ div.notice {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: var(--mp-type-label-s-size) !important;
+  font-size: var(--mp-type-body-m-size) !important;
+  line-height: var(--mp-type-body-m-line-height);
+  color: var(--mp-color-text-primary);
+}
+.completeSteps {
+  gap: 12px;
+  padding: 18px 20px;
 }
 .completeRow svg {
   color: var(--mp-color-status-success);
@@ -395,27 +547,46 @@ div.notice {
 .completeRow:nth-child(3) svg {
   color: var(--mp-color-text-tertiary);
 }
+.completeRow:nth-child(3) {
+  color: var(--mp-color-text-tertiary);
+}
 .completeSummary {
-  gap: 10px;
+  gap: 8px;
   padding: 16px;
+  background: var(--mp-color-bg-glass);
 }
 .completeSummary dl {
   padding: 0;
   border: none;
 }
+.completeSummary dt {
+  flex-shrink: 0;
+  font-size: var(--mp-type-body-m-size);
+  color: var(--mp-color-text-tertiary);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.completeSummary dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--mp-type-body-m-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: var(--mp-type-body-m-line-height);
+}
 .completeLinks {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: baseline;
   gap: 8px;
 }
 .completeLinks button {
-  padding: 4px 0;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--mp-color-text-accent);
   font: inherit;
   font-size: var(--mp-type-caption-size);
+  line-height: 17px;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -423,7 +594,7 @@ div.notice {
 .consentChoice {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
 }
 /* 작고 둥근 선택 칩과 별점은 고객 설문 원본의 밀도를 따릅니다. */
@@ -437,10 +608,14 @@ div.notice {
 }
 .fields > fieldset:has(> div > label > input[type='radio']):not(.strength) > div:has(> label) {
   order: 1;
-  margin-top: 4px;
+  margin-top: 0;
 }
 .fields > fieldset:has(> div > label > input[type='radio']):not(.strength) > div[id] {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
+  line-height: 17px;
+}
+.fields > fieldset.starRating:has(> div > label > input[type='radio']) > div[id] {
+  margin-bottom: 8px;
 }
 .fields > div:has(> label + input + div[id]),
 .fields > div:has(> label + textarea + div[id]) {
@@ -467,4 +642,26 @@ div.notice {
   min-width: 32px;
   min-height: 32px;
   padding: 0;
+}
+.fields label[for] + :is(input, textarea) {
+  font-weight: var(--mp-type-caption-weight);
+}
+.fields div[id$='-hint'],
+.fields > section:not(.safety) > p,
+.fields > fieldset > p {
+  color: var(--mp-color-text-tertiary);
+}
+.completeSummary .completeLinks:first-child > p {
+  font-size: var(--mp-type-label-s-size) !important;
+  line-height: 18px;
+}
+.completeSummary .completeLinks:last-child > p,
+.fields > div > div[id$='-hint'],
+.fields > section:not(.safety) > p,
+.fields > fieldset > p,
+.fields.photoQuestions div[id$='-hint'] {
+  line-height: 17px;
+}
+.fields.photoQuestions > .selectorGroup > p {
+  line-height: var(--mp-type-caption-line-height);
 }

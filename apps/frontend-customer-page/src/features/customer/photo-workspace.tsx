@@ -163,25 +163,32 @@ export function PhotoWorkspace({
             />
           ))}
         </div>
-        {revisionPhotos.map((id) => {
-          const photo = results.find((item) => item.id === id)!;
-          return (
-            <section className={styles.revisionCard} key={id}>
-              <Image unoptimized width={48} height={60} src={photo.url} alt="" />
-              <TextArea
-                label={`사진 ${photo.cutNo} · 어떻게 고칠까요?`}
-                value={comments[id] ?? ''}
-                onValueChange={(value) => setComments((previous) => ({ ...previous, [id]: value }))}
-                maxLength={1000}
-                placeholder="원하는 수정 내용을 알려주세요"
-              />
-            </section>
-          );
-        })}
+        {revisionPhotos.length > 0 && (
+          <div className={styles.revisionList}>
+            {revisionPhotos.map((id) => {
+              const photo = results.find((item) => item.id === id)!;
+              return (
+                <section className={styles.revisionCard} key={id}>
+                  <Image unoptimized width={48} height={60} src={photo.url} alt="" />
+                  <TextArea
+                    rows={1}
+                    label={`사진 ${photo.cutNo} · 어떻게 고칠까요?`}
+                    value={comments[id] ?? ''}
+                    onValueChange={(value) =>
+                      setComments((previous) => ({ ...previous, [id]: value }))
+                    }
+                    maxLength={1000}
+                    placeholder="원하는 수정 내용을 알려주세요"
+                  />
+                </section>
+              );
+            })}
+          </div>
+        )}
         {revisionHelp || (
           <Notice className={styles.deliveryNotice}>
             <Icon name="solar/magic-stick-3-bold" size={16} />
-            수정본이 완성되면 결과물 화면에서 바로 받을 수 있어요.
+            담당자가 사진별 수정 요청을 확인해요. 완성된 수정본은 결과물 화면에서 받을 수 있어요.
           </Notice>
         )}
         <SceneFooter>

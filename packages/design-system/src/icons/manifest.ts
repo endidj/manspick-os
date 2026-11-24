@@ -1,5 +1,10 @@
 // 아이콘 이름과 기존 별칭을 변경하지 않은 로컬 SVG 파일에 연결합니다.
 import mdiInstagram from '../assets/icons/mdi/instagram.svg?url';
+import customerClock from '../assets/icons/customer/clock.svg?url';
+import customerDirector from '../assets/icons/customer/director.svg?url';
+import customerHelp from '../assets/icons/customer/help.svg?url';
+import customerLocation from '../assets/icons/customer/location.svg?url';
+import customerWarning from '../assets/icons/customer/warning.svg?url';
 import siteInstagram from '../assets/icons/site/instagram.svg?url';
 import solarGalleryWideBoldDuotone from '../assets/icons/site/gallery-wide-bold-duotone.svg?url';
 import riKakaoTalkFill from '../assets/icons/ri/kakao-talk-fill.svg?url';
@@ -128,6 +133,15 @@ export const siteIconManifest = {
   'solar/gallery-wide-bold-duotone': solarGalleryWideBoldDuotone,
 } as const;
 
+// 고객 화면의 앱 바와 촬영 준비 카드에서 내보낸 원본 도형입니다.
+const customerIconManifest = {
+  'customer/clock': customerClock,
+  'customer/director': customerDirector,
+  'customer/help': customerHelp,
+  'customer/location': customerLocation,
+  'customer/warning': customerWarning,
+} as const;
+
 // Compatibility artwork has no matching asset in the 53-icon Figma export.
 export const compatibilityIconManifest = {
   'compat/clock': compatClock,
@@ -160,12 +174,14 @@ export const iconAliases = {
   chevron: 'solar/double-alt-arrow-right-bold',
 } as const satisfies Record<string, FigmaIconName | keyof typeof compatibilityIconManifest>;
 export type IconAlias = keyof typeof iconAliases;
-export type IconName = FigmaIconName | IconAlias | keyof typeof siteIconManifest;
+export type IconName =
+  FigmaIconName | IconAlias | keyof typeof siteIconManifest | keyof typeof customerIconManifest;
 
 const sourceManifest = { ...figmaIconManifest, ...compatibilityIconManifest };
 export const iconManifest: Readonly<Record<IconName, string>> = Object.freeze({
   ...figmaIconManifest,
   ...siteIconManifest,
+  ...customerIconManifest,
   ...Object.fromEntries(
     Object.entries(iconAliases).map(([alias, original]) => [alias, sourceManifest[original]]),
   ),

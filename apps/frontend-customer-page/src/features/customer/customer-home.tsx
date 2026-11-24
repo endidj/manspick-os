@@ -5,6 +5,7 @@ import { dateTime, money } from '@manspick/web/format';
 import type { ShootDetail } from '@manspick/contracts';
 import { resolveJourney, daysUntil, type CustomerScene } from './journey';
 import {
+  isOutfitGuide,
   packageSummary,
   prepaidPlatform,
   reviewState,
@@ -49,7 +50,6 @@ export function CustomerHome({
   const journey = resolveJourney(shoot);
   const days = daysUntil(shoot.startsAt);
   const preparation = shoot.preparation;
-  const read = preparation?.guides.filter((g) => g.readAt).length ?? 0;
   const required = shoot.package.retouchCount;
   const state = journey.state;
   const homeStage = state === 'results' ? 7 : journey.stage;
@@ -63,11 +63,15 @@ export function CustomerHome({
   const surveyPages = new Set(shoot.survey?.pageDone ?? []).size;
   const surveyStarted = surveyPages > 0 || Object.keys(shoot.survey?.answers ?? {}).length > 0;
   const preparationConfirmed = Boolean(preparation?.confirmedAt);
-  const guidesRemaining = preparation?.guides.filter((guide) => !guide.readAt).length ?? 0;
   const outfitsMissing = Math.max(
     0,
     shoot.outfitPhotosRequired - shoot.uploads.filter((asset) => asset.kind === 'outfit').length,
   );
+  const guidesRemaining =
+    preparation?.guides.filter((guide) => !isOutfitGuide(guide) && !guide.readAt).length ?? 0;
+  const read =
+    preparation?.guides.filter((guide) => (isOutfitGuide(guide) ? !outfitsMissing : guide.readAt))
+      .length ?? 0;
   const preparationComplete = preparationConfirmed && outfitsMissing === 0;
   const review = reviewState(shoot);
   const copy =
@@ -112,14 +116,14 @@ export function CustomerHome({
             ? {
                 title: `${name}님, 오늘 촬영날이에요`,
                 subtitle: '편하게 오세요. 디렉터가 먼저 나가 있을게요.',
-                task: `${shootTime(shoot.startsAt)} · ${preparation?.location.meetingPlace || '만남 장소 확인'}`,
+                task: `${shootTime(shoot.startsAt, '24h')} · ${preparation?.location.meetingPlace || '만남 장소 확인'}`,
                 description: `의상 ${shoot.outfitPhotosRequired}벌과 신발을 챙겨주세요.\n늦을 것 같으면 카카오톡으로 알려주세요.`,
                 cta: preparation?.location.mapUrl ? '지도 보기' : '촬영 진행 확인',
               }
             : state === 'selection'
               ? {
                   title: `${name}님, 사진이 도착했어요`,
-                  subtitle: '마음에 드는 것을 골라주시면 보정을 시작해요.',
+                  subtitle: '마음에 드는 컷을 골라주시면 보정을 시작해요.',
                   task: `결과물 셀렉 · ${required}장 고르기`,
                   description: `후보 사진 중 보정받을 ${required}장을 골라주세요.\n보정본은 평균 1~3일 뒤에 받아보실 수 있어요.`,
                   cta: '사진 고르러 가기',
@@ -207,13 +211,13 @@ export function CustomerHome({
                             ? '일정과 장소, 준비물은 언제든 다시 확인할 수 있어요.'
                             : [
                                 outfitsMissing > 0
-                                  ? `의상 사진 ${outfitsMissing}장을 ${shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지 ` : ''}더 올려주세요.`
+                                  ? `의상 사진을 ${shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지 ` : ''}올려주세요.`
                                   : '',
                                 !preparation?.guides.length
                                   ? '담당자가 촬영 준비 안내를 정리하고 있어요.'
                                   : guidesRemaining > 0
-                                    ? `확인할 안내가 ${guidesRemaining}개 남았어요.`
-                                    : preparationConfirmed
+                                    ? `확인할 안내${outfitsMissing ? '도' : '가'} ${guidesRemaining}개 남았어요.`
+                                    : preparationConfirmed || outfitsMissing > 0
                                       ? ''
                                       : '안내를 모두 읽으셨다면 준비 화면에서 전체 확인을 마쳐주세요.',
                               ]
@@ -236,7 +240,7 @@ export function CustomerHome({
       </header>
       <section className={styles.nextAction} aria-labelledby="next-action-title">
         <h2 id="next-action-title">
-          <Icon name="solar/checklist-minimalistic-bold" size={19} />
+          <Icon name="solar/checklist-minimalistic-bold" size={20} />
           <span>
             {copy.task}
             {state === 'payment' && shoot.holdExpiresAt && (
@@ -295,8 +299,9 @@ export function CustomerHome({
         <div>
           <Icon name="solar/user-bold" size={17} />
           <span>
-            담당 디렉터{' '}
-            {state === 'payment' ? '확정 후 안내' : (shoot.directorName ?? '확정 후 안내')}
+            {state === 'payment'
+              ? '담당 디렉터는 확정 후 안내'
+              : `담당 디렉터 ${shoot.directorName ?? '확정 후 안내'}`}
           </span>
         </div>
         <div>

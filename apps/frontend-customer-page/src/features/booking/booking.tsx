@@ -369,7 +369,7 @@ export function Booking() {
                   <section className={styles.commonCard}>
                     <h2>모든 패키지 공통</h2>
                     <p>
-                      아이폰 촬영 (카페 · 야외 스팟) · 사진 컨설팅 · 포즈·표정 디렉팅 · 수정 3회
+                      아이폰 촬영 (카페 · 야외 스팟) · 사전 컨설팅 · 포즈·표정 디렉팅 · 수정 3회
                     </p>
                     <p>
                       원본은 후기 확인 후 전체 제공 ·{' '}
@@ -449,7 +449,7 @@ export function Booking() {
                     </div>
                   </section>
                   <SceneFooter>
-                    <div className={layout.between}>
+                    <div className={styles.summaryStrip}>
                       <div className={styles.footerSummary}>
                         <span>{summary}</span>
                         <strong>{money(total)}</strong>
@@ -498,16 +498,21 @@ export function Booking() {
                       { value: 'unpaid', label: '아직 결제 전' },
                     ]}
                   />
-                  <TextField
-                    className={styles.amountField}
-                    label="결제 금액 (원)"
-                    value={reportedAmount || String(total)}
-                    onValueChange={setReportedAmount}
-                    type="number"
-                    min={0}
-                    max={100000000}
-                    hint="선택하신 구성과 결제 금액이 다르면 직원이 확인 후 연락드려요. 계좌이체는 날짜를 고른 뒤 입금 안내를 드려요."
-                  />
+                  <div className={styles.amountEntry}>
+                    <TextField
+                      className={styles.amountField}
+                      label="결제 금액 (원)"
+                      value={reportedAmount || String(total)}
+                      onValueChange={setReportedAmount}
+                      type="number"
+                      min={0}
+                      max={100000000}
+                      hint="선택하신 구성과 결제 금액이 다르면 직원이 확인 후 연락드려요. 계좌이체는 날짜를 고른 뒤 입금 안내를 드려요."
+                    />
+                    <span className={styles.formattedAmount} aria-hidden="true">
+                      {Number(reportedAmount || total).toLocaleString('ko-KR')}
+                    </span>
+                  </div>
                   <TextField
                     label="이름"
                     value={name}
@@ -580,7 +585,7 @@ export function Booking() {
                 </form>
               )}
               {step === 3 && (
-                <>
+                <div className={styles.schedule}>
                   <section className={styles.selectedOptions}>
                     <div>
                       <p>선택한 촬영</p>
@@ -627,15 +632,14 @@ export function Booking() {
                   <Notice tone="warning" className={styles.notice}>
                     <strong>결제 방법에 따라 이렇게 진행돼요</strong>
                     <p>
-                      크몽 · 프립 · 숨고 · 스마트스토어에서 이미 결제하셨다면 직원 확인 후 확정돼요.
+                      크몽 · 프립 · 숨고 · 스마트스토어: 직원 확인 후 확정돼요.
                       <br />
-                      계좌이체는 최대 {policy?.holdHours ?? 24}시간 동안 일정을 잡아두고 입금 안내를
-                      드려요. 촬영 {policy?.holdCutoffHours ?? 2}시간 전에는 입금 확인이 끝나야
-                      해요.
+                      계좌이체: 최대 {policy?.holdHours ?? 24}시간 일정을 잡아둬요. 촬영{' '}
+                      {policy?.holdCutoffHours ?? 2}시간 전까지 입금 확인이 필요해요.
                     </p>
                   </Notice>
                   <SceneFooter>
-                    <div className={layout.between}>
+                    <div className={styles.summaryStrip}>
                       <div className={styles.footerSummary}>
                         <span>선택한 일정</span>
                         <strong>
@@ -660,7 +664,7 @@ export function Booking() {
                       </a>
                     </p>
                   </SceneFooter>
-                </>
+                </div>
               )}
             </>
           )}

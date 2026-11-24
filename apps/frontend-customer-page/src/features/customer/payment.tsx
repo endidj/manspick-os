@@ -12,7 +12,13 @@ import type { CustomerScene } from './journey';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
-export function HoldCountdown({ until }: { until: string }) {
+export function HoldCountdown({
+  until,
+  showPrefix = false,
+}: {
+  until: string;
+  showPrefix?: boolean;
+}) {
   const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
     const update = () =>
@@ -25,10 +31,11 @@ export function HoldCountdown({ until }: { until: string }) {
   if (remaining === 0) return <span>입금 확인 기한 종료</span>;
   return (
     <span>
+      {showPrefix && '남은 시간 '}
       {[Math.floor(remaining / 3600), Math.floor((remaining % 3600) / 60), remaining % 60]
         .map((part) => String(part).padStart(2, '0'))
-        .join(':')}{' '}
-      남음
+        .join(':')}
+      {!showPrefix && ' 남음'}
     </span>
   );
 }
@@ -154,12 +161,21 @@ export function PaymentView({
         </p>
       </header>
       {shoot.holdExpiresAt && (
-        <Notice tone="warning" role="note">
+        <Notice tone="warning" role="note" className={styles.paymentDeadline}>
           <strong>
-            <HoldCountdown until={shoot.holdExpiresAt} /> · {dateTime(shoot.holdExpiresAt)}
+            <HoldCountdown until={shoot.holdExpiresAt} showPrefix /> ·{' '}
+            {dateTime(shoot.holdExpiresAt)}
             까지
           </strong>
-          <p>기한이 지나면 잡아둔 일정이 해제될 수 있어요.</p>
+          <p>
+            {!requested && !platform && (
+              <>
+                입금한 뒤 ‘입금했어요’를 눌러주세요.
+                <br />
+              </>
+            )}
+            기한이 지나면 잡아둔 일정이 해제될 수 있어요.
+          </p>
         </Notice>
       )}
       <SummaryCard
@@ -219,13 +235,17 @@ export function PaymentView({
         </p>
       )}
       {!platform && (
-        <TextField
-          label="입금자명"
-          value={depositor}
-          onValueChange={setDepositor}
-          maxLength={40}
-          hint="예약자 이름과 다르게 입금하시면 꼭 적어주세요."
-        />
+        <div className={styles.depositor}>
+          <TextField
+            label="입금자명"
+            className={styles.depositorField}
+            data-filled={Boolean(depositor.trim()) || undefined}
+            value={depositor}
+            onValueChange={setDepositor}
+            maxLength={40}
+            hint="예약자 이름과 다르게 입금하시면 꼭 적어주세요."
+          />
+        </div>
       )}
       {!platform && requested && (
         <Notice tone="success">입금 확인을 요청했어요. 직원이 확인하면 예약이 확정돼요.</Notice>
@@ -252,7 +272,11 @@ export function PaymentView({
             {platform ? '결제 확인 상태 새로고침' : '입금 확인 상태 새로고침'}
           </Button>
         )}
-        {!platform && <p>입금자명과 금액을 직원이 확인하면 바로 확정돼요.</p>}
+        {!platform && (
+          <p className={styles.paymentFooterHint}>
+            입금자명과 금액을 직원이 확인하면 바로 확정돼요.
+          </p>
+        )}
       </SceneFooter>
     </>
   );

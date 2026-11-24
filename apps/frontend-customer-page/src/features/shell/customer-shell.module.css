@@ -3,6 +3,8 @@
   clip-path: inset(50%);
 }
 .shell {
+  --mp-color-bg-glass: var(--mp-color-bg-glass-on-base);
+  --mp-color-bg-accent-tint: var(--mp-color-bg-accent-on-base);
   max-width: 480px;
   min-height: 100dvh;
   margin: 0 auto;
@@ -12,11 +14,14 @@
   padding: 0;
 }
 .shell .appBar {
-  padding-inline-end: var(--mp-space-24);
+  padding-inline: var(--mp-space-24);
   border-bottom: 1px solid var(--mp-color-border-subtle);
 }
-.brandBar {
-  padding-inline: var(--mp-space-24);
+.logo {
+  display: block;
+}
+.shell :global(.notice-warning) {
+  background-color: var(--mp-color-bg-warning-on-base);
 }
 .main {
   padding: 24px;
@@ -28,8 +33,18 @@
   padding: 14px 24px 16px;
 }
 .stepHeader > div:first-child {
+  position: relative;
+  top: -1px;
   line-height: var(--mp-type-label-s-line-height);
   margin-bottom: var(--mp-space-8);
+}
+.shell .stepHeader > div:first-child > :last-child {
+  font-family: var(--mp-font-body);
+  font-variant-numeric: normal;
+  color: var(--mp-color-text-tertiary);
+}
+.stepHeader [role='progressbar'] > span {
+  border-radius: inherit;
 }
 .helpLink {
   display: inline-flex;
@@ -38,9 +53,14 @@
   padding: 0;
   border: 0;
   background: transparent;
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   color: var(--mp-color-text-secondary);
   cursor: pointer;
+  transform: translateY(1px);
+}
+.helpLink span {
+  position: relative;
+  top: 1px;
 }
 .accountAction {
   display: grid;
@@ -71,9 +91,15 @@
 .footer button {
   width: 100%;
 }
+:where(.shell) button[data-variant] {
+  font-weight: var(--mp-type-body-m-weight);
+}
+.shell button[data-variant='kakao'] {
+  color: var(--mp-color-text-on-kakao);
+}
 .footerActions {
   display: flex;
-  gap: 10px;
+  gap: var(--mp-space-8);
 }
 .footerActions > :first-child {
   flex: 0 0 100px;
@@ -85,7 +111,7 @@
 :where(.main) h1 {
   font-size: var(--mp-type-h1-size);
   line-height: var(--mp-type-h1-line-height);
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   font-weight: var(--mp-type-h1-weight);
 }
 .main a {
@@ -94,7 +120,7 @@
 :where(.main) h2 {
   font-size: var(--mp-type-h2-size);
   line-height: var(--mp-type-h2-line-height);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 :where(.main) h3 {
   font-size: var(--mp-type-h3-size);
@@ -118,9 +144,6 @@
 }
 .main header.stack {
   gap: 6px;
-}
-.stepHeader + .main header.stack {
-  gap: var(--mp-space-4);
 }
 :where(.card) {
   padding: 20px;
@@ -155,7 +178,10 @@
   color: var(--mp-color-text-secondary);
 }
 .main .overline {
+  position: relative;
+  top: -1px;
   color: var(--mp-color-text-accent);
+  font-family: var(--mp-type-overline-family);
   font-size: var(--mp-type-overline-size) !important;
   font-weight: var(--mp-type-body-m-strong-weight);
   letter-spacing: 0.12em;
@@ -219,7 +245,7 @@
     padding: 20px 16px;
   }
   .shell .stepHeader,
-  .brandBar,
+  .shell .appBar,
   .footer {
     padding-inline: 16px;
   }

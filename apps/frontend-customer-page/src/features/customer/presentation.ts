@@ -9,6 +9,10 @@ const prepaidChannels: Record<string, string> = {
   smartstore: '스마트스토어',
 };
 
+export function isOutfitGuide(guide: { id: string; title: string }) {
+  return /outfit/i.test(guide.id) || /의상.*(사진|준비)|^의상$/.test(guide.title);
+}
+
 export function prepaidPlatform(channel: string | undefined): string | undefined {
   return channel && Object.hasOwn(prepaidChannels, channel) ? prepaidChannels[channel] : undefined;
 }
@@ -59,11 +63,12 @@ export function shootDate(value: string | null, includeTime = false) {
   return includeTime ? `${day} ${shootTime(value)}` : day;
 }
 
-export function shootTime(value: string | null) {
+export function shootTime(value: string | null, format: 'display' | '24h' = 'display') {
   if (!value) return '시간 확인 중';
   return new Intl.DateTimeFormat('ko-KR', {
     timeZone: 'Asia/Seoul',
-    hour: 'numeric',
+    hour: format === '24h' ? '2-digit' : 'numeric',
+    ...(format === '24h' && { hourCycle: 'h23' }),
     minute: '2-digit',
   }).format(new Date(value));
 }

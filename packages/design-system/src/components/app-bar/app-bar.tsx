@@ -10,6 +10,7 @@ export type AppBarProps = HTMLAttributes<HTMLElement> & {
   actions?: ReactNode;
   onBack?: () => void;
   backLabel?: string;
+  backPlacement?: 'leading' | 'actions';
 };
 
 export function AppBarBrand() {
@@ -29,27 +30,34 @@ export function AppBar({
   actions,
   onBack,
   backLabel = '뒤로가기',
+  backPlacement = 'leading',
   className = '',
   ...props
 }: AppBarProps) {
+  const backButton = onBack && (
+    <Button
+      variant="ghost"
+      size="md"
+      className={styles.appBarBack}
+      aria-label={backLabel}
+      onClick={onBack}
+    >
+      <Icon name="solar/arrow-left-linear" />
+    </Button>
+  );
   return (
     <header {...props} className={`${styles.appBar} ${className}`}>
       <div className={styles.appBarIdentity}>
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="md"
-            className={styles.appBarBack}
-            aria-label={backLabel}
-            onClick={onBack}
-          >
-            <Icon name="solar/arrow-left-linear" />
-          </Button>
-        )}
+        {backPlacement === 'leading' && backButton}
         {leading}
         {brand ?? <AppBarBrand />}
       </div>
-      {actions && <div className={styles.appBarActions}>{actions}</div>}
+      {(actions || (backButton && backPlacement === 'actions')) && (
+        <div className={styles.appBarActions}>
+          {backPlacement === 'actions' && backButton}
+          {actions}
+        </div>
+      )}
     </header>
   );
 }

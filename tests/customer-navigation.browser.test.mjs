@@ -203,6 +203,17 @@ test(
           await page.evaluate(() => document.fonts.ready);
           for (const width of [320, 390, 1440]) {
             await page.setViewportSize({ width, height: 844 });
+            const brand = await page
+              .getByRole('link', { name: 'MANSPICK', exact: true })
+              .boundingBox();
+            const shellLeft = Math.max(0, (width - 480) / 2);
+            assert.equal(brand?.x, shellLeft + (width <= 360 ? 16 : 24));
+            if (width === 390) {
+              const track = await page
+                .getByRole('progressbar', { name: '촬영 옵션 선택' })
+                .boundingBox();
+              assert.deepEqual(track, { x: 24, y: 96, width: 342, height: 4 });
+            }
             const box = await radio.boundingBox();
             assert.ok(
               box && box.width <= 22 && box.height <= 22 && box.width === box.height,
@@ -437,6 +448,13 @@ test(
           const gallery = page.getByRole('region', { name: '촬영 후보 사진' });
           await gallery.waitFor();
           assert.equal(await gallery.getByRole('button').count(), 42);
+          const [first, second, fourth] = await Promise.all(
+            [0, 1, 3].map((index) => gallery.getByRole('button').nth(index).boundingBox()),
+          );
+          assert.ok(first && second && fourth);
+          assert.deepEqual([first.width, first.height], [112, 140]);
+          assert.equal(second.x - first.x - first.width, 3);
+          assert.equal(fourth.y - first.y - first.height, 3);
           assert.ok(await gallery.evaluate((el) => el.scrollHeight > el.clientHeight * 2));
           const last = gallery.getByRole('button', { name: /촬영 후보 42번$/ });
           await last.click();
@@ -645,6 +663,17 @@ test(
           await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
           for (let number = 1; number <= 4; number += 1) {
             await expectPath(page, `/s/demo-token/survey/${number}`);
+            if (number === 2) {
+              const previous = await page
+                .getByRole('button', { name: '이전', exact: true })
+                .boundingBox();
+              const next = await page
+                .getByRole('button', { name: '다음', exact: true })
+                .boundingBox();
+              assert.ok(previous && next);
+              assert.equal(previous.width, 100);
+              assert.equal(next.x - previous.x - previous.width, 8);
+            }
             if (number === 4) {
               await page.getByRole('checkbox', { name: '주의사항을 모두 확인했어요' }).uncheck();
               await page.getByRole('checkbox', { name: '주의사항을 모두 확인했어요' }).check();

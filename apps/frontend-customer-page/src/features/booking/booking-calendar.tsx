@@ -36,7 +36,7 @@ export function BookingCalendar({
           disabled={monthIndex === 0}
           onClick={() => setMonthIndex(monthIndex - 1)}
         >
-          <Icon name="solar/arrow-left-linear" size={18} />
+          <Icon name="solar/alt-arrow-down-linear" size={18} />
         </Button>
         <h3 aria-live="polite">
           {year}년 {monthNumber}월
@@ -48,7 +48,7 @@ export function BookingCalendar({
           disabled={monthIndex >= months.length - 1}
           onClick={() => setMonthIndex(monthIndex + 1)}
         >
-          <Icon name="solar/arrow-right-linear" size={18} />
+          <Icon name="solar/alt-arrow-down-linear" size={18} />
         </Button>
       </div>
       <div className={styles.dateGrid}>

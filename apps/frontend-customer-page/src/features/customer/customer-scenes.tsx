@@ -86,7 +86,7 @@ export function ReviewView({
           title="추가 보정"
           description={
             shoot.extraRetouchAvailable
-              ? `후보 사진 중 마음에 드는 것을 더 골라 보정해드려요. 1장당 ${money(shoot.retouchUnitPrice)}이에요.`
+              ? `후보 사진 중 마음에 드는 컷을 더 골라 보정해 드려요. 1장당 ${money(shoot.retouchUnitPrice)}이에요.`
               : '현재 추가 보정의 신규 신청을 받지 않아요. 이미 신청한 보정은 그대로 진행돼요.'
           }
           status={

@@ -12,18 +12,34 @@ div.notice {
   gap: 4px;
   padding: 12px 14px;
   font-size: var(--mp-type-caption-size);
+  border-radius: var(--mp-radius-12);
+  line-height: var(--mp-type-caption-line-height);
+  border-color: color-mix(in srgb, var(--mp-color-action-primary) 48%, transparent);
+  background: color-mix(in srgb, var(--mp-color-action-primary) 10%, transparent);
 }
 .notice p {
   font-size: inherit;
-  line-height: 1.6;
+  line-height: var(--mp-type-caption-line-height);
+}
+.notice strong {
+  line-height: 20px;
+  font-weight: var(--mp-type-caption-weight);
+  font-size: var(--mp-type-label-s-size);
 }
 h2.sectionTitle {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--mp-type-body-l-size);
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-caption-weight);
+  letter-spacing: -0.01em;
+  line-height: 25px;
+}
+section:has(> .addonList) {
+  gap: 20px;
 }
 .sectionTitle span {
+  letter-spacing: 0;
   margin-left: 6px;
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
@@ -54,7 +70,7 @@ h2.sectionTitle {
   overflow-wrap: anywhere;
 }
 .packageList .packageChoice[data-checked] {
-  box-shadow: inset 0 0 0 1px var(--mp-color-action-primary);
+  border-width: 2px;
   background: var(--mp-color-bg-accent-tint);
 }
 .packageChoice > span,
@@ -86,7 +102,10 @@ h2.sectionTitle {
 }
 .packageChoice > span > span:first-child {
   grid-area: name;
-  font-size: var(--mp-type-body-l-size);
+  font-size: var(--mp-type-h3-size);
+  line-height: 24px;
+  font-weight: var(--mp-type-caption-weight);
+  letter-spacing: -0.01em;
 }
 .packageChoice .best {
   display: inline-block;
@@ -99,7 +118,8 @@ h2.sectionTitle {
   font-size: var(--mp-type-overline-size);
   font-weight: var(--mp-type-overline-weight);
   line-height: 1.3;
-  letter-spacing: 0.08em;
+  font-family: var(--mp-font-display);
+  letter-spacing: 0.12em;
   white-space: nowrap;
 }
 .packageMeta {
@@ -119,15 +139,15 @@ h2.sectionTitle {
 .priceStack strong {
   color: var(--mp-color-text-primary);
   font-size: var(--mp-type-label-m-size);
-  font-weight: var(--mp-type-label-m-weight);
+  font-weight: var(--mp-type-caption-weight);
 }
 .packageDetails {
   display: grid;
   grid-area: details;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: var(--mp-type-caption-size);
-  line-height: var(--mp-type-caption-line-height);
+  line-height: 17px;
 }
 .packageDetails span {
   display: flex;
@@ -149,10 +169,11 @@ h2.sectionTitle {
   background: var(--mp-color-bg-elevated);
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
+  line-height: 17px;
 }
 .commonCard {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   padding: 14px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
@@ -163,14 +184,19 @@ h2.sectionTitle {
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-caption-line-height);
 }
+.commonCard h2 {
+  font-size: var(--mp-type-label-s-size);
+  font-weight: var(--mp-type-caption-weight);
+  letter-spacing: 0;
+}
 .addonWrap {
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
 }
 .addonWrap > label.addonChoice {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto 22px;
+  grid-template-columns: 20px minmax(0, 1fr) auto 22px;
   grid-template-areas:
     'icon title price check'
     'icon description price check';
@@ -192,16 +218,20 @@ h2.sectionTitle {
 }
 .addonChoice > span > span:first-child {
   grid-area: title;
-  font-size: var(--mp-type-label-s-size);
+  font-size: var(--mp-type-body-m-size);
+  line-height: 22px;
+  font-weight: var(--mp-type-caption-weight);
 }
 .addonDescription {
   grid-area: description;
   color: var(--mp-color-text-tertiary);
+  line-height: 17px;
 }
 .addonPrice {
   grid-area: price;
   white-space: nowrap;
-  font-weight: var(--mp-type-label-s-weight);
+  font-weight: var(--mp-type-caption-weight);
+  font-size: var(--mp-type-label-s-size);
 }
 .addonChoice input {
   grid-area: check;
@@ -223,18 +253,49 @@ h2.sectionTitle {
   min-height: 32px;
   padding: 4px 8px;
 }
-.footerSummary {
+.summaryStrip {
   display: grid;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.summaryStrip > span {
+  text-align: right;
+  font-size: var(--mp-type-caption-size) !important;
+}
+.summaryStrip ~ p,
+.detailsForm > div:has(button[type='submit']) > p {
+  line-height: 17px;
+}
+.footerSummary {
+  display: contents;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 .footerSummary span {
+  grid-column: 1 / -1;
   font-size: var(--mp-type-caption-size);
+  line-height: 17px;
   color: var(--mp-color-text-tertiary);
 }
 .footerSummary strong {
-  font-size: var(--mp-type-body-l-size);
+  font-size: var(--mp-type-h2-size);
+  line-height: var(--mp-type-body-l-line-height);
+  letter-spacing: -0.02em;
+}
+.schedule .footerSummary strong {
+  font-size: var(--mp-type-h3-size);
+  line-height: 25px;
+  font-weight: var(--mp-type-caption-weight);
+  letter-spacing: -0.01em;
+}
+.schedule .summaryStrip {
+  row-gap: 2px;
+  align-items: end;
+}
+.schedule .summaryStrip > span {
+  font-size: var(--mp-type-label-s-size) !important;
+  line-height: 18px;
 }
 .duration {
   flex: none;
@@ -249,19 +310,25 @@ h2.sectionTitle {
   align-items: center;
   gap: 16px;
   justify-content: space-between;
-  padding: 18px 16px;
+  padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
   overflow-wrap: anywhere;
+}
+.selectedOptions > div {
+  display: grid;
+  gap: 4px;
 }
 .selectedOptions p {
   font-size: var(--mp-type-caption-size);
-  margin-bottom: 4px;
+  line-height: var(--mp-type-overline-line-height);
+  color: var(--mp-color-text-tertiary);
 }
 .selectedOptions strong {
-  font-size: var(--mp-type-body-m-strong-size);
-  font-weight: var(--mp-type-body-m-strong-weight);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+  font-weight: var(--mp-type-caption-weight);
 }
 .change {
   flex-shrink: 0;
@@ -269,20 +336,58 @@ h2.sectionTitle {
   border: 0;
   background: none;
   color: var(--mp-color-text-accent);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   cursor: pointer;
 }
 .detailsForm {
   gap: 20px;
+}
+.detailsForm .selectedOptions > div {
+  gap: 2px;
+}
+.detailsForm .selectedOptions p {
+  line-height: 17px;
+}
+.detailsForm > :last-child {
+  margin-top: 4px;
+}
+section:has(> .addonList) + div {
+  margin-top: 4px;
+}
+.detailsForm label:has(+ input[required]) > span[aria-hidden] {
+  display: none;
 }
 .detailsForm input:is([autocomplete='name'], [type='tel']):not([value='']) {
   border-color: var(--mp-color-border-accent);
 }
 .detailsForm label[for]:has(+ input[autocomplete], + input[placeholder]) {
   color: var(--mp-color-text-secondary);
+  line-height: 18px;
+  font-weight: var(--mp-type-caption-weight);
 }
-div:has(> input.amountField) {
+.detailsForm div[id$='-hint'] {
+  line-height: 17px;
+}
+.amountEntry {
   position: relative;
+  margin-top: -12px;
+}
+.formattedAmount {
+  display: none;
+}
+@media (forced-colors: none) {
+  .amountEntry:not(:focus-within) .formattedAmount {
+    position: absolute;
+    inset: 0 16px auto auto;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    pointer-events: none;
+    font-weight: var(--mp-type-caption-weight);
+  }
+  .amountEntry:not(:focus-within) input.amountField {
+    color: transparent;
+  }
 }
 div:has(> input.amountField) > label {
   position: absolute;
@@ -291,28 +396,31 @@ div:has(> input.amountField) > label {
   align-items: center;
   height: 52px;
   color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-body-m-size);
   font-weight: var(--mp-type-caption-weight);
 }
 .detailsForm input.amountField {
+  height: 52px;
   min-height: 52px;
+  padding-block: 12px;
   padding-left: 112px;
   text-align: right;
   background: var(--mp-color-bg-elevated);
 }
 .consents {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
 }
 .consents label {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
 }
 .consents label > span {
   flex: 1;
@@ -320,7 +428,7 @@ div:has(> input.amountField) > label {
 .consents small {
   flex: none;
   color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-overline-size);
+  font-size: var(--mp-type-caption-size);
 }
 .addonWrap .addonChoice input[type='checkbox'],
 .consents input[type='checkbox'] {
@@ -359,43 +467,79 @@ div:has(> input.amountField) > label {
   padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
+}
+.schedule {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+main:has(> .schedule) {
+  row-gap: 24px;
+}
+.schedule .selectedOptions strong {
+  font-size: var(--mp-type-h3-size);
+  line-height: 24px;
+  letter-spacing: -0.01em;
+}
+.schedule section:has(> .times) {
+  gap: 12px;
+}
+.schedule .sectionTitle {
+  line-height: 25px;
+}
+.times + p {
+  line-height: 17px;
+}
+.schedule .notice {
+  background: color-mix(in srgb, var(--mp-color-status-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--mp-color-status-warning) 45%, transparent);
 }
 .monthHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
-.monthHeader > button {
+.calendar .monthHeader > button {
+  width: 24px;
+  height: 24px;
   min-width: 24px;
   min-height: 24px;
   padding: 0;
 }
 .monthHeader h3 {
-  font-size: var(--mp-type-label-m-size);
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-caption-weight);
+  line-height: 25px;
 }
 .dateGrid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: 4px 0;
 }
 .dateGrid > button {
   width: 100%;
   min-width: 0;
   min-height: 48px;
+  padding-block: 4px 10px;
+}
+.dateGrid > button > span[aria-hidden='true'] {
+  bottom: 9px;
 }
 .weekday {
-  padding: 4px 0 8px;
+  padding: 0 0 10px;
   text-align: center;
-  color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-overline-size);
+  color: var(--mp-color-text-tertiary);
+  font-size: var(--mp-type-caption-size);
+  line-height: 18px;
 }
 .legend {
-  margin-top: 16px;
-  font-size: var(--mp-type-overline-size);
-  color: var(--mp-color-text-secondary);
+  margin-top: 14px;
+  font-size: var(--mp-type-caption-size);
+  line-height: 17px;
+  color: var(--mp-color-text-tertiary);
 }
 .legend span {
   margin-right: 12px;
@@ -412,10 +556,11 @@ div:has(> input.amountField) > label {
 .times {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 12px 15px;
 }
 .times > button {
   min-width: 0;
+  font-weight: var(--mp-type-caption-weight);
 }
 .primaryLink {
   display: flex;
@@ -434,11 +579,29 @@ div:has(> input.amountField) > label {
 .channelPills > div > label {
   min-height: 32px;
   padding: 6px 12px;
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
+  line-height: 18px;
 }
 .channelPills > div {
   gap: 6px;
 }
-.channelPills + div:has(input.amountField) {
-  margin-top: -8px;
+.detailsForm .channelPills > legend {
+  margin-bottom: 8px;
+  font-size: var(--mp-type-label-m-size);
+  font-weight: var(--mp-type-caption-weight);
+}
+.channelPills > div > label:not(:has(input:checked)) {
+  background: var(--mp-color-bg-elevated);
+}
+.detailsForm input[placeholder] {
+  font-size: var(--mp-type-body-l-size);
+  font-weight: var(--mp-type-caption-weight);
+  min-height: 57px;
+  line-height: 23px;
+}
+.monthHeader > button:first-child svg {
+  transform: rotate(90deg);
+}
+.monthHeader > button:last-child svg {
+  transform: rotate(-90deg);
 }

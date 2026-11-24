@@ -6,6 +6,8 @@
 
 `compat/`의 clock·search·settings·logout·plus 5개는 기존 코드에서 사용하던 도형을 보존한 호환 파일이다. 이 파일들은 Figma 원본 53개로 집계하지 않는다.
 
+`customer/`에는 C0 상단바의 문의와 C4 촬영 준비 카드의 위치·디렉터·시간·주의 아이콘을 보관한다. 고객 화면에서 내보낸 SVG의 경로를 공통 24×24 좌표계로 옮겼다. C0의 카메라와 MANSPICK 글자가 결합된 118×28 로고는 `../brand/customer-logo.svg`에 보관한다.
+
 ## 컬렉션 출처
 
 - Solar Icon Set: [480 Design / Damir Tuarshe](https://github.com/480-Design/Solar-Icon-Set).

@@ -13,7 +13,7 @@ import { SceneFooter, KakaoButton } from '../shell';
 import type { CustomerViewProps } from './view-types';
 import { UploadButton, UploadList } from './uploads';
 import { daysUntil } from './journey';
-import { packageName, shootDate, shootSchedule, shootTime } from './presentation';
+import { isOutfitGuide, packageName, shootDate, shootSchedule, shootTime } from './presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
@@ -35,10 +35,6 @@ const pendingGuides: Guide[] = [
   body: '',
   readAt: null,
 }));
-
-function isOutfitGuide(guide: { id: string; title: string }) {
-  return /outfit/i.test(guide.id) || /의상.*(사진|준비)|^의상$/.test(guide.title);
-}
 
 function isPlanGuide(guide: { id: string; title: string }) {
   return (
@@ -84,8 +80,17 @@ export function PreparationView({
   function guideDescription(guide: Guide) {
     if (isOutfitGuide(guide)) {
       if (!shoot.outfitPhotosRequired) return '올려야 할 의상 사진이 없어요';
-      const due = shoot.outfitDueAt ? ` · ${shootDate(shoot.outfitDueAt)}까지` : '';
-      return `${shoot.outfitPhotosRequired}벌 기준 · ${uploaded.length}장 업로드${due}`;
+      const deadline = shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지` : '';
+      const progress = `${uploaded.length}장 업로드`;
+      const hasLookbook =
+        guide.url?.trim() &&
+        /코디\s*북|codi[-_ ]?book/i.test(
+          [guide.title, guide.summary, guide.body, guide.url].join(' '),
+        );
+      const guidance = hasLookbook
+        ? `코디북 가이드 · ${deadline ? `${deadline} 업로드` : progress}`
+        : [progress, deadline].filter(Boolean).join(' · ');
+      return `${shoot.outfitPhotosRequired}벌 기준 · ${guidance}`;
     }
     if (isPlanGuide(guide))
       return shoot.plan?.sharedAt
@@ -123,33 +128,37 @@ export function PreparationView({
       <section className={styles.dayCard}>
         <div className={layout.between}>
           <strong className={styles.dayTitle}>
-            {days === 0 ? 'D-DAY' : days !== null && days > 0 ? `D−${days}` : '촬영 준비'}
+            {days === 0 ? 'D-DAY' : days !== null && days > 0 ? `D-${days}` : '촬영 준비'}
           </strong>
           <span className={styles.greenPill}>촬영 확정</span>
         </div>
         <h1>{shoot.startsAt ? dateTime(shoot.startsAt) : '일정 확인 중'}</h1>
-        <p>
-          <Icon name="solar/map-point-bold" size={17} />
-          {preparation?.location.area || '촬영 장소는 정해지면 바로 안내'}
-          {preparation?.location.meetingPlace && ` · ${preparation.location.meetingPlace}`}
-          {preparation?.location.mapUrl && (
-            <>
-              {' '}
-              ·{' '}
-              <a href={preparation.location.mapUrl} target="_blank" rel="noreferrer">
-                지도 보기
-              </a>
-            </>
-          )}
-        </p>
-        <p>
-          <Icon name="solar/user-bold" size={17} />
-          {shoot.directorName ? directorLabel(shoot.directorName) : '담당 디렉터 확인 중'}
-        </p>
-        <p>
-          <Icon name="clock" size={17} />약 {shoot.package.duration / 60}시간 ·{' '}
-          {packageName(shoot.packageId, shoot.package.name)} ({shoot.package.outfits}벌)
-        </p>
+        <div className={styles.dayFacts}>
+          <p>
+            <Icon name="customer/location" size={16} />
+            <span>
+              {preparation?.location.area || '촬영 장소는 정해지면 바로 안내'}
+              {preparation?.location.meetingPlace && ` · ${preparation.location.meetingPlace}`}
+              {preparation?.location.mapUrl && (
+                <>
+                  {' '}
+                  ·{' '}
+                  <a href={preparation.location.mapUrl} target="_blank" rel="noreferrer">
+                    지도 보기
+                  </a>
+                </>
+              )}
+            </span>
+          </p>
+          <p>
+            <Icon name="customer/director" size={16} />
+            {shoot.directorName ? directorLabel(shoot.directorName) : '담당 디렉터 확인 중'}
+          </p>
+          <p>
+            <Icon name="customer/clock" size={16} />약 {shoot.package.duration / 60}시간 ·{' '}
+            {packageName(shoot.packageId, shoot.package.name)} ({shoot.package.outfits}벌)
+          </p>
+        </div>
       </section>
       <section className={styles.guideSection}>
         <div className={layout.between}>
@@ -176,6 +185,7 @@ export function PreparationView({
               label={guide.title}
               description={guideDescription(guide)}
               completed={completeGuide(guide)}
+              trailing={<span className={styles.guideChevron} aria-hidden="true" />}
               disabled={
                 busy ||
                 (isPlanGuide(guide)
@@ -197,7 +207,7 @@ export function PreparationView({
       </section>
       <Notice tone="warning" className={styles.preparationWarning}>
         <strong>
-          <span aria-hidden="true">⚠</span> 촬영 전날엔 이것만 피해주세요
+          <Icon name="customer/warning" size={18} /> 촬영 전날엔 이것만 피해주세요
         </strong>
         <div className={styles.warningTags}>
           {['음주', '과식', '무리한 운동', '수면 부족'].map((label) => (
@@ -295,7 +305,7 @@ export function PlanView({
     <>
       <header className={styles.completionHeader}>
         <span className={styles.successMark}>
-          <Icon name="solar/check-circle-bold" size={32} />
+          <Icon name="solar/check-circle-bold" size={36} />
         </span>
         <h1>디렉터가 촬영을 설계했어요</h1>
         <p>
@@ -313,7 +323,7 @@ export function PlanView({
       </header>
       <section className={`${layout.card} ${styles.planDetails}`}>
         <p className={styles.iconText}>
-          <Icon name="solar/check-circle-bold" size={17} />
+          <Icon name="solar/check-circle-bold" size={20} />
           컨셉 · {plan.concept}
         </p>
         {plan.outfits
@@ -321,7 +331,7 @@ export function PlanView({
           .filter(Boolean)
           .map((outfit, index) => (
             <p className={styles.iconText} key={`${index}-${outfit}`}>
-              <Icon name="solar/magic-stick-3-bold" size={17} />
+              <Icon name="solar/magic-stick-3-bold" size={20} />
               {outfit}
             </p>
           ))}
@@ -341,7 +351,7 @@ export function PlanView({
         )}
       </section>
       <section className={`${layout.card} ${styles.planFacts}`}>
-        <p className={layout.small}>촬영 장소 · 시간</p>
+        <p className={styles.planCaption}>촬영 장소 · 시간</p>
         <InfoRow label="동네" value={shoot.preparation?.location.area || '정해지면 바로 안내'} />
         <InfoRow
           label="만남"
@@ -429,16 +439,19 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
 
   return (
     <>
-      <section className={styles.dayCard}>
+      <section className={`${styles.dayCard} ${styles.shootDayCard}`}>
         <div className={layout.between}>
           <strong className={styles.dayTitle}>{today ? 'D-DAY' : '촬영 당일'}</strong>
-          <span className={finished ? styles.greenPill : styles.redPill}>
+          <span
+            className={finished ? styles.greenPill : styles.redPill}
+            data-live={(!cancelled && current >= 0) || undefined}
+          >
             {cancelled
               ? '촬영 취소'
               : finished
                 ? '촬영 완료'
                 : current >= 0
-                  ? '● 촬영 중'
+                  ? '촬영 중'
                   : '촬영 대기'}
           </span>
         </div>
@@ -470,13 +483,13 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
                 aria-current={active ? 'step' : undefined}
               >
                 <span className={styles.dayDot} aria-hidden="true">
-                  {completed ? <Icon name="check" size={15} /> : active ? '●' : ''}
+                  {completed && <Icon name="check" size={15} />}
                 </span>
                 <strong>{step.label}</strong>
                 <p>
                   {stepDetail(
                     step.status,
-                    event ? shootTime(event.createdAt) : undefined,
+                    event ? shootTime(event.createdAt, '24h') : undefined,
                     active,
                     completed,
                   )}
@@ -489,17 +502,27 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
         <strong className={styles.iconText}>
           <Icon name="solar/map-point-bold" size={17} />
           {location?.meetingPlace || '만남 장소 확인 중'}
-          {today && !finished && !cancelled ? ' (오늘 만날 장소)' : ''}
+          {today && !finished && !cancelled ? ' (오늘 만남 장소)' : ''}
         </strong>
         {hair && (
           <p className={layout.small}>
             헤어 & 메이크업: {[hair.place, hair.note].filter(Boolean).join(' · ')}
           </p>
         )}
-        <div className={styles.mapPlaceholder}>
-          <Icon name="solar/map-point-bold" size={30} />
-          <span>{location?.area || '장소가 정해지면 바로 안내해요'}</span>
-        </div>
+        {location?.mapUrl ? (
+          <a
+            className={styles.mapPlaceholder}
+            href={location.mapUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${location.meetingPlace || location.area || '만남 장소'} 지도 열기`}
+          />
+        ) : (
+          <div className={styles.mapPlaceholder}>
+            <Icon name="solar/map-point-bold" size={30} />
+            <span>{location?.area || '장소가 정해지면 바로 안내해요'}</span>
+          </div>
+        )}
         <div className={`${layout.actions} ${styles.locationActions}`}>
           {location?.mapUrl ? (
             <a

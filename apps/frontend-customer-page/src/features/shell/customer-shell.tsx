@@ -3,7 +3,9 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { AppBar, AppBarBrand, Button, StepHeader } from '@manspick/design-system/components';
+import Image from 'next/image';
+import { customerLogo } from '@manspick/design-system/assets';
+import { AppBar, Button, StepHeader } from '@manspick/design-system/components';
 import { Icon } from '@manspick/design-system/icons';
 import styles from './customer-shell.module.css';
 
@@ -31,9 +33,10 @@ export function CustomerShell({
   return (
     <div className={styles.shell}>
       <AppBar
-        className={onBack ? styles.appBar : `${styles.appBar} ${styles.brandBar}`}
+        className={styles.appBar}
         onBack={onBack}
         backLabel={backLabel}
+        backPlacement="actions"
         brand={
           <Link
             href="/"
@@ -46,7 +49,14 @@ export function CustomerShell({
                 : undefined
             }
           >
-            <AppBarBrand />
+            <Image
+              className={styles.logo}
+              src={customerLogo}
+              width={118}
+              height={28}
+              alt="MANSPICK"
+              unoptimized
+            />
           </Link>
         }
         actions={
@@ -59,7 +69,8 @@ export function CustomerShell({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Icon name="chat" size={16} /> 문의하기
+                <Icon name="customer/help" size={16} />
+                <span>문의하기</span>
               </a>
             </>
           )
@@ -85,7 +96,7 @@ export function KakaoButton({
     <Button
       fullWidth
       variant="kakao"
-      leadingIcon={<Icon name="chat" size={18} />}
+      leadingIcon={<Icon name="customer/help" size={18} />}
       onClick={onClick}
     >
       {children}

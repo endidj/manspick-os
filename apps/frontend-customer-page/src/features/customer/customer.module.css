@@ -12,8 +12,9 @@
   align-items: center;
   gap: 8px;
   font-size: var(--mp-type-h3-size);
-  line-height: var(--mp-type-h3-line-height);
-  font-weight: var(--mp-type-body-m-strong-weight);
+  line-height: 25px;
+  font-weight: var(--mp-type-body-m-weight);
+  letter-spacing: -0.01em;
 }
 .nextAction h2 svg {
   flex-shrink: 0;
@@ -35,7 +36,7 @@
 }
 .reservationCard > div {
   display: flex;
-  gap: 10px;
+  gap: 11px;
   align-items: flex-start;
   font-size: var(--mp-type-body-m-size);
   line-height: var(--mp-type-label-m-line-height);
@@ -46,7 +47,7 @@
   margin-top: 2px;
 }
 .reservationCard a {
-  color: var(--mp-color-text-accent);
+  color: inherit;
 }
 .journeyCard {
   display: grid;
@@ -64,7 +65,7 @@
   background: none;
   color: var(--mp-color-text-secondary);
   text-align: left;
-  font-size: var(--mp-type-label-s-size);
+  font-size: var(--mp-type-body-m-size);
 }
 .journeyRow:disabled {
   opacity: 1;
@@ -72,7 +73,6 @@
 }
 .journeyRow[data-current] {
   color: var(--mp-color-text-primary);
-  font-weight: var(--mp-type-label-m-weight);
 }
 .journeyRow[data-completed],
 .journeyRow[data-completed] .journeyState {
@@ -101,14 +101,56 @@
 }
 .journeyState {
   margin-left: auto;
-  font-size: var(--mp-type-overline-size);
+  font-size: var(--mp-type-caption-size);
   color: var(--mp-color-text-accent);
 }
 .paymentCard {
-  padding: var(--mp-space-16);
+  padding: 15px var(--mp-space-16);
   background: var(--mp-color-bg-glass);
 }
+.paymentCard > div:first-child {
+  gap: 3px;
+}
+.paymentCard > div:first-child > :first-child {
+  color: var(--mp-color-text-tertiary);
+}
+.paymentDeadline:global(.notice-warning) {
+  padding: var(--mp-space-12) 14px;
+}
+.paymentDeadline strong {
+  display: block;
+  color: #fcd44d;
+  font-weight: var(--mp-type-body-m-weight);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-caption-line-height);
+}
+.paymentDeadline p {
+  margin-top: 6px;
+  font-size: var(--mp-type-caption-size);
+  line-height: var(--mp-type-caption-line-height);
+}
+.depositorField {
+  font-size: var(--mp-type-body-l-size);
+  line-height: 23px;
+}
+.depositor {
+  margin-bottom: var(--mp-space-4);
+}
+.depositor label {
+  color: var(--mp-color-text-secondary);
+  font-weight: var(--mp-type-body-m-weight);
+  line-height: 18px;
+}
+.depositor [id$='-hint'],
+main p.paymentFooterHint {
+  color: var(--mp-color-text-tertiary);
+  line-height: 17px;
+}
+.depositorField[data-filled] {
+  border-color: var(--mp-color-action-primary);
+}
 .paymentCard strong {
+  font-weight: var(--mp-type-body-m-weight);
   font-size: var(--mp-type-body-m-size);
   line-height: var(--mp-type-body-m-line-height);
 }
@@ -129,16 +171,18 @@
   border: 0;
 }
 .sectionTitle {
-  font-size: var(--mp-type-body-l-size);
-  line-height: var(--mp-type-body-m-line-height);
+  font-size: var(--mp-type-h3-size);
+  line-height: 25px;
+  letter-spacing: -0.01em;
+  font-weight: var(--mp-type-body-m-weight);
 }
 .cyan {
   color: var(--mp-color-text-accent);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
 }
 .dayCard {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   padding: 20px;
   border: 1px solid var(--mp-color-border-accent);
   border-radius: var(--mp-radius-16);
@@ -148,12 +192,16 @@
   font-size: var(--mp-type-h2-size);
   line-height: var(--mp-type-h2-line-height);
 }
+.dayFacts {
+  display: grid;
+  gap: var(--mp-space-8);
+}
 .dayCard p {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--mp-type-label-s-size);
-  line-height: 1.5;
+  gap: var(--mp-space-8);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
 }
 .dayCard p svg {
   color: var(--mp-color-text-accent);
@@ -164,7 +212,8 @@
   font-size: var(--mp-type-display-l-size);
   font-weight: var(--mp-type-display-l-weight);
   font-family: var(--mp-type-display-l-family);
-  line-height: var(--mp-type-display-l-line-height);
+  line-height: 38px;
+  letter-spacing: -0.04em;
 }
 .greenPill,
 .redPill {
@@ -172,11 +221,23 @@
   border-radius: var(--mp-radius-full);
   background: var(--mp-color-bg-elevated);
   color: var(--mp-color-status-success);
-  font-size: var(--mp-type-overline-size);
+  font-size: var(--mp-type-label-s-size);
   line-height: var(--mp-type-caption-line-height);
 }
 .redPill {
   color: var(--mp-color-status-danger);
+}
+.redPill[data-live] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.redPill[data-live]::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
 }
 .progressTrack {
   height: 4px;
@@ -191,50 +252,97 @@
 }
 .guideSection {
   display: grid;
-  gap: var(--mp-space-12);
+  gap: 10px;
   margin-top: var(--mp-space-4);
 }
 .guideList {
   display: grid;
   gap: var(--mp-space-8);
-  margin-top: var(--mp-space-12);
+  margin-top: 14px;
 }
 .guideList .guideItem {
   padding: var(--mp-space-12) var(--mp-space-16);
   border-radius: var(--mp-radius-16);
   background: var(--mp-color-bg-glass);
 }
+.guideList .guideItem [data-completed] {
+  text-decoration: none;
+}
+.guideItem > span:nth-child(2) {
+  gap: 2px;
+}
+.guideItem > span:nth-child(2) > span:first-child {
+  font-weight: var(--mp-type-body-m-weight);
+  letter-spacing: -0.01em;
+  line-height: 25px;
+}
+.guideItem > span:nth-child(2) > span:last-child:not(:first-child) {
+  color: var(--mp-color-text-tertiary);
+  line-height: 17px;
+}
+.guideItem > span:first-child[data-completed] svg {
+  display: none;
+}
+.guideItem > span:first-child[data-completed]::after {
+  content: '';
+  width: 5px;
+  height: 9px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.guideChevron {
+  width: 8px;
+  height: 8px;
+  margin-inline: 6px;
+  border: solid var(--mp-color-text-tertiary);
+  border-width: 1.5px 1.5px 0 0;
+  transform: rotate(45deg);
+}
 .preparationWarning:global(.notice-warning) {
+  --mp-color-bg-warning-on-base: color-mix(
+    in srgb,
+    var(--mp-color-status-warning) 8%,
+    var(--mp-color-bg-base)
+  );
+  margin-block: var(--mp-space-4);
   padding: var(--mp-space-16);
   border-radius: var(--mp-radius-16);
+  background: var(--mp-color-bg-warning-on-base);
 }
 .preparationWarning strong {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-8);
   color: var(--mp-color-text-primary);
-  font-size: var(--mp-type-body-m-strong-size);
-  line-height: var(--mp-type-body-m-strong-line-height);
+  font-size: var(--mp-type-h3-size);
+  line-height: 25px;
+  letter-spacing: -0.01em;
+  font-weight: var(--mp-type-body-m-weight);
 }
-.preparationWarning strong span {
-  margin-right: var(--mp-space-4);
+.preparationWarning strong svg {
+  flex: none;
   color: var(--mp-color-status-warning);
 }
 .warningTags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--mp-space-8);
   margin-block: var(--mp-space-12);
 }
 .warningTags span {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: var(--mp-radius-full);
   color: var(--mp-color-text-secondary);
   background: var(--mp-color-bg-elevated);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-label-s-line-height);
 }
 .completionHeader {
   display: grid;
   justify-items: center;
-  gap: 16px;
-  padding: var(--mp-space-16) 0 var(--mp-space-4);
+  gap: 18px;
+  padding-top: var(--mp-space-16);
   text-align: center;
 }
 .completionHeader h1 {
@@ -243,9 +351,16 @@
 }
 .dayCard .shootDayHeading {
   font-size: var(--mp-type-h3-size);
-  line-height: var(--mp-type-h3-line-height);
-  font-weight: var(--mp-type-body-m-strong-weight);
-  letter-spacing: normal;
+  line-height: 25px;
+  font-weight: var(--mp-type-body-m-weight);
+  letter-spacing: -0.01em;
+}
+.shootDayCard {
+  gap: var(--mp-space-12);
+}
+.shootDayCard p {
+  font-size: var(--mp-type-caption-size);
+  line-height: 17px;
 }
 .planDetails,
 .planFacts,
@@ -253,11 +368,11 @@
   gap: var(--mp-space-12);
 }
 .planDetails {
-  padding: 18px var(--mp-space-20);
+  padding: 18px;
 }
 .planDetails p {
   color: var(--mp-color-text-primary);
-  font-size: var(--mp-type-label-s-size);
+  font-size: var(--mp-type-body-m-size);
   line-height: var(--mp-type-body-m-line-height);
 }
 .planDetails p:first-child svg {
@@ -266,21 +381,41 @@
 .planFacts,
 .locationCard {
   padding: var(--mp-space-16);
+  margin-bottom: var(--mp-space-4);
+  background: var(--mp-color-bg-glass);
+}
+.planFacts {
+  gap: var(--mp-space-8);
+}
+.planFacts .planCaption {
+  font-size: var(--mp-type-label-s-size);
 }
 .planFacts p,
+.planFacts dt,
 .locationCard p {
+  color: var(--mp-color-text-tertiary);
+}
+.planFacts p {
   line-height: var(--mp-type-caption-line-height);
+}
+.locationCard p {
+  line-height: 17px;
 }
 .planFacts dl {
   padding: 0;
   border: 0;
-  line-height: var(--mp-type-label-s-line-height);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
+}
+.planFacts p:last-child {
+  line-height: 17px;
 }
 .successMark {
   display: grid;
   place-items: center;
   width: 72px;
   height: 72px;
+  margin-bottom: 2px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--mp-color-status-success) 12%, transparent);
   color: var(--mp-color-status-success);
@@ -316,7 +451,8 @@
 .dayTimeline {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: var(--mp-space-4) 0 15px;
+  line-height: var(--mp-type-body-m-line-height);
 }
 .dayTimeline li {
   position: relative;
@@ -332,8 +468,8 @@
 }
 .dayTimeline strong {
   font-size: var(--mp-type-body-m-size);
-  color: var(--mp-color-text-secondary);
-  font-weight: var(--mp-type-body-m-strong-weight);
+  color: var(--mp-color-text-tertiary);
+  font-weight: var(--mp-type-body-m-weight);
 }
 .dayTimeline p {
   margin-top: var(--mp-space-4);
@@ -366,12 +502,22 @@
   background: var(--mp-color-action-primary);
   border-color: var(--mp-color-action-primary);
 }
+.dayTimeline [data-current] .dayDot::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  border-radius: 50%;
+}
 .dayTimeline [data-completed] strong,
 .dayTimeline [data-current] strong {
   color: var(--mp-color-text-primary);
 }
 .dayTimeline [data-current] p {
   color: var(--mp-color-text-accent);
+}
+.dayTimeline [data-current] strong {
+  font-size: var(--mp-type-label-m-size);
 }
 .mapPlaceholder {
   display: grid;
@@ -384,7 +530,11 @@
   color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-caption-size);
 }
-.locationActions {
+.mapPlaceholder:focus-visible {
+  outline: 2px solid var(--mp-color-text-accent);
+  outline-offset: 2px;
+}
+.locationCard .locationActions {
   gap: var(--mp-space-8);
 }
 .locationActions .secondaryLink,
@@ -399,9 +549,14 @@
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-elevated);
   color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   font-weight: var(--mp-type-caption-weight);
   text-decoration: none;
+}
+.locationCard > .iconText {
+  font-weight: var(--mp-type-body-m-weight);
+  font-size: var(--mp-type-body-m-size);
+  line-height: var(--mp-type-body-m-line-height);
 }
 .selectionBadges {
   display: flex;
@@ -416,8 +571,17 @@
   font-weight: var(--mp-type-caption-weight);
   line-height: var(--mp-type-caption-line-height);
 }
+.selectionBadges > span {
+  font-size: var(--mp-type-label-s-size);
+}
 .benefitCard :global(.badge) {
-  padding-block: var(--mp-space-4);
+  padding-block: 5px;
+  line-height: 17px;
+}
+.selectionBadges :global(.badge-neutral),
+.benefitCard :global(.badge-neutral) {
+  background: var(--mp-color-bg-elevated);
+  color: var(--mp-color-text-secondary);
 }
 .photoFilters {
   display: flex;
@@ -435,7 +599,7 @@
   border-radius: var(--mp-radius-8);
   background: transparent;
   color: var(--mp-color-text-tertiary);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
   line-height: var(--mp-type-caption-line-height);
   cursor: pointer;
 }
@@ -447,14 +611,20 @@
 .resultGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
 }
 .candidateGallery {
   container-type: inline-size;
+  margin-bottom: var(--mp-space-4);
+}
+.selectionGrid button > span[data-selected] {
+  font-size: var(--mp-type-label-s-size);
+  background: var(--mp-color-action-primary);
+  border-color: var(--mp-color-action-primary);
 }
 .selectionGrid[data-scrollable] {
   /* 세 열의 4:5 사진을 네 줄까지 표시하고 나머지는 같은 영역에서 스크롤합니다. */
-  max-height: calc((100cqw - 8px) * 5 / 3 + 12px);
+  max-height: calc((100cqw - 6px) * 5 / 3 + 9px);
   overflow-y: auto;
   scrollbar-width: thin;
   align-content: start;
@@ -464,10 +634,14 @@
   text-align: center;
   color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
-  line-height: var(--mp-type-caption-line-height);
+  line-height: 17px;
 }
 .resultGrid {
   gap: 6px;
+}
+.resultGrid .imageButton,
+.resultGrid .revisionPhoto {
+  border-radius: 10px;
 }
 .resultPhoto img {
   display: block;
@@ -478,6 +652,20 @@
 }
 .revisionPhoto:not([data-selected]) img {
   opacity: 0.45;
+}
+.resultGrid .revisionPhoto {
+  background: var(--mp-color-bg-base);
+}
+.revisionPhoto:not([data-selected]) {
+  border-width: 0;
+}
+.selectionGrid button > img,
+.revisionPhoto button > img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }
 .revisionPhoto button > span[aria-hidden] {
   display: none;
@@ -494,6 +682,14 @@
 .selectedCount {
   color: var(--mp-color-text-accent);
   font-size: var(--mp-type-h2-size);
+  line-height: var(--mp-type-h2-line-height);
+  letter-spacing: -0.02em;
+}
+.selectionSummary > :first-child {
+  font-size: var(--mp-type-body-m-size);
+}
+.selectionSummary > :last-child {
+  color: var(--mp-color-text-tertiary);
 }
 .selectionProgress {
   display: flex;
@@ -516,7 +712,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: var(--mp-space-16);
+  padding: 14px var(--mp-space-16);
+  margin-bottom: var(--mp-space-4);
   border: 0;
   border-radius: var(--mp-radius-12);
   background: var(--mp-color-bg-elevated);
@@ -535,16 +732,17 @@
   padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
 }
 .deliveryCard strong {
   display: block;
   font-size: var(--mp-type-body-m-strong-size);
-  font-weight: var(--mp-type-body-m-strong-weight);
+  font-weight: var(--mp-type-body-m-weight);
   line-height: var(--mp-type-body-m-strong-line-height);
 }
 .deliveryCard p {
-  margin-top: 2px;
+  margin-top: 1px;
+  color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-caption-line-height);
 }
@@ -569,16 +767,23 @@
   margin-left: auto;
   padding: 8px 12px;
   border: none;
-  border-radius: var(--mp-radius-12);
+  border-radius: 10px;
   background: var(--mp-color-action-primary);
   color: var(--mp-color-text-on-accent);
-  font-size: var(--mp-type-caption-size);
+  min-width: 47px;
+  text-align: center;
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-label-s-line-height);
   text-decoration: none;
   white-space: nowrap;
 }
 .openFile:disabled {
-  color: var(--mp-color-text-secondary);
+  color: var(--mp-color-text-tertiary);
   background: var(--mp-color-bg-elevated);
+}
+.revisionList {
+  display: grid;
+  gap: 10px;
 }
 .revisionCard {
   display: grid;
@@ -588,7 +793,7 @@
   padding: 16px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
 }
 .revisionCard img {
   object-fit: cover;
@@ -599,16 +804,27 @@
 }
 .revisionCard label {
   color: var(--mp-color-text-secondary);
-  font-size: var(--mp-type-caption-size);
+  font-weight: var(--mp-type-body-m-weight);
+  font-size: var(--mp-type-label-s-size);
 }
 .revisionCard textarea {
   grid-column: 1 / -1;
   width: 100%;
   min-height: 56px;
+  field-sizing: content;
+  padding: var(--mp-space-16);
+  background: var(--mp-color-bg-elevated);
+  font-size: var(--mp-type-body-l-size);
+  padding-block: 15px;
+  line-height: 25px;
+}
+.revisionCard textarea:not(:placeholder-shown) {
+  border-color: var(--mp-color-action-primary);
 }
 .benefitList {
   display: grid;
   gap: 16px;
+  margin-top: calc(-1 * var(--mp-space-4));
 }
 .benefitCard {
   display: grid;
@@ -616,7 +832,7 @@
   padding: 18px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-16);
-  background: var(--mp-color-bg-surface);
+  background: var(--mp-color-bg-glass);
 }
 .benefitIntro {
   display: flex;
@@ -624,14 +840,16 @@
   gap: 12px;
 }
 .benefitCard .benefitIntro h2 {
-  font-size: var(--mp-type-body-l-size);
-  font-weight: var(--mp-type-body-m-strong-weight);
-  line-height: var(--mp-type-body-m-line-height);
+  font-size: var(--mp-type-h3-size);
+  font-weight: var(--mp-type-body-m-weight);
+  line-height: 25px;
+  letter-spacing: -0.01em;
 }
 .benefitCard .benefitIntro p {
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-caption-line-height);
-  margin-top: 4px;
+  margin-top: 2px;
+  color: var(--mp-color-text-tertiary);
 }
 .benefitIcon {
   display: grid;
@@ -663,7 +881,8 @@
   border: 0;
   background: none;
   color: var(--mp-color-text-accent);
-  font-size: var(--mp-type-caption-size);
+  font-size: var(--mp-type-label-s-size);
+  line-height: var(--mp-type-label-s-line-height);
   text-decoration: none;
   cursor: pointer;
 }
