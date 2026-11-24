@@ -1,6 +1,8 @@
 # 맨즈픽 OS
 
-남성 스타일링·프로필 촬영의 예약부터 준비, 사진 선택·보정, 후기·원본 전달까지 연결하는 시스템입니다. 랜딩 페이지에서 서비스를 소개하고, 고객 페이지에서 예약과 촬영 진행을 확인하며, 어드민 페이지에서 같은 예약을 처리합니다.
+맨즈픽 OS는 남성 스타일링·프로필 촬영의 주문, 예약, 설문과 촬영 운영을 연결합니다. 계약상 고객은 주문 페이지에서 예약을 신청하고 희망 날짜·시간을 여러 개 제출합니다. 자사 고객은 이 페이지에서 결제하고 크몽·숨고 등에서 이미 결제한 고객은 플랫폼 닉네임을 입력합니다. 이후 카카오 또는 구글로 가입·로그인하고 설문 페이지로 이동합니다.
+
+대표·운영직원·디렉터 화면의 책임, 별도 지표 확인 페이지와 검수 범위는 [제품 요구사항](docs/01-product-requirements.md)에 정리했습니다. 아래 실행 안내와 샘플은 현재 저장소를 기준으로 하며, 기존 사진 선택·보정·후기 데모도 포함합니다.
 
 ## 로컬 실행
 
@@ -98,7 +100,7 @@ DB 준비와 상세 설정은 [Cloudflare 아키텍처](docs/07-cloudflare-archi
 | 사진 셀렉                | [/s/demo-selection-access](http://localhost:3001/s/demo-selection-access)     | `1003`   |
 | 보정 결과·수정·후기·원본 | [/s/demo-result-access](http://localhost:3001/s/demo-result-access)           | `1004`   |
 
-직원 앱은 **대표(admin)·운영 직원(staff)·디렉터(director)·보정가(retoucher)** 중 하나를 선택해 로그인합니다. 각각의 가상 활성 직원으로 세션을 만들고 서버에서 배정·역할·파일 접근을 검사합니다. 로컬 역할 선택 로그인과 샘플 목록은 `LOCAL_DEMO=true`와 로컬 호스트 조건에서 제공됩니다.
+직원 앱의 체험 로그인은 **대표(admin)·운영 직원(staff)·디렉터(director)·보정가(retoucher)** 중 하나를 선택합니다. 각각의 가상 활성 직원으로 세션을 만들고 서버에서 배정·역할·파일 접근을 검사합니다. 로컬 역할 선택 로그인과 샘플 목록은 `LOCAL_DEMO=true`와 로컬 호스트 조건에서 제공됩니다.
 
 새 예약은 [고객 앱 /start](http://localhost:3001/start)에서 생성합니다. 로컬에서는 접수 완료 후 체험용 개인 링크와 확인 번호를 표시합니다. 기존 진행 건이 있는 번호에는 진행 여부나 링크를 응답에 노출하지 않습니다. 운영자는 고객 상세에서 링크를 발급해 직접 전달할 수 있습니다. 자동 알림톡 발송은 연결되어 있지 않습니다.
 
@@ -138,7 +140,7 @@ API는 독립 Node.js 프로세스가 아니라 Workers의 Node API 호환 환�
 
 | 폴더                                                                   | 워크스페이스                       | 담당하는 일                                                                                                         |
 | ---------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [`apps/frontend-landing-page`](apps/frontend-landing-page/README.md)   | `@manspick/frontend-landing-page`  | 방문자에게 브랜드와 상품을 소개하고, `/recommend`에서 패키지를 추천합니다. 예약 버튼은 고객 앱으로 연결됩니다.      |
+| [`apps/frontend-landing-page`](apps/frontend-landing-page/README.md)   | `@manspick/frontend-landing-page`  | 브랜드와 상품을 소개하고, `/recommend`에서 패키지를 추천합니다. 현재 상담 버튼은 카카오 채널을 엽니다.              |
 | [`apps/frontend-customer-page`](apps/frontend-customer-page/README.md) | `@manspick/frontend-customer-page` | `/start`에서 예약을 접수합니다. 고객은 `/s/[token]` 개인 링크로 설문, 준비 안내, 사진 선택, 보정 결과를 확인합니다. |
 | [`apps/frontend-admin-page`](apps/frontend-admin-page/README.md)       | `@manspick/frontend-admin-page`    | 대표·운영 직원·디렉터·보정가가 배정, 일정, 촬영, 사진 업로드, 보정 전달을 처리합니다.                               |
 | [`apps/server`](apps/server/README.md)                                 | `@manspick/server`                 | 세 화면이 공유하는 NestJS API Worker입니다. 로그인·권한을 검사하고 예약·촬영 데이터와 보호된 사진을 저장합니다.     |

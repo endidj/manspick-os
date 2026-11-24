@@ -1,14 +1,22 @@
 # 계정·권한·개인정보 설계
 
-> 최신 구현 기준: 사용자 요청에 따라 [Cloudflare 전환안](../07-cloudflare-architecture.md)을 적용한다. 아래 Supabase Auth·RLS·Storage 설명은 원문 조사 당시의 기술 설계 이력이며, 현재는 단일 API Worker의 서버 인증·인가·SQL 범위 제한과 D1·private R2로 대체한다. 고객/직원의 업무 권한·개인정보 정책은 유지한다.
+## 개발 계약의 계정·권한 기준
 
-작성일: 2026-11-06 · 상태: 최신 원문을 반영한 설계 문서. 계정·정책·DB는 아직 생성하거나 적용하지 않았다.
+- 고객은 주문 페이지에서 예약을 신청한 뒤 카카오 또는 구글로 가입·로그인하고 설문 페이지에 진입한다. 고객은 전용 페이지에서 본인의 정보와 설문 상태를 확인한다.
+- 대표 화면에서 직원 정보와 역할을 관리한다. 직원 추가·삭제 권한은 현욱에게만 부여한다. 삭제는 계정 비활성화로 처리해 기존 기록을 보존한다.
+- 운영직원은 고객 프로필과 예약을 조회해 문의에 응대한다. 디렉터는 자신에게 배정된 고객과 예약을 확인하고 촬영 일정을 확정한다. 담당 배정과 일정 확정 알림은 해당 고객을 맡은 직원의 개인 카카오톡으로 보낸다. 보정가도 담당 건 알림의 수신 대상이며, 계약상 어드민 화면은 대표·운영직원·디렉터 세 가지다.
 
-## 1. 기준 자료와 구분
+계약의 전체 기능과 수용 기준은 [제품 요구사항](../01-product-requirements.md)을 따른다. 현재 서버의 인증·인가와 D1·비공개 R2 접근 경계는 [Cloudflare 아키텍처](../07-cloudflare-architecture.md)를 참고한다.
+
+현재 직원 관리 API는 `admin` 역할을 검사한다. 계약 검수에서는 현욱 계정으로 직원 추가·삭제가 가능하고 다른 대표 계정으로는 두 작업이 모두 거부되는지 확인한다. [직원 계정 API](../../apps/server/src/security/staff-accounts.ts) · [관리자 세션 검사](../../apps/server/src/security/sessions.ts)
+
+## 1. 초기 설계 기록의 기준 자료와 구분
+
+이하 1~12절은 2026-11-06에 조사한 역할·권한·개인정보 설계와 당시 미결 사항을 보존한다. 개인 링크와 전화번호 뒤 4자리 인증, 보정가 전용 작업 화면, Supabase Auth·RLS·Storage는 이 초기 설계의 맥락에서 읽는다.
 
 주요 근거는 [Canonical v1.11](https://app.notion.com/p/Canonical-Manspick-OS-398af8f3d6b0817d9a84da6b2e770aca), [Figma D3 API·권한 설계 v0.2](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=172-2), [Notion API v0.2](https://app.notion.com/p/API-v0-2-3eeaf8f3d6b081b6aadcd72a0017fd0c)다.
 
-이 문서의 **원문 정책**은 실제 자료에서 확인한 요구다. **설계 보완**은 그 요구를 서버·DB·파일에 일관되게 적용하기 위한 제안이다. 상태·업무별 상세 허용 조건은 [PRD](../01-product-requirements.md), DB 관계와 전이는 [데이터·흐름](../archive/05-data-and-flows.md)을 함께 따른다.
+아래의 **원문 정책**은 당시 자료에서 확인한 요구다. **설계 보완**은 그 요구를 서버·DB·파일에 일관되게 적용하기 위한 제안이다. 당시 상태·업무별 허용 조건은 [초기 PRD](../archive/01-product-requirements.md), DB 관계와 전이는 [초기 데이터·흐름](../archive/05-data-and-flows.md)에 기록했다.
 
 고객과 직원은 인증 방식이 다르다. 고객은 회원 가입 없이 촬영 개인 링크로 접근한다. 직원만 Supabase Auth 계정과 staff 허용 목록을 사용한다. 기존 초안의 임의 역할인 시스템 책임자·운영 관리자·담당 직원 대신 원문 역할 값인 `admin`, `staff`, `director`, `retoucher`를 사용한다.
 

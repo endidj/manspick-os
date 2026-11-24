@@ -15,10 +15,10 @@
 | HTTP 런타임      | NestJS 12.4.2·Express와 Workers의 Node HTTP 호환 계층. 독립 Node.js 프로세스는 배포하지 않음                                                               |
 | 로컬 실행        | API Worker 127.0.0.1:8787, Next 앱은 독립 포트. 로컬 리소스만 사용                                                                                         |
 | 운영 목표 구조   | 앱별 Vinext Worker → 내부 서비스 바인딩 → API Worker                                                                                                       |
-| 업무 유지        | 개인 링크·뒤4자리, 직원 4role, 30상태+별도 취소, 후기 확인 후 원본 공개, 수정3회 등 현행 정책                                                              |
+| 전환 당시 동작   | 개인 링크·뒤 4자리 인증, 직원 4개 역할, 30개 상태와 별도 취소, 후기 확인 후 원본 공개, 수정 3회 등 기존 구현                                               |
 | 파일 저장        | 고객 파일은 private R2에 저장. 원본 전달은 R2 원본 또는 검증한 외부 HTTPS 링크를 지원                                                                      |
 
-API Worker는 별도 Next.js 앱을 추가하는 것이 아니라 공통 서버의 실행 진입점이다. 제품 화면 폴더는 사용자 요청대로 세 개다. 서버 업무를 세 앱에 중복 구현하거나 브라우저가 D1을 직접 조회하는 구조를 만들지 않는다.
+현재 랜딩·고객·어드민 앱은 공통 API Worker를 통해 D1에 접근한다. 계약에서 정한 고객의 카카오·구글 인증, 고객용 주문 결제와 별도 지표 확인 페이지의 동작은 [제품 요구사항](01-product-requirements.md)을 따른다.
 
 현재 API의 HTTP 계층은 NestJS 12.4.2와 Express이다. `app.module.ts`가 기능 모듈을 조립하고 각 기능 폴더의 컨트롤러가 기존 업무 함수를 호출한다. `http/app.ts`는 본문 처리 전에 Origin을 검사하고, `http/access.ts`의 `AccessGuard`는 인증과 `@Public()`·`@RequireRole()` 선언을 적용한다. 촬영·파일 소유권과 D1/R2 변경은 기존 업무 모듈이 책임진다. 원본 Fetch 요청·바인딩·검증된 actor는 `http/context.ts`의 `AsyncLocalStorage`로 요청마다 분리하며 컨트롤러는 `@ApiContext()`로 받는다. 기존 업무 함수는 application service로 재사용하고 단순 위임용 클래스를 덧붙이지 않는다. 경로·응답 계약과 검사는 [서버 README](../apps/server/README.md)를 따른다.
 
