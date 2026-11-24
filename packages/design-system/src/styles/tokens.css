@@ -66,7 +66,9 @@
   --mp-color-action-primary-hover: var(--mp-primitive-color-blue-600);
   --mp-color-status-success: var(--mp-primitive-color-green-500);
   --mp-color-status-warning: var(--mp-primitive-color-amber-500);
+  --mp-color-status-warning-label: #fcd44d;
   --mp-color-status-danger: var(--mp-primitive-color-red-500);
+  --mp-color-status-live-label: #f87171;
   --mp-color-status-info-purple: var(--mp-primitive-color-purple-400);
   --mp-color-status-purple-label: var(--mp-primitive-color-purple-300);
   --mp-color-status-pink: var(--mp-primitive-color-pink-400);

@@ -1,5 +1,6 @@
 // 아이콘 이름과 기존 별칭을 변경하지 않은 로컬 SVG 파일에 연결합니다.
 import mdiInstagram from '../assets/icons/mdi/instagram.svg?url';
+import customerChevron from '../assets/icons/customer/chevron.svg?url';
 import customerClock from '../assets/icons/customer/clock.svg?url';
 import customerDirector from '../assets/icons/customer/director.svg?url';
 import customerHelp from '../assets/icons/customer/help.svg?url';
@@ -135,6 +136,7 @@ export const siteIconManifest = {
 
 // 고객 화면의 앱 바와 촬영 준비 카드에서 내보낸 원본 도형입니다.
 const customerIconManifest = {
+  'customer/chevron': customerChevron,
   'customer/clock': customerClock,
   'customer/director': customerDirector,
   'customer/help': customerHelp,

@@ -255,6 +255,12 @@ test(
           await page.goto(`${appUrl}/start`);
           await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await expectPath(page, '/start/details');
+          const bankChoice = page.getByRole('radio', { name: '계좌이체', exact: true });
+          assert.equal(await bankChoice.isChecked(), true);
+          const selectedTextColor = await page
+            .getByText('계좌이체', { exact: true })
+            .evaluate((text) => getComputedStyle(text).color);
+          assert.equal(selectedTextColor, 'rgb(87, 195, 250)');
           for (const [label, required] of [
             [/개인정보 수집·이용 동의.*필수/, true],
             [/촬영 안내 알림 수신 동의 \(카카오톡\).*필수/, true],

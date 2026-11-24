@@ -15,7 +15,7 @@
 }
 .pageProgress i {
   height: 4px;
-  background: var(--mp-color-bg-elevated);
+  background: rgb(from var(--mp-color-text-on-accent) r g b / 12%);
   border-radius: var(--mp-radius-full);
 }
 .pageProgress:has(> span:nth-child(3)[aria-current='step']) i {
@@ -109,6 +109,11 @@
 .purposePills > label.purposeChoice:not([data-checked]) {
   background: var(--mp-color-bg-elevated);
 }
+.fields > fieldset:not(.starRating, .strength) > div > label:has(> input[type='radio']:checked),
+.purposePills > .purposeChoice[data-checked] {
+  background: rgb(from var(--mp-color-action-primary) r g b / 18%);
+  color: var(--mp-color-text-accent);
+}
 .fields.photoQuestions > div > label,
 .fields.photoQuestions > fieldset > legend {
   font-size: var(--mp-type-h3-size) !important;
@@ -154,12 +159,15 @@ div.notice {
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-overline-line-height);
   border-radius: var(--mp-radius-12);
-  border-color: color-mix(in srgb, var(--mp-color-action-primary) 42%, transparent);
-  background: var(--mp-color-bg-accent-tint);
+  border-color: rgb(from var(--mp-color-action-primary) r g b / 40%);
+  background: rgb(from var(--mp-color-action-primary) r g b / 10%);
 }
 .notice:global(.notice-warning) {
   background: color-mix(in srgb, var(--mp-color-status-warning) 10%, transparent);
-  border-color: color-mix(in srgb, var(--mp-color-status-warning) 45%, transparent);
+  border-color: rgb(from var(--mp-color-status-warning) r g b / 40%);
+}
+.fields .notice:global(.notice-warning) strong {
+  color: var(--mp-color-status-warning-label);
 }
 .notice p {
   font-size: inherit;
@@ -303,6 +311,15 @@ div.notice {
 .purposePills > .purposeChoice[data-checked] > span > span {
   color: var(--mp-color-text-accent);
 }
+.fields.photoQuestions .purposeChoice[data-checked] {
+  background: rgb(from var(--mp-color-action-primary) r g b / 14%);
+}
+.fields.photoQuestions .purposeChoice:not([data-checked]) {
+  background: var(--mp-color-bg-glass);
+}
+.fields.photoQuestions .purposeChoice[data-checked] > span > span {
+  color: var(--mp-color-text-primary);
+}
 .purposeChoice > span[aria-hidden='true'] {
   width: auto;
   height: auto;
@@ -328,6 +345,12 @@ div.notice {
   align-items: center;
   gap: 12px;
   padding: 16px;
+}
+.selectorGroup > label[data-checked] {
+  background: rgb(from var(--mp-color-action-primary) r g b / 10%);
+}
+.selectorGroup > label > span > span[id] {
+  color: var(--mp-color-text-tertiary);
 }
 .selectorGroup > label > input[type='radio'] {
   appearance: none;
@@ -437,7 +460,7 @@ div.notice {
 .consentCard small {
   display: block;
   margin-top: 4px;
-  color: var(--mp-color-text-secondary);
+  color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
   line-height: var(--mp-type-caption-line-height);
 }
@@ -496,6 +519,7 @@ div.notice {
   color: var(--mp-color-text-tertiary);
 }
 .fields + div > .saveStatus {
+  color: var(--mp-color-text-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -523,7 +547,7 @@ div.notice {
   height: 72px;
   border-radius: 50%;
   color: var(--mp-color-status-success);
-  background: color-mix(in srgb, var(--mp-color-status-success) 12%, transparent);
+  background: rgb(from var(--mp-color-status-success) r g b / 15%);
 }
 .completeRow {
   display: flex;
@@ -554,6 +578,13 @@ div.notice {
   gap: 8px;
   padding: 16px;
   background: var(--mp-color-bg-glass);
+}
+.completeSummary + div button[data-variant='secondary'] {
+  border-color: var(--mp-color-border-strong);
+  background: var(--mp-color-bg-glass);
+}
+.completeSummary .completeLinks > p {
+  color: var(--mp-color-text-tertiary);
 }
 .completeSummary dl {
   padding: 0;

@@ -231,13 +231,14 @@ main p.paymentFooterHint {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  color: var(--mp-color-status-live-label);
 }
 .redPill[data-live]::before {
   content: '';
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--mp-color-status-danger);
 }
 .progressTrack {
   height: 4px;

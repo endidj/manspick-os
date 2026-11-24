@@ -37,7 +37,9 @@ export const semanticTokens = {
     status: {
       success: primitiveTokens.color.green500,
       warning: primitiveTokens.color.amber500,
+      warningLabel: '#fcd44d',
       danger: primitiveTokens.color.red500,
+      liveLabel: '#f87171',
       infoPurple: primitiveTokens.color.purple400,
       purpleLabel: primitiveTokens.color.purple300,
       pink: primitiveTokens.color.pink400,

@@ -14,10 +14,11 @@ div.notice {
   font-size: var(--mp-type-caption-size);
   border-radius: var(--mp-radius-12);
   line-height: var(--mp-type-caption-line-height);
-  border-color: color-mix(in srgb, var(--mp-color-action-primary) 48%, transparent);
+  border-color: rgb(from var(--mp-color-action-primary) r g b / 50%);
   background: color-mix(in srgb, var(--mp-color-action-primary) 10%, transparent);
 }
 .notice p {
+  color: rgb(from var(--mp-color-text-on-accent) r g b / 70%);
   font-size: inherit;
   line-height: var(--mp-type-caption-line-height);
 }
@@ -41,7 +42,7 @@ section:has(> .addonList) {
 .sectionTitle span {
   letter-spacing: 0;
   margin-left: 6px;
-  color: var(--mp-color-text-secondary);
+  color: var(--mp-color-text-tertiary);
   font-size: var(--mp-type-caption-size);
   font-weight: var(--mp-type-caption-weight);
 }
@@ -71,7 +72,7 @@ section:has(> .addonList) {
 }
 .packageList .packageChoice[data-checked] {
   border-width: 2px;
-  background: var(--mp-color-bg-accent-tint);
+  background: rgb(from var(--mp-color-action-primary) r g b / 10%);
 }
 .packageChoice > span,
 .packageChoice > span > span[id],
@@ -177,7 +178,7 @@ section:has(> .addonList) {
   padding: 14px;
   border: 1px solid var(--mp-color-border-subtle);
   border-radius: var(--mp-radius-12);
-  background: var(--mp-color-bg-surface);
+  background: rgb(from var(--mp-color-text-on-accent) r g b / 4%);
 }
 .commonCard h2,
 .commonCard p {
@@ -185,9 +186,16 @@ section:has(> .addonList) {
   line-height: var(--mp-type-caption-line-height);
 }
 .commonCard h2 {
+  color: rgb(from var(--mp-color-text-on-accent) r g b / 90%);
   font-size: var(--mp-type-label-s-size);
   font-weight: var(--mp-type-caption-weight);
   letter-spacing: 0;
+}
+.commonCard p {
+  color: rgb(from var(--mp-color-text-on-accent) r g b / 65%);
+}
+.commonCard p:last-child {
+  color: rgb(from var(--mp-color-text-on-accent) r g b / 50%);
 }
 .addonWrap {
   border: 1px solid var(--mp-color-border-subtle);
@@ -209,8 +217,8 @@ section:has(> .addonList) {
   overflow-wrap: anywhere;
 }
 .addonWrap[data-selected] {
-  border-color: var(--mp-color-border-accent);
-  background: var(--mp-color-bg-accent-tint);
+  border-color: rgb(from var(--mp-color-border-accent) r g b / 50%);
+  background: rgb(from var(--mp-color-action-primary) r g b / 8%);
 }
 .addonChoice .addonIcon {
   grid-area: icon;
@@ -260,11 +268,13 @@ section:has(> .addonList) {
   align-items: baseline;
 }
 .summaryStrip > span {
+  color: var(--mp-color-text-tertiary);
   text-align: right;
   font-size: var(--mp-type-caption-size) !important;
 }
 .summaryStrip ~ p:has(> a),
 .detailsForm > div:has(button[type='submit']) > p {
+  color: var(--mp-color-text-tertiary);
   line-height: 17px;
 }
 .footerSummary {
@@ -294,6 +304,7 @@ section:has(> .addonList) {
   align-items: end;
 }
 .schedule .summaryStrip > span {
+  color: var(--mp-color-text-secondary);
   font-size: var(--mp-type-label-s-size) !important;
   line-height: 18px;
 }
@@ -366,6 +377,7 @@ section:has(> .addonList) + div {
   font-weight: var(--mp-type-caption-weight);
 }
 .detailsForm div[id$='-hint'] {
+  color: var(--mp-color-text-tertiary);
   line-height: 17px;
 }
 .amountEntry {
@@ -488,12 +500,16 @@ main:has(> .schedule) {
 .schedule .sectionTitle {
   line-height: 25px;
 }
-.times + p {
+.schedule .times + p {
+  color: var(--mp-color-text-tertiary);
   line-height: 17px;
 }
 .schedule .notice {
   background: color-mix(in srgb, var(--mp-color-status-warning) 10%, transparent);
-  border-color: color-mix(in srgb, var(--mp-color-status-warning) 45%, transparent);
+  border-color: rgb(from var(--mp-color-status-warning) r g b / 40%);
+}
+.schedule .notice strong {
+  color: var(--mp-color-status-warning-label);
 }
 .monthHeader {
   display: flex;
@@ -527,6 +543,9 @@ main:has(> .schedule) {
 }
 .dateGrid > button > span[aria-hidden='true'] {
   bottom: 9px;
+}
+.dateGrid > button:disabled {
+  opacity: 0.5;
 }
 .weekday {
   padding: 0 0 10px;
@@ -592,6 +611,10 @@ main:has(> .schedule) {
 }
 .channelPills > div > label:not(:has(input:checked)) {
   background: var(--mp-color-bg-elevated);
+}
+.detailsForm .channelPills > div > label:has(input:checked) {
+  background: rgb(from var(--mp-color-action-primary) r g b / 18%);
+  color: var(--mp-color-text-accent);
 }
 .detailsForm input[placeholder] {
   font-size: var(--mp-type-body-l-size);

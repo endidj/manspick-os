@@ -602,7 +602,7 @@ export function Survey({
                   aria-label="포트폴리오 동의 내용 보기"
                   onClick={() => setConsentOpen(true)}
                 >
-                  <Icon name="chevron" size={18} />
+                  <Icon name="customer/chevron" size={18} />
                 </button>
               </div>
             </section>
@@ -621,7 +621,7 @@ export function Survey({
                   onChange={(event) => put('safetyRead', event.target.checked)}
                 />
                 <span>주의사항을 모두 확인했어요</span>
-                <Icon name="chevron" size={16} />
+                <Icon name="customer/chevron" size={18} />
               </label>
             </section>
           </>
