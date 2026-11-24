@@ -263,7 +263,7 @@ section:has(> .addonList) {
   text-align: right;
   font-size: var(--mp-type-caption-size) !important;
 }
-.summaryStrip ~ p,
+.summaryStrip ~ p:has(> a),
 .detailsForm > div:has(button[type='submit']) > p {
   line-height: 17px;
 }

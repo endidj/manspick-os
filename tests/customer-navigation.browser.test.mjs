@@ -213,6 +213,10 @@ test(
                 .getByRole('progressbar', { name: '촬영 옵션 선택' })
                 .boundingBox();
               assert.deepEqual(track, { x: 24, y: 96, width: 342, height: 4 });
+              const helpRowHeight = await page
+                .getByRole('link', { name: '뭘 골라야 할지 모르겠다면 카카오톡으로 물어보세요' })
+                .evaluate((link) => link.parentElement.getBoundingClientRect().height);
+              assert.equal(helpRowHeight, 17);
             }
             const box = await radio.boundingBox();
             assert.ok(
@@ -448,8 +452,9 @@ test(
           const gallery = page.getByRole('region', { name: '촬영 후보 사진' });
           await gallery.waitFor();
           assert.equal(await gallery.getByRole('button').count(), 42);
+          const tiles = gallery.locator(':scope > *');
           const [first, second, fourth] = await Promise.all(
-            [0, 1, 3].map((index) => gallery.getByRole('button').nth(index).boundingBox()),
+            [0, 1, 3].map((index) => tiles.nth(index).boundingBox()),
           );
           assert.ok(first && second && fourth);
           assert.deepEqual([first.width, first.height], [112, 140]);
