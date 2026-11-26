@@ -85,7 +85,7 @@ yarn deploy admin-page
 
 세 페이지의 통합 테스트는 `yarn deploy public-server-test` → `yarn deploy landing-page-test` → `yarn deploy customer-page-test` → `yarn deploy admin-page-test` 순서입니다. [공개 테스트 구성과 가상 고객 링크](docs/reference/22-public-test-deployment.md)를 참고합니다. Empty와 Storybook은 각각 `yarn deploy empty`, `yarn deploy storybook`으로 빌드·배포합니다. 배포 후 각 페이지의 `/api/health`와 고객 예약 → 관리자 목록 연결을 확인합니다.
 
-랜딩·고객·관리자 테스트는 모두 비공개 `manspick-public-api-test`에 Service Binding으로 접근하고 `manspick-public-test-db`·`manspick-public-test-media`를 공유합니다. 고객 예약과 설문은 관리자 화면에 같은 데이터로 표시됩니다. 고객·직원 인증 쿠키와 접근 권한은 앱별로 분리합니다. 이전 `manspick-api-test`와 관리자 전용 DB·R2는 보존하지만 현재 세 페이지에는 연결하지 않습니다. 운영 서버 설정은 예시만 있으므로 `yarn deploy server`는 실제 `infra/wrangler.production.jsonc`를 준비한 뒤 사용합니다. [전환 계획과 검증 기록](docs/reference/21-nestjs-migration.md)
+랜딩·고객·관리자 테스트는 모두 비공개 `manspick-public-api-test`에 Service Binding으로 접근하고 `manspick-public-test-db`·`manspick-public-test-media`를 공유합니다. 고객 예약과 설문은 관리자 화면에 같은 데이터로 표시됩니다. 고객·직원 인증 쿠키와 접근 권한은 앱별로 분리합니다. 운영 서버 설정은 예시만 있으므로 `yarn deploy server`는 실제 `infra/wrangler.production.jsonc`를 준비한 뒤 사용합니다. [전환 계획과 검증 기록](docs/reference/21-nestjs-migration.md)
 
 DB 준비와 상세 설정은 [Cloudflare 아키텍처](docs/07-cloudflare-architecture.md)와 [서버 설정 안내](apps/server/README.md#환경과-검사)를 참고합니다.
 

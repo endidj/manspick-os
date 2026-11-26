@@ -22,7 +22,6 @@
     "deploy:landing-page": "yarn workspace @manspick/frontend-landing-page deploy",
     "deploy:customer-page": "yarn workspace @manspick/frontend-customer-page deploy",
     "deploy:admin-page": "yarn workspace @manspick/frontend-admin-page deploy",
-    "deploy:server-test": "wrangler deploy --config infra/wrangler.api-test.jsonc",
     "deploy:admin-page-test": "yarn workspace @manspick/frontend-admin-page deploy:test",
     "deploy:empty": "yarn workspace @manspick/frontend-empty-page build && yarn wrangler deploy --config apps/frontend-empty-page/wrangler.jsonc",
     "deploy:storybook": "yarn storybook:build && yarn wrangler deploy --config infra/wrangler.storybook-test.jsonc",

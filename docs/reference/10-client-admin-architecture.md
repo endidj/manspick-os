@@ -36,7 +36,7 @@
 ## 현재 맨즈픽 운영 인수인계
 
 - 공통 API는 NestJS·Express를 Workers의 Node HTTP 호환 계층에서 실행한다. 독립 Node.js 프로세스가 아니며 Nest의 공식 지원 런타임도 아니므로 Node 회귀 검사와 실제 Cloudflare 실행을 함께 확인한다. shutdown hook·WebSocket gateway·TCP microservice에 의존하는 기능을 추가하기 전에는 배포 런타임을 다시 검토한다. [서버 구조](../../apps/server/README.md) · [NestJS 전환 기록](21-nestjs-migration.md)
-- 현재 저장소에 준비된 API 원격 설정은 비공개 `manspick-api-test`이다. 관리자 테스트 앱의 Service Binding과 전용 D1·R2를 사용하며, 테스트 배포를 회사 운영 배포로 간주하지 않는다. 배포 후 상태 확인, 로그인·권한 거부, 파일 응답을 실제 Cloudflare 경로에서 검증한다.
+- 랜딩·고객·관리자 테스트 앱은 Service Binding으로 비공개 `manspick-public-api-test`를 호출하고 같은 D1·R2를 사용한다. 배포 후 상태 확인, 로그인·권한 거부, 파일 응답을 실제 Cloudflare 경로에서 검증한다. [통합 테스트 구성](22-public-test-deployment.md)
 - 운영 API Worker는 `LOCAL_DEMO`와 `ADMIN_TEST`를 켜지 않는다. 데모 시드는 테스트에서만 사용한다. 직원은 검증한 회사 도메인의 실제 주소로 등록하고 활성 상태와 역할을 확인한다.
 - [운영 API 설정 예시](../../infra/wrangler.production.example.jsonc)를 복사해 실제 회사 리소스 이름·ID와 도메인을 넣는다. 각 화면 앱의 `MANSPICK_API` Service Binding은 그 회사의 API Worker만 바라보게 맞춘다. 랜딩 빌드에 `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`과 `NEXT_PUBLIC_ADMIN_APP_ORIGIN`을 넣고, 고객 앱 빌드에 `NEXT_PUBLIC_LANDING_APP_ORIGIN`을 넣어 개인정보 안내 주소를 맞춘다. 예시 파일은 실제 운영 설정이 아니다.
 - API Worker에 `STAFF_APP_ORIGIN`, `CUSTOMER_APP_ORIGIN`을 HTTPS 도메인으로 설정한다. `STAFF_EMAIL_DOMAIN`은 허용할 회사 도메인 하나, `STAFF_EMAIL_FROM`은 승인된 발신 주소다. [Cloudflare Email Sending Workers API](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/)에서 `send_email` 바인딩 이름을 `EMAIL`로 지정한다. 직원 인증과 파일 재시도 마이그레이션을 적용한 스테이징에서 실제 메일 도착, 로그인, 계정 비활성화 후 세션 차단을 확인한다.

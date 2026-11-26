@@ -22,7 +22,7 @@ yarn workspace @manspick/server build
 
 Wrangler의 esbuild는 생성자 타입에 대한 decorator metadata를 만들지 않습니다. 주입이 필요한 의존성은 명시적 `@Inject()` 토큰 또는 factory provider로 선언하고, `reflect-metadata`는 Nest 초기화 전에 불러옵니다. HTTP 매개변수는 `@ApiContext()` 등 명시적 데코레이터로 전달합니다. 번들에서 제외한 Nest 선택 기능을 사용하려면 의존성과 빌드 설정을 함께 검토합니다.
 
-현재 세 페이지의 원격 테스트 설정은 `infra/wrangler.public-test.jsonc`의 비공개 `manspick-public-api-test`입니다. `infra/public-test.ts`는 landing·user·admin surface를 같은 D1·R2에 연결합니다. `LOCAL_DEMO=false`를 유지하고 `ADMIN_TEST`는 admin 요청에서만 켭니다. 각 프런트 프록시는 surface를 서버에서 고정하며 고객·직원 쿠키와 촬영 소유권은 기존 인증 가드가 분리합니다. 이전 `infra/wrangler.api-test.jsonc`와 관리자 전용 저장소는 보존하며 현재 프런트에서는 사용하지 않습니다. API의 공개 주소는 비활성화합니다. `infra/wrangler.production.jsonc`는 저장소에 없고 운영 예시만 있으므로 테스트 배포를 운영 배포로 표현하지 않습니다. [통합 테스트 구성](../../docs/reference/22-public-test-deployment.md)
+현재 세 페이지의 원격 테스트 설정은 `infra/wrangler.public-test.jsonc`의 비공개 `manspick-public-api-test`입니다. `infra/public-test.ts`는 landing·user·admin surface를 같은 D1·R2에 연결합니다. `LOCAL_DEMO=false`를 유지하고 `ADMIN_TEST`는 admin 요청에서만 켭니다. 각 프런트 프록시는 surface를 서버에서 고정하며 고객·직원 쿠키와 촬영 소유권은 기존 인증 가드가 분리합니다. API의 공개 주소는 비활성화합니다. `infra/wrangler.production.jsonc`는 저장소에 없고 운영 예시만 있으므로 테스트 배포를 운영 배포로 표현하지 않습니다. [통합 테스트 구성](../../docs/reference/22-public-test-deployment.md)
 
 ## Next와 나눈 이유
 

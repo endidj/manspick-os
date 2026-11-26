@@ -10,7 +10,7 @@
 - API: 비공개 `manspick-public-api-test`. workers.dev와 preview URL을 비활성화하고 세 앱의 Service Binding 요청만 허용한다.
 - D1: `manspick-public-test-db`, R2: `manspick-public-test-media`. 세 앱이 공유하므로 고객에서 만든 예약과 저장한 설문을 관리자에서 확인한다.
 - 로컬 시연은 강제로 비활성화하고 관리자 테스트 권한은 admin surface에만 적용한다. 각 프런트 프록시는 surface 헤더를 고정한다. 고객 링크·뒤 4자리·세션·촬영 소유권·파일 공개 여부는 기존 Nest 가드와 업무 함수가 검사하며 고객과 관리자 쿠키는 서로 사용할 수 없다.
-- 이전 `manspick-api-test`·`manspick-admin-test-db`·`manspick-admin-test-media`는 삭제하거나 초기화하지 않고 보존한다. 현재 관리자 화면은 공통 DB를 사용하므로 이전 세션은 다시 로그인해야 한다.
+- 2026-11-27에 이전 관리자 전용 Worker(`manspick-api-test`), D1(`manspick-admin-test-db`), R2(`manspick-admin-test-media`)를 백업 없이 삭제했다. 삭제 후 세 앱의 `/api/health`가 모두 HTTP 200을 반환했고, Cloudflare 목록에서 공통 테스트 D1과 R2가 각각 하나씩 남은 것을 확인했다.
 - test 모드의 Vite 설정에서 앱 간 주소를 지정한다. 고객 홈은 test 모드에서만 `/start`로 이동하며 로컬 시연 홈은 유지한다.
 
 ## 배포와 최초 데이터 준비
