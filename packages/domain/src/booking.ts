@@ -12,15 +12,14 @@ export function requiredSlots(
   shopping: boolean,
   policy: Pick<OperationsPolicy, 'slotTimes'> = DEFAULT_OPERATIONS_POLICY,
 ): string[] {
-  if (!policy.slotTimes.includes(time) || !SLOT_TIMES.includes(time as (typeof SLOT_TIMES)[number]))
+  const start = SLOT_TIMES.findIndex((slot) => slot === time);
+  if (!policy.slotTimes.includes(time) || start === -1)
     throw new DomainError('INVALID_SLOT', '예약 가능한 시간을 선택해주세요.');
-  const result: string[] = packageId === 'allday' ? [...SLOT_TIMES] : [time];
-  if (packageId === 'allday' && time !== '11:00')
-    throw new DomainError('INVALID_SLOT', '올데이는 11시에 시작합니다.');
-  const previous = `${String(Number(time.slice(0, 2)) - 2).padStart(2, '0')}:00`;
-  if (shopping && SLOT_TIMES.includes(previous as (typeof SLOT_TIMES)[number]))
-    result.push(previous);
-  return [...new Set(result)];
+  if (packageId === 'allday') {
+    if (time !== '11:00') throw new DomainError('INVALID_SLOT', '올데이는 11시에 시작합니다.');
+    return [...SLOT_TIMES];
+  }
+  return shopping && start > 0 ? [time, SLOT_TIMES[start - 1]] : [time];
 }
 
 export function holdExpiry(

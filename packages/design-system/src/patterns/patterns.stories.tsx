@@ -88,13 +88,18 @@ function TextAreaExample() {
     <div style={stack}>
       <TextArea
         label="사진별 수정 의견"
+        id="photo-comment"
+        aria-describedby="photo-comment-count"
+        aria-invalid={false}
         value={comment}
         onValueChange={setComment}
         hint="원하는 부분을 구체적으로 남겨주세요."
         placeholder="예: 피부 톤을 조금 더 자연스럽게 조정해주세요."
         maxLength={200}
       />
-      <output aria-label="입력 글자 수">{comment.length}/200</output>
+      <output id="photo-comment-count" aria-label="입력 글자 수">
+        {comment.length}/200
+      </output>
     </div>
   );
 }
@@ -106,7 +111,11 @@ export const TextAreas: Story = {
 
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.type(canvas.getByRole('textbox', { name: '사진별 수정 의견' }), '피부 톤 조정');
+    const comment = canvas.getByRole('textbox', { name: '사진별 수정 의견' });
+    await expect(comment).toHaveAttribute('id', 'photo-comment');
+    await expect(comment).toHaveAttribute('aria-invalid', 'false');
+    await expect(comment).toHaveAccessibleDescription('0/200 원하는 부분을 구체적으로 남겨주세요.');
+    await userEvent.type(comment, '피부 톤 조정');
     await expect(canvas.getByLabelText('입력 글자 수')).toHaveTextContent('7/200');
   },
 };

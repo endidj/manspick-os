@@ -1,6 +1,12 @@
 // 화면 앱과 공통 서버가 주고받는 데이터와 명령의 타입을 정의합니다.
 
-import type { OperationsPolicy, ShootStatus, StaffRole } from '@manspick/domain';
+import type {
+  AddonRules,
+  OperationsPolicy,
+  PackageRules,
+  ShootStatus,
+  StaffRole,
+} from '@manspick/domain';
 
 export interface Actor {
   kind: 'staff' | 'customer';
@@ -31,7 +37,7 @@ export interface StaffAccountDTO {
   version: number;
 }
 
-export interface PackageDTO {
+export interface PackageDTO extends Partial<PackageRules> {
   id: string;
   name: string;
   price: number;
@@ -41,23 +47,15 @@ export interface PackageDTO {
   retouchCount: number;
   description: string;
   active: boolean;
-  spotDescription?: string;
-  baseDifficulty?: 'low' | 'medium' | 'high';
-  aliases?: string[];
   additionalDifficultyWeight?: number;
 }
-export interface AddonDTO {
+export interface AddonDTO extends Partial<AddonRules> {
   id: string;
   name: string;
   price: number;
   description: string;
   maxQuantity: number;
   active: boolean;
-  difficultyWeight?: number;
-  quantityMode?: 'single' | 'outfit' | 'shopping' | 'photo' | 'count';
-  packageQuantityLimits?: Record<string, number>;
-  hiddenPackageIds?: string[];
-  requiresDirector?: boolean;
 }
 export interface ShootSummary {
   id: string;

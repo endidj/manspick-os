@@ -941,23 +941,3 @@ main p.paymentFooterHint {
   font-size: var(--mp-type-caption-size);
   color: var(--mp-color-text-accent);
 }
-.fileList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-.fileList a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--mp-color-border-subtle);
-  color: var(--mp-color-text-accent);
-  font-size: var(--mp-type-caption-size);
-}
-.fileList a span {
-  overflow-wrap: anywhere;
-}

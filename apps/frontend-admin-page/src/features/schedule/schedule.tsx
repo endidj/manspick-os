@@ -1,6 +1,6 @@
 // 실제 디렉터 배정 결과와 주간 시간표를 원본의 좌우 패널에 표시합니다.
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { datePlusDays, koreaDate, SLOT_TIMES } from '@manspick/domain';
 import type { StaffRole } from '@manspick/domain';
 import {
@@ -13,7 +13,7 @@ import {
 } from '@manspick/design-system/components';
 import { Dialog, TextField } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
-import type { ScheduleDTO, ShootSummary } from '@manspick/contracts';
+import type { ScheduleDTO } from '@manspick/contracts';
 import { api } from '@manspick/web/client';
 import { dateTime } from '@manspick/web/format';
 import { PageHeading } from '../workspace/page-heading';
@@ -22,7 +22,30 @@ import { AssignmentDialog } from '../shoot-detail/assignment-dialog';
 import { shootHref } from '../workspace/model';
 import styles from './schedule.module.css';
 
-export function Schedule({ role = 'staff' }: { shoots?: ShootSummary[]; role?: StaffRole }) {
+function indexWeek(slots: ScheduleDTO['slots']) {
+  const dates = new Set<string>();
+  const directors = new Map<
+    string,
+    {
+      byTime: Map<string, ScheduleDTO['slots'][number]>;
+      shootIds: Set<string>;
+    }
+  >();
+  for (const slot of slots) {
+    dates.add(slot.date);
+    let week = directors.get(slot.directorId);
+    if (!week) {
+      week = { byTime: new Map(), shootIds: new Set() };
+      directors.set(slot.directorId, week);
+    }
+    const start = `${slot.date}T${slot.time}`;
+    if (!week.byTime.has(start)) week.byTime.set(start, slot);
+    if (slot.shootId) week.shootIds.add(slot.shootId);
+  }
+  return { days: [...dates].sort(), directors };
+}
+
+export function Schedule({ role = 'staff' }: { role?: StaffRole }) {
   const [week, setWeek] = useState(koreaDate());
   const [data, setData] = useState<ScheduleDTO>();
   const [error, setError] = useState('');
@@ -51,7 +74,7 @@ export function Schedule({ role = 'staff' }: { shoots?: ShootSummary[]; role?: S
   }, [week, revision]);
   const current =
     data?.recentAssignments.find((s) => s.id === selected) ?? data?.recentAssignments[0];
-  const days = [...new Set(data?.slots.map((slot) => slot.date) ?? [])].sort();
+  const { days, directors } = useMemo(() => indexWeek(data?.slots ?? []), [data]);
 
   async function saveHoliday() {
     setBusy(true);
@@ -184,25 +207,12 @@ export function Schedule({ role = 'staff' }: { shoots?: ShootSummary[]; role?: S
                     <div className={styles.directorRow} key={person.id}>
                       <div className={styles.director}>
                         <strong>{person.name}</strong>
-                        <span>
-                          이번 주{' '}
-                          {
-                            new Set(
-                              data.slots
-                                .filter((s) => s.directorId === person.id && s.shootId)
-                                .map((s) => s.shootId),
-                            ).size
-                          }
-                          건
-                        </span>
+                        <span>이번 주 {directors.get(person.id)?.shootIds.size ?? 0}건</span>
                       </div>
                       {days.map((day) => (
                         <div className={styles.daySlots} key={day}>
                           {SLOT_TIMES.map((time) => {
-                            const slot = data.slots.find(
-                              (s) =>
-                                s.directorId === person.id && s.date === day && s.time === time,
-                            );
+                            const slot = directors.get(person.id)?.byTime.get(`${day}T${time}`);
                             const label =
                               slot?.state === 'held'
                                 ? '잠금'

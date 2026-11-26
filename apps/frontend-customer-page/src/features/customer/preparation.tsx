@@ -9,7 +9,7 @@ import { statusInfo } from '@manspick/domain';
 import type { PreparationDTO } from '@manspick/contracts';
 import { SceneFooter, KakaoButton } from '../shell';
 import type { CustomerViewProps } from './view-types';
-import { daysUntil } from './journey';
+import { isShootToday } from './journey';
 import { shootDate, shootSchedule, shootTime } from './presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
@@ -182,7 +182,7 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
   const finished = shoot.status === 'shoot_complete' || statusInfo(shoot.status).stage > 5;
   const cancelled = shoot.status === 'cancelled';
   const current = finished ? -1 : daySteps.findIndex((step) => step.status === shoot.status);
-  const today = daysUntil(shoot.startsAt) === 0;
+  const today = isShootToday(shoot.startsAt);
   const when = today ? `오늘 ${shootTime(shoot.startsAt)}` : shootDate(shoot.startsAt, true);
   const location = shoot.preparation?.location;
   const hair = shoot.preparation?.hair;

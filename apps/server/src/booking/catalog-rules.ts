@@ -7,12 +7,17 @@ import {
 } from '@manspick/domain';
 import type { AddonRules, PackageRules } from '@manspick/domain';
 import type { AddonDTO, PackageDTO } from '@manspick/contracts';
-import { statement } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
-import { id } from '../security/crypto.ts';
-import { integerValue, objectValue, optionalText, settingValue } from '../settings/values.ts';
+import { parseJSON } from '../shared/json.ts';
+import {
+  integerValue,
+  objectValue,
+  optionalText,
+  replaceSetting,
+  settingValue,
+} from '../settings/values.ts';
 
-export type CatalogRules = {
+type CatalogRules = {
   packages: Record<string, PackageRules>;
   addons: Record<string, AddonRules>;
 };
@@ -63,7 +68,7 @@ export function packageRules(
 
 export function addonRules(
   value: Record<string, unknown>,
-  current: AddonDTO,
+  current: Pick<AddonDTO, 'id' | 'maxQuantity'> & Partial<AddonRules>,
   packages: PackageDTO[],
 ): AddonRules {
   const defaults = { ...defaultAddonRules(current.id, current.maxQuantity), ...current };
@@ -108,42 +113,16 @@ export function addonRules(
   };
 }
 
-export function catalogRuleStatements(
+export function catalogRuleStatements<K extends keyof CatalogRules>(
   env: Env,
-  kind: 'packages' | 'addons',
+  kind: K,
   key: string,
-  rule: PackageRules | AddonRules,
-  before: CatalogRules | null,
+  rule: CatalogRules[K][string],
+  before: string | null,
 ) {
-  const next = before ?? { packages: {}, addons: {} };
-  const storedRule =
-    kind === 'packages'
-      ? {
-          spotDescription: (rule as PackageRules).spotDescription,
-          baseDifficulty: (rule as PackageRules).baseDifficulty,
-          aliases: (rule as PackageRules).aliases,
-        }
-      : {
-          difficultyWeight: (rule as AddonRules).difficultyWeight,
-          quantityMode: (rule as AddonRules).quantityMode,
-          packageQuantityLimits: (rule as AddonRules).packageQuantityLimits,
-          hiddenPackageIds: (rule as AddonRules).hiddenPackageIds,
-          requiresDirector: (rule as AddonRules).requiresDirector,
-        };
-  const value = { ...next, [kind]: { ...next[kind], [key]: storedRule } };
-  const guard = id();
-  return [
-    statement(
-      env,
-      "INSERT INTO mutation_guards(id,ok) SELECT ?,CASE WHEN COALESCE((SELECT value_json FROM settings WHERE key='catalog_rules'),'null')=? THEN 1 ELSE 0 END",
-      guard,
-      JSON.stringify(before),
-    ),
-    statement(
-      env,
-      "INSERT INTO settings(key,value_json) VALUES('catalog_rules',?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json",
-      JSON.stringify(value),
-    ),
-    statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard),
-  ];
+  const current = parseJSON<CatalogRules | null>(before, null) ?? { packages: {}, addons: {} };
+  return replaceSetting(env, 'catalog_rules', before, {
+    ...current,
+    [kind]: { ...current[kind], [key]: rule },
+  });
 }

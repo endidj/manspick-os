@@ -1,8 +1,6 @@
 // 로컬 저장소로 API의 업무 규칙과 HTTP 응답·인증·권한 계약을 함께 확인합니다.
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import type { SQLInputValue } from 'node:sqlite';
+import { LocalD1, type LocalStatement } from './helpers/local-d1.ts';
 import test from 'node:test';
 import {
   assertTransition,
@@ -469,60 +467,6 @@ test('a customer token collision during booking rolls back without reporting a s
   assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM mutation_guards').get()?.n, 0);
 });
 
-class LocalStatement {
-  constructor(database: DatabaseSync, sql: string, values: SQLInputValue[] = []) {
-    this.database = database;
-    this.sql = sql;
-    this.values = values;
-  }
-  database: DatabaseSync;
-  sql: string;
-  values: SQLInputValue[];
-  bind(...values: SQLInputValue[]) {
-    return new LocalStatement(this.database, this.sql, values);
-  }
-  async first(column?: string) {
-    const row = this.database.prepare(this.sql).get(...this.values);
-    return column ? (row?.[column] ?? null) : (row ?? null);
-  }
-  execute() {
-    const results = this.database.prepare(this.sql).all(...this.values);
-    const changes = this.database.prepare('SELECT changes() AS n').get()?.n ?? 0;
-    return { success: true, results, meta: { changes } };
-  }
-  async all() {
-    return this.execute();
-  }
-  async run() {
-    return this.execute();
-  }
-}
-class LocalD1 {
-  database = new DatabaseSync(':memory:');
-  constructor() {
-    for (const file of readdirSync(new URL('../infra/migrations/', import.meta.url))
-      .filter((name) => name.endsWith('.sql'))
-      .sort())
-      this.database.exec(
-        readFileSync(new URL(`../infra/migrations/${file}`, import.meta.url), 'utf8'),
-      );
-    this.database.exec(readFileSync(new URL('../infra/seed.sql', import.meta.url), 'utf8'));
-  }
-  prepare(sql: string) {
-    return new LocalStatement(this.database, sql);
-  }
-  async batch(statements: LocalStatement[]) {
-    this.database.exec('BEGIN IMMEDIATE');
-    try {
-      const results = statements.map((statement) => statement.execute());
-      this.database.exec('COMMIT');
-      return results;
-    } catch (error) {
-      this.database.exec('ROLLBACK');
-      throw error;
-    }
-  }
-}
 function setup(local = 'true') {
   const db = new LocalD1();
   const objects = new Map<string, ArrayBuffer>();

@@ -1,85 +1,14 @@
 // 상품 추가와 비노출 저장이 공개 목록·예약 검증·기존 주문을 함께 보존하는지 확인합니다.
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
+import { LocalD1 } from './helpers/local-d1.ts';
 import test from 'node:test';
 import { datePlusDays, koreaDate } from '../packages/domain/src/index.ts';
 import { handleRequest } from './helpers/server.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
 import type { AddonDTO, OperationsSettingsDTO, PackageDTO } from '@manspick/contracts';
 
-class Statement {
-  database: DatabaseSync;
-  sql: string;
-  values: SQLInputValue[];
-
-  constructor(database: DatabaseSync, sql: string, values: SQLInputValue[] = []) {
-    this.database = database;
-    this.sql = sql;
-    this.values = values;
-  }
-
-  bind(...values: SQLInputValue[]) {
-    return new Statement(this.database, this.sql, values);
-  }
-
-  async first(column?: string) {
-    const row = this.database.prepare(this.sql).get(...this.values);
-    return column ? (row?.[column] ?? null) : (row ?? null);
-  }
-
-  execute() {
-    const results = this.database.prepare(this.sql).all(...this.values);
-    return {
-      success: true,
-      results,
-      meta: { changes: this.database.prepare('SELECT changes() AS n').get()?.n ?? 0 },
-    };
-  }
-
-  async all() {
-    return this.execute();
-  }
-
-  async run() {
-    return this.execute();
-  }
-}
-
-class Database {
-  database = new DatabaseSync(':memory:');
-  beforeBatch?: () => Promise<void>;
-
-  constructor() {
-    for (const file of readdirSync(new URL('../infra/migrations/', import.meta.url))
-      .filter((name) => name.endsWith('.sql'))
-      .sort())
-      this.database.exec(
-        readFileSync(new URL(`../infra/migrations/${file}`, import.meta.url), 'utf8'),
-      );
-    this.database.exec(readFileSync(new URL('../infra/seed.sql', import.meta.url), 'utf8'));
-  }
-
-  prepare(sql: string) {
-    return new Statement(this.database, sql);
-  }
-
-  async batch(statements: Statement[]) {
-    await this.beforeBatch?.();
-    this.database.exec('BEGIN IMMEDIATE');
-    try {
-      const result = statements.map((statement) => statement.execute());
-      this.database.exec('COMMIT');
-      return result;
-    } catch (cause) {
-      this.database.exec('ROLLBACK');
-      throw cause;
-    }
-  }
-}
-
 function setup() {
-  const db = new Database();
+  const db = new LocalD1();
   const env = {
     DB: db as unknown as D1Database,
     BUCKET: {} as R2Bucket,
@@ -355,6 +284,56 @@ test('catalog mutations require administrators and reject malformed activation v
       (item) => item.id === option.id,
     )?.active,
     true,
+  );
+  db.database.close();
+});
+
+test('settings edits accept existing formatted JSON and preserve unrelated catalog rules', async () => {
+  const { db, api, login, data } = setup();
+  const admin = await login();
+  const settings = await data<OperationsSettingsDTO>(await api('/settings', undefined, admin));
+  const store = db.database.prepare('INSERT OR REPLACE INTO settings(key,value_json) VALUES(?,?)');
+  const addonRules = { hair: { difficultyWeight: 5 } };
+  store.run('catalog_rules', JSON.stringify({ packages: {}, addons: addonRules }, null, 2));
+  store.run('operations_policy', JSON.stringify(settings.policy, null, 2));
+
+  await data(await api('/settings', { type: 'package', value: settings.packages[0] }, admin));
+  const stored = db.database
+    .prepare("SELECT value_json FROM settings WHERE key='catalog_rules'")
+    .get();
+  assert.deepEqual(JSON.parse(String(stored?.value_json)).addons, addonRules);
+  const updated = await data<OperationsSettingsDTO>(
+    await api(
+      '/settings',
+      { type: 'operations_policy', value: { ...settings.policy, holdHours: 12 } },
+      admin,
+    ),
+  );
+  assert.equal(updated.policy.holdHours, 12);
+  db.database.close();
+});
+
+test('settings updates preserve invalid stored JSON and detect a concurrently inserted JSON null', async () => {
+  const { db, api, login } = setup();
+  const admin = await login();
+  const key = 'payment_instructions';
+  const value = { bankName: '테스트 은행', accountNumber: '000', accountHolder: '테스트' };
+  const store = db.database.prepare('INSERT OR REPLACE INTO settings(key,value_json) VALUES(?,?)');
+  store.run(key, '{broken');
+  const save = () => api('/settings', { type: key, value }, admin);
+  assert.equal((await save()).status, 409);
+  assert.equal(
+    db.database.prepare('SELECT value_json FROM settings WHERE key=?').get(key)?.value_json,
+    '{broken',
+  );
+  db.database.prepare('DELETE FROM settings WHERE key=?').run(key);
+  db.beforeBatch = async () => {
+    store.run(key, 'null');
+  };
+  assert.equal((await save()).status, 409);
+  assert.equal(
+    db.database.prepare('SELECT value_json FROM settings WHERE key=?').get(key)?.value_json,
+    'null',
   );
   db.database.close();
 });

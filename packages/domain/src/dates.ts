@@ -1,12 +1,14 @@
 // 예약과 준비 규칙에서 사용하는 한국 날짜와 날짜 이동을 계산합니다.
 
+const seoulDate = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
 export function koreaDate(date = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Seoul',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
+  return seoulDate.format(date);
 }
 
 export function datePlusDays(date: string, days: number) {

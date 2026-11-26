@@ -1,68 +1,37 @@
 // 여러 줄 입력과 도움말·오류를 연결하는 공통 컴포넌트입니다.
 'use client';
 
-import { useId, type ReactNode, type TextareaHTMLAttributes } from 'react';
-import styles from './text-area.module.css';
+import type { TextareaHTMLAttributes } from 'react';
+import { FieldLayout, type FieldMessages } from '../field-layout/field-layout';
+import styles from '../field-layout/text-control.module.css';
 
 export type TextAreaProps = Omit<
   TextareaHTMLAttributes<HTMLTextAreaElement>,
   'value' | 'defaultValue' | 'onChange'
-> & {
-  label: string;
-  hint?: ReactNode;
-  error?: string;
-  value: string;
-  onValueChange: (value: string) => void;
-};
+> &
+  FieldMessages & {
+    value: string;
+    onValueChange: (value: string) => void;
+  };
 
 export function TextArea({
   label,
   hint,
   error,
-  value,
   onValueChange,
-  id,
-  required,
   className = '',
-  'aria-describedby': describedBy,
-  ...props
+  ...control
 }: TextAreaProps) {
-  const generatedId = useId();
-  const fieldId = id ?? generatedId;
-  const descriptionIds =
-    [describedBy, hint ? `${fieldId}-hint` : undefined, error ? `${fieldId}-error` : undefined]
-      .filter(Boolean)
-      .join(' ') || undefined;
   return (
-    <div className={styles.field}>
-      <label htmlFor={fieldId} className={styles.label}>
-        {label}
-        {required && (
-          <span className={styles.required} aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-      <textarea
-        {...props}
-        id={fieldId}
-        required={required}
-        value={value}
-        onChange={(event) => onValueChange(event.currentTarget.value)}
-        aria-describedby={descriptionIds}
-        aria-invalid={error ? true : props['aria-invalid']}
-        className={`${styles.textarea} ${className}`}
-      />
-      {hint && (
-        <div id={`${fieldId}-hint`} className={styles.hint}>
-          {hint}
-        </div>
+    <FieldLayout label={label} hint={hint} error={error} styles={styles} control={control}>
+      {(attributes) => (
+        <textarea
+          {...control}
+          {...attributes}
+          className={`${styles.input} ${styles.multiline} ${className}`}
+          onChange={(event) => onValueChange(event.currentTarget.value)}
+        />
       )}
-      {error && (
-        <p id={`${fieldId}-error`} className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldLayout>
   );
 }

@@ -2,9 +2,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const admin = 'http://127.0.0.1:3002';
-const user = 'http://127.0.0.1:3001';
-const landing = 'http://127.0.0.1:3000';
+// 별도 D1·R2로 띄운 검증 서버 네 개에는 같은 포트 오프셋을 지정합니다.
+const portOffset = Number(process.env.LOCAL_TEST_PORT_OFFSET ?? 0);
+const localOrigin = (port) => `http://127.0.0.1:${port + portOffset}`;
+const admin = localOrigin(3002);
+const user = localOrigin(3001);
+const landing = localOrigin(3000);
 
 async function request(base, path, { cookie, body, method = 'GET', origin, headers = {} } = {}) {
   const response = await fetch(`${base}/api${path}`, {
@@ -132,7 +135,7 @@ test('real order, deposit report, survey and director confirmation share one boo
 });
 
 test('real local Workers D1/R2 and Vinext proxy: sessions, RBAC, bytes and shared state', async () => {
-  for (const base of ['http://127.0.0.1:8787', landing, admin, user]) {
+  for (const base of [localOrigin(8787), landing, admin, user]) {
     const { response, json } = await request(base, '/health');
     assert.equal(response.status, 200);
     assert.equal(json.data.storage, 'd1+r2');

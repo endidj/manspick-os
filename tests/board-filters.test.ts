@@ -1,7 +1,6 @@
 // 보드 옵션이 실제 주문 스냅샷과 권한 범위를 따르고 기존 검색 조건과 함께 동작하는지 확인합니다.
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
+import { LocalD1, LocalStatement } from './helpers/local-d1.ts';
 import test from 'node:test';
 import { listBoardShoots, listShoots } from '../apps/server/src/shoots/queries.ts';
 import { hash } from '../apps/server/src/security/crypto.ts';
@@ -27,36 +26,9 @@ test('legacy saved filters retain existing values and default the new addon cond
 });
 
 function setup() {
-  const database = new DatabaseSync(':memory:');
-  for (const file of readdirSync(new URL('../infra/migrations/', import.meta.url))
-    .filter((name) => name.endsWith('.sql'))
-    .sort())
-    database.exec(readFileSync(new URL(`../infra/migrations/${file}`, import.meta.url), 'utf8'));
-  database.exec(readFileSync(new URL('../infra/seed.sql', import.meta.url), 'utf8'));
-  let reads = 0;
-  const env = {
-    DB: {
-      prepare(sql: string) {
-        return {
-          bind(...values: SQLInputValue[]) {
-            return {
-              async all() {
-                reads++;
-                return { results: database.prepare(sql).all(...values) };
-              },
-
-              async first() {
-                reads++;
-                return database.prepare(sql).get(...values) ?? null;
-              },
-            };
-          },
-        };
-      },
-    } as unknown as D1Database,
-    BUCKET: {} as R2Bucket,
-  } satisfies Env;
-  return { database, env, readCount: () => reads };
+  const d1 = new LocalD1();
+  const env = { DB: d1 as unknown as D1Database, BUCKET: {} as R2Bucket } satisfies Env;
+  return { database: d1.database, env };
 }
 
 test('operator board paginates all shootings with independent counts and search facets', async () => {
@@ -175,8 +147,10 @@ test('HTTP board requires an operator while the legacy list remains assigned to 
   }
 });
 
-test('board summaries use ordered addon snapshots without per-shoot queries or current catalog names', async () => {
-  const { database, env, readCount } = setup();
+test('board summaries use ordered addon snapshots without per-shoot queries or current catalog names', async (context) => {
+  const { database, env } = setup();
+  const first = context.mock.method(LocalStatement.prototype, 'first');
+  const all = context.mock.method(LocalStatement.prototype, 'all');
   try {
     database.exec(`
       DELETE FROM shoot_addons;
@@ -196,7 +170,8 @@ test('board summaries use ordered addon snapshots without per-shoot queries or c
       { id: 'rental', name: '예약 당시 대여' },
     ]);
     assert.deepEqual(result.shoots.find((shoot) => shoot.id === 'demo-payment')?.addons, []);
-    assert.ok(readCount() <= 3, 'list queries must not grow once per shoot');
+    const reads = first.mock.callCount() + all.mock.callCount();
+    assert.ok(reads > 0 && reads <= 3, 'list queries must not grow once per shoot');
   } finally {
     database.close();
   }

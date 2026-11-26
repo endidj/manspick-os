@@ -1,16 +1,44 @@
 // 운영 설정의 저장값과 화면에 표시할 안전한 주소·문자열을 검사합니다.
 import { DomainError } from '@manspick/domain';
-import { first } from '../database/statements.ts';
+import { first, statement } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
+import { id } from '../security/crypto.ts';
 import { parseJSON } from '../shared/json.ts';
 
-export async function settingValue<T>(env: Env, key: string, fallback: T): Promise<T> {
+export async function settingJson(env: Env, key: string): Promise<string | null> {
   const value = await first<{ value_json: string }>(
     env,
     'SELECT value_json FROM settings WHERE key=?',
     key,
   );
-  return parseJSON<T>(value?.value_json, fallback);
+  return value?.value_json ?? null;
+}
+
+export async function settingValue<T>(env: Env, key: string, fallback: T): Promise<T> {
+  return parseJSON(await settingJson(env, key), fallback);
+}
+
+export function replaceSetting(env: Env, key: string, before: string | null, next: unknown) {
+  const guard = id();
+  return [
+    // 읽은 원문이 그대로일 때만 저장하고 손상된 기존 JSON은 보존합니다.
+    statement(
+      env,
+      `INSERT INTO mutation_guards(id,ok)
+       SELECT ?, (SELECT value_json FROM settings WHERE key=?) IS ? AND json_valid(COALESCE(?, 'null'))`,
+      guard,
+      key,
+      before,
+      before,
+    ),
+    statement(
+      env,
+      'INSERT INTO settings(key,value_json) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json',
+      key,
+      JSON.stringify(next),
+    ),
+    statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard),
+  ];
 }
 
 export function optionalText(value: unknown, max = 4000): string {

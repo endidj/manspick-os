@@ -4,6 +4,42 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const appUrl = process.env.LANDING_APP_URL;
+test('후기 두 줄의 원본과 애니메이션용 복사본을 구분한다', { skip: !appUrl }, async () => {
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
+    new URL('../.local/playwright', import.meta.url),
+  );
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ javaScriptEnabled: false });
+    await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
+    for (const track of ['.marquee-track', '.marquee-track-reverse']) {
+      const cards = await page.locator(`#reviews ${track} > .glass`).evaluateAll((elements) =>
+        elements.map((card) => {
+          const image = card.querySelector('img');
+          return {
+            paragraphs: [...card.querySelectorAll('p')].map((p) => p.textContent.trim()),
+            image: image.dataset.sourceImage,
+            alt: image.alt,
+            stars: card.querySelectorAll('[data-icon="solar/star-bold"]').length,
+            hidden: card.getAttribute('aria-hidden'),
+          };
+        }),
+      );
+      assert.equal(cards.length, 10);
+      assert.equal(new Set(cards.slice(0, 5).map((card) => card.paragraphs[1])).size, 5);
+      for (const [index, original] of cards.slice(0, 5).entries()) {
+        assert.equal(original.stars, 5);
+        assert.equal(original.hidden, null);
+        assert.equal(original.alt, track === '.marquee-track' ? original.paragraphs[1] : '');
+        assert.deepEqual(cards[index + 5], { ...original, alt: '', hidden: 'true' });
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test('JavaScript 없이 FAQ 11개를 모두 펼쳐 읽을 수 있다', { skip: !appUrl }, async () => {
   process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
     new URL('../.local/playwright', import.meta.url),

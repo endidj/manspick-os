@@ -62,6 +62,8 @@ test('shoot-day home begins at Seoul midnight and does not replace completed sho
   };
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T14:59:59Z')).state, 'preparation');
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T15:00:00Z')).state, 'shoot-day');
+  assert.equal(resolveJourney({ ...shoot, startsAt: null }, now).state, 'preparation');
+  assert.equal(resolveJourney({ ...shoot, startsAt: 'invalid' }, now).state, 'preparation');
   assert.equal(resolveJourney({ ...shoot, status: 'shoot_complete' }, now).state, 'complete');
 });
 

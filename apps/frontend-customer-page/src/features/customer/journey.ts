@@ -1,5 +1,5 @@
 // 서버 상태를 고객이 볼 화면과 다섯 단계 여정으로 연결합니다.
-import { statusInfo } from '@manspick/domain';
+import { koreaDate, statusInfo } from '@manspick/domain';
 import type { ShootStatus } from '@manspick/domain';
 
 export type CustomerScene =
@@ -17,8 +17,10 @@ type JourneyInput = {
 
 type Journey = { state: JourneyState; stage: number; scene: CustomerScene | null };
 
-export function koreanDay(value: string | Date) {
-  return new Date(value).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+export function isShootToday(startsAt: string | null, now = new Date()) {
+  if (!startsAt) return false;
+  const start = new Date(startsAt);
+  return Number.isFinite(start.getTime()) && koreaDate(start) === koreaDate(now);
 }
 
 export function resolveJourney(shoot: JourneyInput, now = new Date()): Journey {
@@ -31,17 +33,8 @@ export function resolveJourney(shoot: JourneyInput, now = new Date()): Journey {
     return { state: 'survey', stage: 3, scene: 'survey' };
   if (status.stage >= 6 || shoot.status === 'shoot_complete')
     return { state: 'complete', stage: 5, scene: 'shoot-day' };
-  if (
-    status.stage === 5 ||
-    shoot.status === 'shoot_day' ||
-    (shoot.startsAt && koreanDay(shoot.startsAt) === koreanDay(now))
-  )
+  if (status.stage === 5 || shoot.status === 'shoot_day' || isShootToday(shoot.startsAt, now))
     return { state: 'shoot-day', stage: 5, scene: 'shoot-day' };
   if (shoot.survey?.submittedAt) return { state: 'preparation', stage: 4, scene: 'preparation' };
   return { state: 'survey', stage: 3, scene: 'survey' };
-}
-
-export function daysUntil(startsAt: string | null, now = new Date()) {
-  if (!startsAt) return null;
-  return Math.round((Date.parse(koreanDay(startsAt)) - Date.parse(koreanDay(now))) / 86400000);
 }

@@ -9,9 +9,15 @@ import { id } from '../security/crypto.ts';
 import { administrator } from '../security/permissions.ts';
 import { validatePreparation } from '../shoots/commands/workspace.ts';
 import { settings } from './queries.ts';
-import { integerValue, objectValue, optionalText, safeUrl, settingValue } from './values.ts';
+import {
+  integerValue,
+  objectValue,
+  optionalText,
+  replaceSetting,
+  safeUrl,
+  settingJson,
+} from './values.ts';
 import { addonRules, catalogRuleStatements, packageRules } from '../booking/catalog-rules.ts';
-import type { CatalogRules } from '../booking/catalog-rules.ts';
 import { releaseExpiredHolds } from '../booking/holds.ts';
 import { conflictingReservations } from '../booking/reservations.ts';
 
@@ -19,10 +25,17 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
   administrator(actor);
   const type = requiredText(body, 'type', 80);
   const settingKey = type === 'neighborhood' ? 'neighborhoods' : type;
-  const snapshot = await settingValue<unknown>(env, settingKey, null);
-  const catalogSnapshot = ['package', 'addon'].includes(type)
-    ? await settingValue<CatalogRules | null>(env, 'catalog_rules', null)
-    : null;
+  const storesJson = [
+    'payment_instructions',
+    'neighborhood',
+    'preparation_guides',
+    'operations_policy',
+  ].includes(type);
+  const editsCatalog = type === 'package' || type === 'addon';
+  const snapshot =
+    storesJson || editsCatalog
+      ? await settingJson(env, editsCatalog ? 'catalog_rules' : settingKey)
+      : null;
   const current = await settings(env, actor);
   const statements: D1PreparedStatement[] = [];
   let next: unknown;
@@ -230,17 +243,14 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
     case 'package': {
       const data = objectValue(body.value);
       const packageId = requiredText(data, 'id', 80);
-      if (!current.packages.some((pack) => pack.id === packageId))
-        throw new DomainError('INVALID_PACKAGE', '기존 패키지를 선택해주세요.');
+      const existing = current.packages.find((pack) => pack.id === packageId);
+      if (!existing) throw new DomainError('INVALID_PACKAGE', '기존 패키지를 선택해주세요.');
       if (data.active !== undefined && typeof data.active !== 'boolean')
         throw new DomainError('INVALID_INPUT', '상품 노출 여부를 확인해주세요.');
+      const rules = packageRules(data, existing, current.packages);
       const value = {
         id: packageId,
-        ...packageRules(
-          data,
-          current.packages.find((pack) => pack.id === packageId)!,
-          current.packages,
-        ),
+        ...rules,
         name: requiredText(data, 'name', 100),
         price: integerValue(data.price),
         originalPrice: integerValue(data.originalPrice),
@@ -248,10 +258,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
         outfits: integerValue(data.outfits, 20),
         retouchCount: integerValue(data.retouchCount, 100),
         description: requiredText(data, 'description', 2000),
-        active:
-          typeof data.active === 'boolean'
-            ? data.active
-            : current.packages.find((pack) => pack.id === packageId)!.active,
+        active: data.active ?? existing.active,
       };
       if (!value.duration || !value.outfits || !value.retouchCount)
         throw new DomainError('INVALID_INPUT', '시간·의상·보정 수는 1 이상이어야 합니다.');
@@ -270,8 +277,8 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
           value.id,
         ),
       );
-      previous = current.packages.find((pack) => pack.id === packageId);
-      statements.push(...catalogRuleStatements(env, 'packages', packageId, value, catalogSnapshot));
+      previous = existing;
+      statements.push(...catalogRuleStatements(env, 'packages', packageId, rules, snapshot));
       next = value;
       break;
     }
@@ -282,31 +289,20 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
         throw new DomainError('INVALID_INPUT', '촬영 아이템만 판매할 수 있습니다.');
       if (data.active !== undefined && typeof data.active !== 'boolean')
         throw new DomainError('INVALID_INPUT', '옵션 노출 여부를 확인해주세요.');
+      const oldAddon = current.addons.find((addon) => addon.id === addonId);
+      const rules = addonRules(
+        data,
+        oldAddon ?? { id: addonId, maxQuantity: integerValue(data.maxQuantity, 20) },
+        current.packages,
+      );
       const value = {
         id: addonId,
-        ...addonRules(
-          data,
-          current.addons.find((addon) => addon.id === addonId) ?? {
-            id: addonId,
-            name: '',
-            price: 0,
-            description: '',
-            maxQuantity: integerValue(data.maxQuantity, data.quantityMode === 'photo' ? 100 : 20),
-            active: true,
-          },
-          current.packages,
-        ),
+        ...rules,
         name: requiredText(data, 'name', 100),
         price: integerValue(data.price),
         description: requiredText(data, 'description', 2000),
-        maxQuantity: integerValue(
-          data.maxQuantity,
-          data.quantityMode === 'photo' || addonId === 'extra_retouch' ? 100 : 20,
-        ),
-        active:
-          typeof data.active === 'boolean'
-            ? data.active
-            : (current.addons.find((addon) => addon.id === addonId)?.active ?? true),
+        maxQuantity: integerValue(data.maxQuantity, 20),
+        active: data.active ?? oldAddon?.active ?? true,
       };
       if (!value.maxQuantity)
         throw new DomainError('INVALID_INPUT', '최대 수량은 1 이상이어야 합니다.');
@@ -322,7 +318,6 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
           value.active ? 1 : 0,
         ),
       );
-      const oldAddon = current.addons.find((addon) => addon.id === addonId);
       previous = oldAddon ?? null;
       // 옵션 설정에서 수량 정책을 바꾸면 판매 중인 선택 구성에만 같은 한도를 적용합니다.
       for (const pack of current.packages) {
@@ -340,7 +335,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
           );
         }
       }
-      statements.push(...catalogRuleStatements(env, 'addons', addonId, value, catalogSnapshot));
+      statements.push(...catalogRuleStatements(env, 'addons', addonId, rules, snapshot));
       next = value;
       break;
     }
@@ -436,19 +431,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
     default:
       throw new DomainError('UNKNOWN_ACTION', '지원하지 않는 설정입니다.');
   }
-  if (
-    ['payment_instructions', 'neighborhood', 'preparation_guides', 'operations_policy'].includes(
-      type,
-    )
-  )
-    statements.push(
-      statement(
-        env,
-        'INSERT INTO settings(key,value_json) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json',
-        settingKey,
-        JSON.stringify(next),
-      ),
-    );
+  if (storesJson) statements.push(...replaceSetting(env, settingKey, snapshot, next));
   statements.push(
     auditStatement(env, actor, {
       action: 'update',
@@ -458,24 +441,6 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
       next,
     }),
   );
-  // 설정을 읽은 후 다른 관리자가 먼저 변경했다면 덮어쓰지 않습니다.
-  if (
-    ['payment_instructions', 'neighborhood', 'preparation_guides', 'operations_policy'].includes(
-      type,
-    )
-  ) {
-    const guard = id();
-    statements.unshift(
-      statement(
-        env,
-        "INSERT INTO mutation_guards(id,ok) SELECT ?,CASE WHEN COALESCE((SELECT value_json FROM settings WHERE key=?),'null')=? THEN 1 ELSE 0 END",
-        guard,
-        settingKey,
-        JSON.stringify(snapshot),
-      ),
-    );
-    statements.push(statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard));
-  }
   await batch(env, statements);
   return settings(env, actor);
 }
