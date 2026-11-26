@@ -1,17 +1,15 @@
 // 이미지 업로드와 다운로드를 처리하고 저장 실패 시 남은 파일을 정리합니다.
 import { DomainError } from '@manspick/domain';
 import type { Actor } from '@manspick/contracts';
-import { first, rows, statement } from '../database/statements.ts';
+import { first, statement } from '../database/statements.ts';
 import { mutate } from '../database/mutations.ts';
 import { isAdminTestRequest, localDemo } from '../runtime/env.ts';
 import type { Env } from '../runtime/env.ts';
 import { hash, id } from '../security/crypto.ts';
 import { accessibleShoot } from '../shoots/access.ts';
-import { retouchProgress } from '../shoots/retouch-results.ts';
 import { allowedAsset, assetDTO } from './access.ts';
 import type { UploadRow } from './access.ts';
 import { timelineStatement } from '../activity/records.ts';
-import { optionalText } from '../settings/values.ts';
 
 const MAX_FILE = 10 * 1024 * 1024;
 
@@ -85,10 +83,10 @@ export async function upload(request: Request, env: Env, actor: Actor) {
     throw new DomainError('CANCELLED', '취소된 촬영에는 올릴 수 없습니다.', 409);
   const allowed =
     actor.kind === 'customer'
-      ? ['survey', 'outfit', 'review']
+      ? ['survey', 'outfit']
       : actor.role === 'retoucher'
-        ? ['retouched', 'revision']
-        : ['candidate', 'retouched', 'revision', 'original', 'plan_ref'];
+        ? []
+        : ['plan_ref', 'internal_photo'];
   if (!allowed.includes(kind))
     throw new DomainError('FORBIDDEN', '이 종류의 파일을 올릴 권한이 없습니다.', 403);
   const retryKey = request.headers.get('Idempotency-Key');
@@ -103,58 +101,13 @@ export async function upload(request: Request, env: Env, actor: Actor) {
   const contentType = imageType(bytes);
   if (file.type !== contentType)
     throw new DomainError('FILE_TYPE_MISMATCH', '실제 파일 형식과 표시 형식이 일치하지 않습니다.');
-  const photoId = id();
-  const outfitValue = form.get('outfitNo');
-  const outfitNo = outfitValue === null || outfitValue === '' ? null : Number(outfitValue);
-  if (outfitNo !== null && (!Number.isInteger(outfitNo) || outfitNo < 1 || outfitNo > 20))
-    throw new DomainError('INVALID_INPUT', '의상 번호를 확인해주세요.');
-  const outfitLabel = optionalText(form.get('outfitLabel'), 100) || null;
-  let parentPhotoId = optionalText(form.get('parentPhotoId'), 100) || null;
-  const requestedJobId = optionalText(form.get('retouchJobId'), 100);
   const fingerprint = retryKey
-    ? await hash(
-        JSON.stringify([
-          kind,
-          outfitNo,
-          outfitLabel,
-          parentPhotoId,
-          requestedJobId,
-          file.name,
-          await hash(bytes.buffer),
-        ]),
-      )
+    ? await hash(JSON.stringify([kind, file.name, await hash(bytes.buffer)]))
     : null;
   const previous = retryKey
     ? await first<UploadRow>(env, 'SELECT * FROM uploads WHERE id=?', uploadId)
     : null;
   if (previous) return retryResult(previous, fingerprint, actor);
-  let jobId: string | null = null;
-  if (kind === 'retouched' || kind === 'revision') {
-    const jobs = await rows<{ id: string }>(
-      env,
-      `SELECT id FROM retouch_jobs WHERE shoot_id=? AND state!='complete' AND ${kind === 'revision' ? "kind='revision'" : "kind IN ('base','extra')"}${actor.role === 'retoucher' ? ' AND retoucher_id=?' : ''}`,
-      shootId,
-      ...(actor.role === 'retoucher' ? [actor.id] : []),
-    );
-    const eligible = requestedJobId ? jobs.filter((job) => job.id === requestedJobId) : jobs;
-    if (!eligible.length)
-      throw new DomainError('JOB_REQUIRED', '진행 중인 보정 작업에 결과를 올려주세요.', 409);
-    const progress = await retouchProgress(env, shootId);
-    const matches = eligible.flatMap((job) =>
-      (progress.get(job.id) ?? [])
-        .filter((cut) => !parentPhotoId || cut.photoId === parentPhotoId)
-        .map((cut) => ({ jobId: job.id, photoId: cut.photoId })),
-    );
-    if (matches.length !== 1)
-      throw new DomainError(
-        'RESULT_CUT_REQUIRED',
-        '보정 작업과 그 작업에서 요청한 컷을 선택해주세요.',
-      );
-    jobId = matches[0]!.jobId;
-    parentPhotoId = matches[0]!.photoId;
-  } else if (parentPhotoId || requestedJobId) {
-    throw new DomainError('INVALID_PHOTO', '보정본과 수정본에만 작업 컷을 연결할 수 있습니다.');
-  }
   // Concurrent retries must never overwrite or delete each other's object.
   const key = `${shootId}/${kind}/${id()}`;
   const name =
@@ -174,32 +127,10 @@ export async function upload(request: Request, env: Env, actor: Actor) {
       contentType,
       file.size,
       actor.id,
-      jobId,
+      null,
       fingerprint,
     ),
   ];
-  if (['candidate', 'retouched', 'revision'].includes(kind))
-    statements.push(
-      statement(
-        env,
-        'INSERT INTO photos(id,shoot_id,upload_id,kind,cut_no,uploaded_by) SELECT ?,?,?,?,COALESCE(MAX(cut_no),0)+1,? FROM photos WHERE shoot_id=? AND kind=?',
-        photoId,
-        shootId,
-        uploadId,
-        kind,
-        actor.id,
-        shootId,
-        kind,
-      ),
-      statement(
-        env,
-        'INSERT INTO photo_metadata(photo_id,outfit_no,outfit_label,parent_photo_id) VALUES(?,?,?,?)',
-        photoId,
-        outfitNo,
-        outfitLabel,
-        parentPhotoId,
-      ),
-    );
   statements.push(
     timelineStatement(env, shootId, actor, shoot.status, shoot.status, `${kind} 파일 업로드`),
   );

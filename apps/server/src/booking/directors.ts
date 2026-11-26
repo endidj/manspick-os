@@ -18,11 +18,11 @@ export function directorSkillsCondition(addonIds: string[]) {
   };
 }
 
-export async function directors(env: Env, addonIds: string[]) {
+export async function directors(env: Env, addonIds: string[], byHireDate = false) {
   const skills = directorSkillsCondition(addonIds);
   return rows<{ id: string }>(
     env,
-    `SELECT id FROM staff WHERE role='director' AND active=1 AND ${skills.sql} ORDER BY (SELECT COUNT(*) FROM slots WHERE director_id=staff.id),id`,
+    `SELECT id FROM staff WHERE role='director' AND active=1 AND ${skills.sql} ORDER BY ${byHireDate ? 'hired_on IS NULL,hired_on' : '(SELECT COUNT(*) FROM slots WHERE director_id=staff.id)'},id`,
     skills.value,
   );
 }

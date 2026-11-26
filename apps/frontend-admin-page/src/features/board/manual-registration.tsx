@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import { Button, Loading, Notice } from '@manspick/design-system/components';
 import { Dialog, TextField } from '@manspick/design-system/patterns';
-import type { AddonDTO, PackageDTO } from '@manspick/contracts';
+import type { PackageItemDTO, AddonDTO, PackageDTO } from '@manspick/contracts';
 import { api } from '@manspick/web/client';
 import { money } from '@manspick/web/format';
 import { addonQuantityLimit, defaultAddonRules, validateCatalogQuantities } from '@manspick/domain';
 import styles from './customer-board.module.css';
 
+type DayOption = { date: string; time: string };
 type Day = { date: string; slots: { time: string; available: boolean }[] };
 type RegistrationProps = { onCreated: () => Promise<void> };
 
@@ -33,7 +34,11 @@ function RegistrationDialog({
   onOpenChange,
   onCreated,
 }: RegistrationProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const [catalog, setCatalog] = useState<{ packages: PackageDTO[]; addons: AddonDTO[] }>();
+  const [catalog, setCatalog] = useState<{
+    packages: PackageDTO[];
+    addons: AddonDTO[];
+    packageItems?: PackageItemDTO[];
+  }>();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [packageId, setPackageId] = useState('hybrid');
@@ -41,7 +46,13 @@ function RegistrationDialog({
   const [days, setDays] = useState<Day[]>([]);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [otherOptions, setOtherOptions] = useState<DayOption[]>([]);
+  const timeOptions =
+    date && time && !otherOptions.some((option) => option.date === date && option.time === time)
+      ? [...otherOptions, { date, time }]
+      : otherOptions;
   const [channel, setChannel] = useState('bank');
+  const [platformNickname, setPlatformNickname] = useState('');
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +67,8 @@ function RegistrationDialog({
   let quantityError = '';
   if (pack) {
     try {
+      if (selected.some(({ addon, quantity }) => quantity > availableQuantity(pack, addon)))
+        throw new Error('패키지에서 구매 가능한 옵션 수량을 확인해주세요.');
       validateCatalogQuantities(pack, selected);
     } catch (cause) {
       quantityError = (cause as Error).message;
@@ -63,8 +76,15 @@ function RegistrationDialog({
   }
   useEffect(() => {
     if (open)
-      api<typeof catalog>('/catalog')
-        .then(setCatalog)
+      api<NonNullable<typeof catalog>>('/catalog')
+        .then((catalog) => {
+          setCatalog(catalog);
+          setPackageId((current) =>
+            catalog.packages.some((pack) => pack.id === current)
+              ? current
+              : (catalog.packages[0]?.id ?? ''),
+          );
+        })
         .catch((cause) => setError(cause.message));
   }, [open]);
   useEffect(() => {
@@ -91,6 +111,16 @@ function RegistrationDialog({
     setDate('');
     setTime('');
     setDays([]);
+    setOtherOptions([]);
+  }
+
+  function availableQuantity(pack: PackageDTO, addon: AddonDTO) {
+    const allowed = addonQuantityLimit(pack, addon);
+    if (!catalog?.packageItems) return allowed;
+    const item = catalog.packageItems.find(
+      (entry) => entry.packageId === pack.id && entry.itemId === addon.id,
+    );
+    return item?.inclusionType === 'optional' ? Math.min(allowed, item.quantity) : 0;
   }
 
   function choosePackage(id: string) {
@@ -103,7 +133,7 @@ function RegistrationDialog({
           const previousQuantity = previous[addon.id] ?? 0;
           let quantity =
             nextPackage && Number.isInteger(previousQuantity) && previousQuantity > 0
-              ? Math.min(previousQuantity, addonQuantityLimit(nextPackage, addon))
+              ? Math.min(previousQuantity, availableQuantity(nextPackage, addon))
               : 0;
           if (
             (addon.quantityMode ?? defaultAddonRules(addon.id, addon.maxQuantity).quantityMode) ===
@@ -125,6 +155,8 @@ function RegistrationDialog({
     setError('');
     try {
       if (!pack) throw new Error('예약할 패키지를 선택해주세요.');
+      if (selected.some(({ addon, quantity }) => quantity > availableQuantity(pack, addon)))
+        throw new Error('패키지에서 구매 가능한 옵션 수량을 확인해주세요.');
       validateCatalogQuantities(pack, selected);
       const value = await api<{ message: string; localAccess?: { token: string; last4: string } }>(
         '/start',
@@ -137,9 +169,9 @@ function RegistrationDialog({
             addons: Object.entries(extras)
               .filter(([, quantity]) => quantity > 0)
               .map(([id, quantity]) => ({ id, quantity })),
-            date,
-            time,
+            timeOptions,
             paymentChannel: channel,
+            platformNickname: channel !== 'bank' ? platformNickname.trim() : undefined,
             privacyConsent: consent,
             serviceNotificationConsent: consent,
           }),
@@ -168,9 +200,9 @@ function RegistrationDialog({
               !pack ||
               !name.trim() ||
               !phone ||
-              !date ||
-              !time ||
+              !timeOptions.length ||
               !consent ||
+              (channel !== 'bank' && !platformNickname.trim()) ||
               Boolean(quantityError)
             }
             onClick={submit}
@@ -217,14 +249,14 @@ function RegistrationDialog({
             </select>
           </label>
           {catalog.addons
-            .filter((addon) => pack && addonQuantityLimit(pack, addon) > 0)
+            .filter((addon) => pack && availableQuantity(pack, addon) > 0)
             .map((addon) => (
               <label key={addon.id}>
                 {addon.name} · {money(addon.price)}
                 <input
                   type="number"
                   min={0}
-                  max={pack ? addonQuantityLimit(pack, addon) : 0}
+                  max={pack ? availableQuantity(pack, addon) : 0}
                   value={extras[addon.id] ?? 0}
                   onChange={(e) => {
                     setExtras({ ...extras, [addon.id]: Number(e.target.value) });
@@ -267,6 +299,36 @@ function RegistrationDialog({
                 ))}
             </select>
           </label>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!date || !time}
+            onClick={() => {
+              setOtherOptions(timeOptions);
+              setTime('');
+              setDate('');
+            }}
+          >
+            다른 희망 일정 추가
+          </Button>
+          {otherOptions.length > 0 && (
+            <ul>
+              {otherOptions.map((option) => (
+                <li key={option.date + option.time}>
+                  {option.date} {option.time}{' '}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      setOtherOptions((current) => current.filter((item) => item !== option))
+                    }
+                  >
+                    삭제
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
           <label>
             결제 경로
             <select value={channel} onChange={(e) => setChannel(e.target.value)}>
@@ -283,6 +345,15 @@ function RegistrationDialog({
               ))}
             </select>
           </label>
+          {channel !== 'bank' && (
+            <TextField
+              label="결제한 플랫폼 닉네임"
+              value={platformNickname}
+              onValueChange={setPlatformNickname}
+              required
+              maxLength={80}
+            />
+          )}
           <label className={styles.consent}>
             <input
               type="checkbox"

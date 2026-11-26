@@ -3,8 +3,6 @@ import {
   deadline,
   DomainError,
   holdExpiry,
-  requiredSlots,
-  validateBookingDate,
   resolveCatalogPackage,
   validateCatalogQuantities,
   additionalDifficultyWeight,
@@ -18,10 +16,11 @@ import { hash, id } from '../security/crypto.ts';
 import { newCustomerToken } from '../security/customer-token.ts';
 import { normalizePhone } from '../security/phone.ts';
 import { catalog } from './catalog.ts';
-import { directors, directorSkillsCondition } from './directors.ts';
+import { directors } from './directors.ts';
 import { rebookableShoot, releaseExpiredHolds } from './holds.ts';
-import { conflictingReservations, lastOccupiedDate, occupiedInterval } from './reservations.ts';
+import { directorAvailability, requestedTimes, scheduleOption } from './schedule-options.ts';
 import { operationsPolicy } from '../settings/operations-policy.ts';
+import { validVisit } from '../analytics/analytics.ts';
 
 const REBOOK_REASON = '예약 대기 만료 후 새 예약 접수';
 
@@ -29,7 +28,7 @@ async function activeBooking(env: Env, phone: string) {
   return first<{ id: string; version: number; rebookable: number }>(
     env,
     `SELECT s.id,s.version,${rebookableShoot} AS rebookable FROM shoots s
-     JOIN customers c ON c.id=s.customer_id WHERE c.phone=? AND s.status NOT IN ('cancelled','follow_up')`,
+     JOIN customers c ON c.id=s.customer_id WHERE c.phone=? AND s.status NOT IN ('cancelled','follow_up','shoot_complete')`,
     phone,
   );
 }
@@ -42,14 +41,16 @@ export async function start(
   const name = requiredText(body, 'name', 40);
   const phone = normalizePhone(requiredText(body, 'phone', 20));
   let packageId = requiredText(body, 'packageId', 80);
-  const date = requiredText(body, 'date', 10);
-  const time = requiredText(body, 'time', 5);
   const now = new Date();
   const policy = await operationsPolicy(env);
-  validateBookingDate(date, now, policy);
-  const channel = typeof body.paymentChannel === 'string' ? body.paymentChannel : 'bank';
-  if (!['bank', 'kmong', 'frip', 'soomgo', 'smartstore', 'unpaid'].includes(channel))
+  const proposed = body.timeOptions !== undefined;
+  const times = requestedTimes(body, now, policy);
+  const channel =
+    typeof body.paymentChannel === 'string' ? body.paymentChannel : proposed ? 'pg' : 'bank';
+  if (!['bank', 'pg', 'kmong', 'frip', 'soomgo', 'smartstore', 'unpaid'].includes(channel))
     throw new DomainError('INVALID_CHANNEL', '결제 경로를 확인해주세요.');
+  const external = ['kmong', 'frip', 'soomgo', 'smartstore'].includes(channel);
+  const platformNickname = proposed && external ? requiredText(body, 'platformNickname', 80) : null;
   if (body.privacyConsent !== true || body.serviceNotificationConsent !== true)
     throw new DomainError(
       'CONSENT_REQUIRED',
@@ -96,6 +97,8 @@ export async function start(
   const requested = body.addons ?? [];
   if (!Array.isArray(requested) || requested.length > available.addons.length)
     throw new DomainError('INVALID_ADDONS', '옵션을 확인해주세요.');
+  const composition = available.packageItems.filter((item) => item.packageId === pack.id);
+  const included = composition.filter((item) => item.inclusionType === 'included');
   const selected: { addon: AddonDTO; quantity: number }[] = [];
   for (const entry of requested) {
     if (!entry || typeof entry !== 'object')
@@ -103,33 +106,31 @@ export async function start(
     const value = entry as { id?: unknown; quantity?: unknown };
     const addon = available.addons.find((item) => item.id === value.id);
     const quantity = value.quantity;
+    const option = composition.find(
+      (row) => row.itemId === value.id && row.inclusionType === 'optional',
+    );
     if (
       !addon ||
+      !option ||
       typeof quantity !== 'number' ||
       !Number.isInteger(quantity) ||
       quantity < 1 ||
+      quantity > option.quantity ||
       selected.some((item) => item.addon.id === addon.id)
     )
       throw new DomainError('INVALID_ADDONS', '옵션 수량을 확인해주세요.');
     selected.push({ addon, quantity });
   }
   validateCatalogQuantities(pack, selected);
-  const shopping = selected.some((item) => item.addon.id === 'shopping');
-  const needed = requiredSlots(packageId, time, shopping, policy);
-  const startsAt = new Date(`${date}T${time}:00+09:00`);
-  const endsAt = new Date(startsAt.getTime() + pack.duration * 60000);
-  const interval = occupiedInterval(
-    { startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() },
-    date,
-    needed,
+  const addonIds = [
+    ...new Set([...selected.map((item) => item.addon.id), ...included.map((item) => item.itemId)]),
+  ];
+  const options = times.map(({ date, time }) =>
+    scheduleOption(date, time, packageId, pack.duration, addonIds.includes('shopping'), policy),
   );
-  const heldUntil = holdExpiry(now, startsAt, policy);
-  const addonIds = selected.map((item) => item.addon.id);
-  const skills = directorSkillsCondition(addonIds);
-  const eligible = await directors(env, addonIds);
+  const eligible = await directors(env, addonIds, proposed);
   const { token, tokenHash } = await newCustomerToken(env);
   const shootId = id();
-  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
   const amount =
     pack.price + selected.reduce((sum, item) => sum + item.addon.price * item.quantity, 0);
   const reportedAmount = body.paymentAmount;
@@ -155,164 +156,187 @@ export async function start(
     serviceNotificationConsent: body.serviceNotificationConsent === true,
   };
   for (const director of eligible) {
-    const conflicts = conflictingReservations(director.id, date, needed, interval);
-    await releaseExpiredHolds(env, now.toISOString(), conflicts);
-    const availability = `EXISTS(SELECT 1 FROM staff WHERE id=? AND role='director' AND active=1 AND ${skills.sql})
-      AND NOT EXISTS(SELECT 1 FROM director_days_off WHERE director_id=? AND date BETWEEN ? AND ?)
-      AND NOT EXISTS(SELECT 1 FROM shoots s WHERE ${conflicts.sql})`;
-    const availabilityValues = [
-      director.id,
-      skills.value,
-      director.id,
-      date,
-      lastOccupiedDate(date, interval),
-      ...conflicts.values,
-    ];
-    // 진행 중인 번호로 조회해도 다른 번호와 같은 예약 가능 조건을 거칩니다.
-    if (duplicate) {
-      if (await first(env, `SELECT 1 WHERE ${availability}`, ...availabilityValues))
-        return accepted;
-      continue;
-    }
-    const guard = id();
-    const customerId = id();
-    const statements = [
-      statement(
-        env,
-        `INSERT INTO mutation_guards(id,ok) SELECT ?,CASE WHEN ${availability}
+    for (const option of options) {
+      const rule = directorAvailability(director.id, option, addonIds);
+      await releaseExpiredHolds(env, now.toISOString(), rule.conflicts);
+      const { sql: availability, values: availabilityValues } = rule;
+      if (!(await first(env, `SELECT 1 WHERE ${availability}`, ...availabilityValues))) continue;
+      if (duplicate) return accepted;
+      const { date, slots: needed, startsAt, endsAt } = option;
+      const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+      const heldUntil = proposed ? null : holdExpiry(now, new Date(startsAt), policy);
+      const guard = id();
+      const customerId = id();
+      const statements = [
+        statement(
+          env,
+          `INSERT INTO mutation_guards(id,ok) SELECT ?,CASE WHEN ${availability}
           ${replacement ? `AND EXISTS(SELECT 1 FROM shoots s WHERE s.id=? AND s.version=? AND ${rebookableShoot})` : ''}
           THEN 1 ELSE 0 END`,
-        guard,
-        ...availabilityValues,
-        ...(replacement ? [replacement.id, replacement.version] : []),
-      ),
-      ...(replacement
-        ? [
-            statement(
-              env,
-              "UPDATE shoots SET status='cancelled',cancelled_at=?,cancelled_reason=?,version=version+1 WHERE id=?",
-              now.toISOString(),
-              REBOOK_REASON,
-              replacement.id,
-            ),
-            statement(
-              env,
-              "INSERT INTO timeline(id,shoot_id,from_status,to_status,actor_id,actor_name,reason) VALUES(?,?,'calendar_pending','cancelled','system','시스템',?)",
-              id(),
-              replacement.id,
-              REBOOK_REASON,
-            ),
-          ]
-        : []),
-      statement(
-        env,
-        'INSERT INTO customers(id,name,phone) VALUES(?,?,?) ON CONFLICT(phone) DO NOTHING',
-        customerId,
-        name,
-        phone,
-      ),
-      statement(
-        env,
-        `INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,retoucher_id,starts_at,ends_at,survey_due_at,outfit_due_at)
+          guard,
+          ...availabilityValues,
+          ...(replacement ? [replacement.id, replacement.version] : []),
+        ),
+        ...(replacement
+          ? [
+              statement(
+                env,
+                "UPDATE shoots SET status='cancelled',cancelled_at=?,cancelled_reason=?,version=version+1 WHERE id=?",
+                now.toISOString(),
+                REBOOK_REASON,
+                replacement.id,
+              ),
+              statement(
+                env,
+                "INSERT INTO timeline(id,shoot_id,from_status,to_status,actor_id,actor_name,reason) VALUES(?,?,'calendar_pending','cancelled','system','시스템',?)",
+                id(),
+                replacement.id,
+                REBOOK_REASON,
+              ),
+            ]
+          : []),
+        statement(
+          env,
+          'INSERT INTO customers(id,name,phone) VALUES(?,?,?) ON CONFLICT(phone) DO NOTHING',
+          customerId,
+          name,
+          phone,
+        ),
+        statement(
+          env,
+          `INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,retoucher_id,starts_at,ends_at,survey_due_at,outfit_due_at)
           VALUES(?,(SELECT id FROM customers WHERE phone=?),?,'payment_pending',?,?,?,?,
             (SELECT r.retoucher_id FROM retoucher_rules r JOIN staff s ON s.id=r.retoucher_id
               WHERE r.weekday=? AND s.active=1 AND s.role='retoucher'),?,?,?,?)`,
-        shootId,
-        phone,
-        tokenHash,
-        pack.id,
-        JSON.stringify({
-          ...pack,
-          additionalDifficultyWeight: additionalDifficultyWeight(selected),
-        }),
-        amount,
-        director.id,
-        weekday,
-        startsAt.toISOString(),
-        endsAt.toISOString(),
-        deadline(startsAt.toISOString(), policy.surveyLeadDays, now),
-        deadline(startsAt.toISOString(), policy.outfitLeadDays, now),
-      ),
-      ...selected.map((item) =>
-        statement(
-          env,
-          'INSERT INTO shoot_addons(shoot_id,addon_id,name,quantity,unit_price) VALUES(?,?,?,?,?)',
           shootId,
-          item.addon.id,
-          item.addon.name,
-          item.quantity,
-          item.addon.price,
-        ),
-      ),
-      ...needed.map((slot) =>
-        statement(
-          env,
-          'INSERT INTO slots(id,director_id,date,time,shoot_id) VALUES(?,?,?,?,?)',
-          id(),
+          phone,
+          tokenHash,
+          pack.id,
+          JSON.stringify({
+            ...pack,
+            additionalDifficultyWeight: additionalDifficultyWeight(selected),
+          }),
+          amount,
           director.id,
-          date,
-          slot,
+          proposed ? null : weekday,
+          proposed ? null : startsAt,
+          proposed ? null : endsAt,
+          proposed ? null : deadline(startsAt, policy.surveyLeadDays, now),
+          proposed ? null : deadline(startsAt, policy.outfitLeadDays, now),
+        ),
+        ...selected.map((item) =>
+          statement(
+            env,
+            'INSERT INTO shoot_addons(shoot_id,addon_id,name,quantity,unit_price) VALUES(?,?,?,?,?)',
+            shootId,
+            item.addon.id,
+            item.addon.name,
+            item.quantity,
+            item.addon.price,
+          ),
+        ),
+        ...included.map((item) =>
+          statement(
+            env,
+            `INSERT INTO order_items(order_id,item_id,inclusion_type,item_name,quantity,unit_price_krw) SELECT ?,id,'included',name,?,0 FROM addons WHERE id=?`,
+            shootId,
+            item.quantity,
+            item.itemId,
+          ),
+        ),
+        ...(proposed
+          ? [
+              statement(
+                env,
+                'UPDATE orders SET customer_id=NULL,sales_channel=?,platform_nickname=? WHERE id=?',
+                channel,
+                platformNickname,
+                shootId,
+              ),
+              statement(
+                env,
+                "INSERT INTO booking_time_options(id,booking_id,starts_at) SELECT json_extract(value,'$.id'),?,json_extract(value,'$.startsAt') FROM json_each(?)",
+                shootId,
+                JSON.stringify(options.map(({ startsAt }) => ({ id: id(), startsAt }))),
+              ),
+              statement(
+                env,
+                "UPDATE analytics_events SET visitor_id=? WHERE booking_id=? AND event_name='order_completed'",
+                validVisit(body.visitorId),
+                shootId,
+              ),
+            ]
+          : []),
+        ...(proposed ? [] : needed).map((slot) =>
+          statement(
+            env,
+            'INSERT INTO slots(id,director_id,date,time,shoot_id) VALUES(?,?,?,?,?)',
+            id(),
+            director.id,
+            date,
+            slot,
+            shootId,
+          ),
+        ),
+        statement(
+          env,
+          "INSERT INTO payments(id,shoot_id,kind,channel,amount,state,held_until) VALUES(?,?,'base',?,?,'pending',?)",
+          id(),
+          shootId,
+          channel,
+          amount,
+          heldUntil,
+        ),
+        statement(env, 'INSERT INTO surveys(shoot_id) VALUES(?)', shootId),
+        statement(
+          env,
+          'INSERT INTO shoot_workspace(shoot_id,profile_json) VALUES(?,?)',
+          shootId,
+          JSON.stringify(profile),
+        ),
+        statement(
+          env,
+          "INSERT INTO timeline(id,shoot_id,to_status,actor_id,actor_name,reason) VALUES(?,?,'payment_pending','customer','고객','옵션·일정 접수 및 디렉터 자동 배정')",
+          id(),
           shootId,
         ),
-      ),
-      statement(
-        env,
-        "INSERT INTO payments(id,shoot_id,kind,channel,amount,state,held_until) VALUES(?,?,'base',?,?,'pending',?)",
-        id(),
-        shootId,
-        channel,
-        amount,
-        heldUntil,
-      ),
-      statement(env, 'INSERT INTO surveys(shoot_id) VALUES(?)', shootId),
-      statement(
-        env,
-        'INSERT INTO shoot_workspace(shoot_id,profile_json) VALUES(?,?)',
-        shootId,
-        JSON.stringify(profile),
-      ),
-      statement(
-        env,
-        "INSERT INTO timeline(id,shoot_id,to_status,actor_id,actor_name,reason) VALUES(?,?,'payment_pending','customer','고객','옵션·일정 접수 및 디렉터 자동 배정')",
-        id(),
-        shootId,
-      ),
-      statement(
-        env,
-        "INSERT INTO notifications(id,shoot_id,kind,body,send_at) VALUES(?,?,'booking',?,?)",
-        id(),
-        shootId,
-        demo
-          ? '로컬 접수 안내: 외부 발송 없음'
-          : customerTest
-            ? '테스트 신규 접수: 고객이 완료 화면의 개인 링크로 입금 안내를 확인합니다. 입금 확인 후 설문을 작성할 수 있습니다.'
-            : '신규 접수: 고객용 접속 링크를 발급해 등록한 번호로 직접 안내해주세요.',
-        now.toISOString(),
-      ),
-      statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard),
-    ];
-    try {
-      await batch(env, statements);
-      return {
-        ...accepted,
-        ...(customerTest
-          ? {
-              message:
-                '아래 버튼에서 입금 안내와 진행상태를 확인해주세요. 입금 확인이 끝나면 설문을 작성할 수 있어요.',
-              bookingAccess: { token },
-            }
-          : {}),
-        ...(demo ? { localAccess: { token, last4: phone.slice(-4), shootId } } : {}),
-      };
-    } catch (error) {
-      if (!(error instanceof DomainError && error.status === 409)) throw error;
-      const concurrent = await activeBooking(env, phone);
-      if (
-        concurrent &&
-        !concurrent.rebookable &&
-        (demo || (await first(env, `SELECT 1 WHERE ${availability}`, ...availabilityValues)))
-      )
-        return accepted;
+        statement(
+          env,
+          "INSERT INTO notifications(id,shoot_id,kind,body,send_at) VALUES(?,?,'booking',?,?)",
+          id(),
+          shootId,
+          demo
+            ? '로컬 접수 안내: 외부 발송 없음'
+            : customerTest
+              ? '테스트 신규 접수: 고객이 완료 화면의 개인 링크로 입금 안내를 확인합니다. 입금 확인 후 설문을 작성할 수 있습니다.'
+              : '신규 접수: 고객용 접속 링크를 발급해 등록한 번호로 직접 안내해주세요.',
+          now.toISOString(),
+        ),
+        statement(env, 'DELETE FROM mutation_guards WHERE id=?', guard),
+      ];
+      try {
+        await batch(env, statements);
+        return {
+          ...accepted,
+          ...(customerTest
+            ? {
+                message:
+                  '아래 버튼에서 입금 안내와 진행상태를 확인해주세요. 입금 확인이 끝나면 설문을 작성할 수 있어요.',
+                bookingAccess: { token },
+              }
+            : {}),
+          ...(demo ? { localAccess: { token, last4: phone.slice(-4), shootId } } : {}),
+        };
+      } catch (error) {
+        if (!(error instanceof DomainError && error.status === 409)) throw error;
+        const concurrent = await activeBooking(env, phone);
+        if (
+          concurrent &&
+          !concurrent.rebookable &&
+          (demo || (await first(env, `SELECT 1 WHERE ${availability}`, ...availabilityValues)))
+        )
+          return accepted;
+      }
     }
   }
   throw new DomainError(

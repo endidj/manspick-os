@@ -11,6 +11,10 @@ export interface Env {
   STAFF_EMAIL_DOMAIN?: string;
   STAFF_APP_ORIGIN?: string;
   CUSTOMER_APP_ORIGIN?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  KAKAO_CLIENT_ID?: string;
+  KAKAO_CLIENT_SECRET?: string;
   // 비공개 테스트 Worker가 관리자 앱의 요청에만 설정합니다.
   ADMIN_TEST?: boolean;
   // 비공개 테스트 Worker가 고객 앱의 신규 예약 연결에만 설정합니다.

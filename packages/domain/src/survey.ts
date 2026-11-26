@@ -55,25 +55,7 @@ export function surveyIssues(
     'purposes',
     '사진을 사용할 곳을 한 가지 이상 선택해주세요.',
   );
-  addIssue(
-    numeric('retouchStrength') && [0, 25, 50, 75, 100].includes(Number(answers.retouchStrength)),
-    3,
-    'retouchStrength',
-    '원하는 보정 강도를 선택해주세요.',
-  );
-  addIssue(
-    ['customer', 'director'].includes(String(answers.selector)),
-    3,
-    'selector',
-    '보정할 사진을 누가 고를지 선택해주세요.',
-  );
   addIssue(Boolean(text('referral')), 4, 'referral', '맨즈픽을 알게 된 경로를 선택해주세요.');
-  addIssue(
-    typeof answers.reviewParticipation === 'boolean',
-    4,
-    'reviewParticipation',
-    '후기 작성 혜택 참여 여부를 선택해주세요.',
-  );
   addIssue(answers.safetyRead === true, 4, 'safetyRead', '촬영 전 주의사항을 확인해주세요.');
   return issues;
 }

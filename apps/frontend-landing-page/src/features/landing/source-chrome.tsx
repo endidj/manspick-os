@@ -178,8 +178,9 @@ export function SourceNavigation() {
           {'\n      '}
           <div className="flex items-center gap-2">
             {'\n        '}
-            <a
+            <Link
               href="/recommend"
+              prefetch={false}
               className="cta-primary inline-flex items-center gap-1.5 bg-accent-500 hover:bg-accent-600 text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-2 rounded-full"
             >
               {'\n          '}
@@ -189,7 +190,7 @@ export function SourceNavigation() {
               {'\n          '}
               <span className="sm:hidden">{'맞춤 설계'}</span>
               {'\n        '}
-            </a>
+            </Link>
             {'\n        '}
             <button
               id="mobile-menu-toggle"

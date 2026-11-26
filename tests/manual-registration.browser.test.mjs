@@ -46,11 +46,11 @@ test('manual registration preserves fresh forms and applies shared source quanti
       },
     ],
     resolve: { dedupe: ['react', 'react-dom'] },
-    optimizeDeps: { include: ['react', 'react-dom/client'] },
+    optimizeDeps: { entries: [], include: ['react', 'react-dom/client'] },
     server: {
       host: '127.0.0.1',
       port: 0,
-      watch: { ignored: ['**/.next/**', '**/.local/**', '**/.open-next/**', '**/.wrangler/**'] },
+      watch: null,
     },
   });
   let browser;
@@ -109,6 +109,7 @@ test('manual registration preserves fresh forms and applies shared source quanti
     const consent = dialog.getByRole('checkbox');
 
     for (const submit of [false, true]) {
+      await open.waitFor({ timeout: 60000 });
       await open.click();
       await name.waitFor();
       await name.fill('이전 고객');
@@ -139,6 +140,7 @@ test('manual registration preserves fresh forms and applies shared source quanti
     assert.equal(submissions.length, 1);
     assert.equal(submissions[0].name, '이전 고객');
     assert.equal(submissions[0].privacyConsent, true);
+    assert.deepEqual(submissions[0].timeOptions, [{ date: '2026-11-20', time: '11:00' }]);
 
     await open.click();
     await name.fill('수량 검증 고객');

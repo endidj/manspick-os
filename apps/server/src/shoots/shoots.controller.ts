@@ -7,6 +7,8 @@ import type { RequestContext } from '../http/context.ts';
 import { jsonBody } from '../http/input.ts';
 import { success } from '../http/responses.ts';
 import { act } from './actions.ts';
+import { DomainError } from '@manspick/domain';
+import { enabledProviders, socialOptions } from '../security/customer-social.ts';
 import { listBoardShoots, listShoots, shootDetail } from './queries.ts';
 
 @Controller('api/shoots')
@@ -50,6 +52,14 @@ export class ShootsController {
 
   @Post(':shootId/actions')
   async action(@ApiContext() context: RequestContext, @Param('shootId') shootId: string) {
-    return success(await act(context.env, context.actor, shootId, await jsonBody(context.request)));
+    const body = await jsonBody(context.request);
+    if (
+      context.actor.kind === 'customer' &&
+      body.type === 'save_survey' &&
+      enabledProviders(context.env).length &&
+      !(await socialOptions(context.request, context.env, context.actor)).verified
+    )
+      throw new DomainError('SOCIAL_REQUIRED', '소셜 로그인 후 설문을 작성해주세요.', 403);
+    return success(await act(context.env, context.actor, shootId, body));
   }
 }

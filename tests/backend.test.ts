@@ -706,61 +706,48 @@ test('concurrent operations policy updates cannot silently overwrite each other'
   db.database.close();
 });
 
-test('stopping extra retouch sales keeps included selection open and blocks new paid orders', async () => {
+test('retired selection and retouch commands cannot charge, create jobs or modify history', async () => {
   const { api, db } = setup();
-  db.database.exec(
-    "INSERT INTO addons(id,name,price,description,max_quantity,active) VALUES('extra_retouch','추가 보정',15000,'셀렉 전용',100,0)",
-  );
-  const cookie = await customerLogin(api, 'demo-selection-access', '1003');
-  const detail = await api('/api/shoots/demo-selection', { cookie });
-  assert.equal(detail.status, 200);
-  const data = (
-    (await detail.json()) as {
-      data: { extraRetouchAvailable: boolean; retouchUnitPrice: number };
+  const customer = await customerLogin(api, 'demo-result-access', '1004');
+  const staff = await login(api, 'staff');
+  const retoucher = await login(api, 'retoucher');
+  const snapshot = () =>
+    ['payments', 'selections', 'retouch_jobs', 'retouch_orders', 'requests', 'timeline'].map(
+      (table) => db.database.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get()?.n,
+    );
+  const before = snapshot();
+  for (const cookie of [customer, staff, retoucher]) {
+    for (const type of [
+      'start_selection',
+      'submit_selection',
+      'request_extra_retouch',
+      'request_revision',
+      'finish_retouch',
+      'review_submit',
+      'save_file_link',
+    ]) {
+      await expectError(
+        await api('/api/shoots/demo-result/actions', {
+          cookie,
+          method: 'POST',
+          body: {
+            type,
+            photoIds: ['demo-result-candidate-photo-1'],
+            uploadId: 'demo-result-upload-1',
+          },
+        }),
+        400,
+        'UNKNOWN_ACTION',
+      );
     }
-  ).data;
+  }
+  assert.deepEqual(snapshot(), before);
+  const detail = await api('/api/shoots/demo-result', { cookie: customer });
+  const { data } = (await detail.json()) as {
+    data: { extraRetouchAvailable: boolean; retouchUnitPrice: number };
+  };
   assert.equal(data.extraRetouchAvailable, false);
-  assert.equal(data.retouchUnitPrice, 15000);
-  const photoIds = Array.from({ length: 8 }, (_, index) => `demo-selection-photo-${index + 1}`);
-  const action = (body: unknown) =>
-    api('/api/shoots/demo-selection/actions', { cookie, method: 'POST', body });
-
-  await expectError(
-    await action({ type: 'submit_selection', photoIds }),
-    409,
-    'EXTRA_RETOUCH_UNAVAILABLE',
-  );
-  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM retouch_orders').get()?.n, 0);
-  const included = await action({ type: 'submit_selection', photoIds: photoIds.slice(0, 7) });
-  assert.equal(included.status, 200, await included.clone().text());
-  assert.equal(
-    db.database.prepare("SELECT status FROM shoots WHERE id='demo-selection'").get()?.status,
-    'retouch_assigned',
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-      .get()?.n,
-    1,
-  );
-  db.database.exec(
-    "UPDATE retouch_jobs SET state='complete' WHERE shoot_id='demo-selection'; UPDATE shoots SET status='delivered' WHERE id='demo-selection'",
-  );
-  await expectError(
-    await action({ type: 'request_extra_retouch', photoIds: [photoIds[7]] }),
-    409,
-    'EXTRA_RETOUCH_UNAVAILABLE',
-  );
-  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM retouch_orders').get()?.n, 0);
-  assert.equal(
-    db.database
-      .prepare(
-        "SELECT COUNT(*) AS n FROM selections WHERE shoot_id='demo-selection' AND round='extra'",
-      )
-      .get()?.n,
-    0,
-  );
-  db.database.close();
+  assert.equal(data.retouchUnitPrice, 0);
 });
 
 test('preparation confirmations persist per customer and require every configured guide', async () => {
@@ -921,7 +908,7 @@ test('manual assignment checks role, reason, eligibility and occupied slots atom
   assert.equal(schedule.status, 200);
 });
 
-test('operations editing is admin scoped and original external links remain gated by review approval', async () => {
+test('operators retain role-scoped settings and notifications while external delivery links stay retired', async () => {
   const { api, db } = setup();
   const admin = await login(api, 'admin');
   const staff = await login(api, 'staff');
@@ -948,29 +935,13 @@ test('operations editing is admin scoped and original external links remain gate
   );
   const action = (body: unknown) =>
     api('/api/shoots/demo-result/actions', { method: 'POST', cookie: staff, body });
-  await expectError(
-    await action({
-      type: 'save_file_link',
-      kind: 'original',
-      label: '원본',
-      url: 'javascript:alert(1)',
-      visible: true,
-    }),
-    400,
-    'INVALID_URL',
-  );
-  assert.equal(
-    (
-      await action({
-        type: 'save_file_link',
-        kind: 'original',
-        label: '원본',
-        url: 'https://example.invalid/original',
-        visible: true,
-      })
-    ).status,
-    200,
-  );
+  for (const url of ['javascript:alert(1)', 'https://example.invalid/original']) {
+    await expectError(
+      await action({ type: 'save_file_link', kind: 'original', label: '원본', url, visible: true }),
+      400,
+      'UNKNOWN_ACTION',
+    );
+  }
   const detail = (await (await api('/api/shoots/demo-result', { cookie: customer })).json()) as {
     data: { fileLinks: unknown[] };
   };
@@ -1045,105 +1016,55 @@ test('assignment rules validate complete weekdays and eligible staff before repl
   assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM retoucher_rules').get()?.n, 7);
 });
 
-test('review approval can publish an external original link without a duplicate R2 upload', async () => {
+test('historical reviews and visible original links remain private for every customer read', async () => {
   const { api, db } = setup();
+  const customer = await customerLogin(api, 'demo-result-access', '1004');
   const staff = await login(api, 'staff');
-  const customer = await customerLogin(api, 'demo-selection-access', '1003');
   db.database.exec(`
-    UPDATE shoots SET status='delivered' WHERE id='demo-selection';
-    INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by) VALUES('external-review-proof','demo-selection','review','demo/external-review','가상 후기','image/jpeg',1,'demo-selection');
+    INSERT INTO requests(id,shoot_id,type,state,message) VALUES('archived-review','demo-result','review','new','historical proof');
+    UPDATE file_links SET visible=1 WHERE id='demo-original-link-1';
+    UPDATE uploads SET visible=1 WHERE id='demo-original-upload-1';
+    INSERT INTO external_file_links(id,shoot_id,kind,label,url,visible,published_at)
+    VALUES('archived-link','demo-result','original','원본','https://example.invalid/legacy-private',1,CURRENT_TIMESTAMP);
   `);
-  const action = (body: unknown, cookie = staff) =>
-    api('/api/shoots/demo-selection/actions', { method: 'POST', cookie, body });
-  assert.equal(
-    (
-      await action({
-        type: 'save_file_link',
-        kind: 'original',
-        label: '원본 링크',
-        url: 'https://example.invalid/originals',
-        visible: false,
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    (await action({ type: 'review_submit', uploadId: 'external-review-proof' }, customer)).status,
-    200,
-  );
-  const requestId = db.database
-    .prepare("SELECT id FROM requests WHERE shoot_id='demo-selection' AND type='review'")
-    .get()?.id;
-  assert.equal(
-    (await action({ type: 'resolve_request', requestId, decision: 'complete' })).status,
-    200,
-  );
-  const detail = (await (await api('/api/shoots/demo-selection', { cookie: customer })).json()) as {
-    data: { fileLinks: { url: string; publishedAt: string | null }[] };
-  };
-  assert.equal(detail.data.fileLinks[0]?.url, 'https://example.invalid/originals');
-  assert.ok(detail.data.fileLinks[0]?.publishedAt);
-});
-
-test('review approval releases originals independently of optional review rewards', async (t) => {
-  for (const [scenario, campaigns, expectedCampaign] of [
-    ['no campaigns', 'DELETE FROM campaigns', undefined],
-    [
-      'unrelated active campaign',
-      "DELETE FROM campaigns; INSERT INTO campaigns(id,name) VALUES('referral','추천')",
-      undefined,
-    ],
-    [
-      'disabled review campaign',
-      "INSERT INTO campaigns(id,name,active) VALUES('review','후기',0)",
-      undefined,
-    ],
-    [
-      'configured active review campaign',
-      "INSERT INTO campaigns(id,name) VALUES('review','후기')",
-      'review',
-    ],
-  ] as const) {
-    await t.test(scenario, async () => {
-      const { api, db } = setup();
-      const staff = await login(api, 'staff');
-      const customer = await customerLogin(api, 'demo-result-access', '1004');
-      db.database.exec(campaigns);
-      db.database.exec(`
-        INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by)
-        VALUES('optional-review-proof','demo-result','review','demo/optional-review','후기','image/jpeg',1,'demo-result');
-      `);
-      const original = () => api('/api/uploads/demo-original-upload-1/blob', { cookie: customer });
-      const action = (body: unknown, cookie = staff) =>
-        api('/api/shoots/demo-result/actions', { method: 'POST', cookie, body });
-      const submit = () =>
-        action({ type: 'review_submit', uploadId: 'optional-review-proof' }, customer);
-      assert.equal((await original()).status, 404);
-      assert.equal((await submit()).status, 200);
-      const requestId = db.database
-        .prepare("SELECT id FROM requests WHERE shoot_id='demo-result' AND type='review'")
-        .get()?.id;
-      const approve = () => action({ type: 'resolve_request', requestId, decision: 'complete' });
-      assert.equal((await approve()).status, 200);
-      assert.equal((await original()).status, 200);
-      const followups = (await (await api('/api/followups', { cookie: staff })).json()) as {
-        data: { items: { request: { id: string; state: string } }[] };
-      };
-      assert.equal(
-        followups.data.items.find((item) => item.request.id === requestId)?.request.state,
-        'complete',
-      );
-      await expectError(await approve(), 409, 'REQUEST_CLOSED');
-      await expectError(await submit(), 409, 'ALREADY_REVIEWED');
-      assert.deepEqual(
-        db.database
-          .prepare('SELECT campaign_id FROM campaign_claims WHERE request_id=?')
-          .all(requestId ?? null)
-          .map((claim) => claim.campaign_id),
-        expectedCampaign ? [expectedCampaign] : [],
-      );
-    });
+  for (const cookie of [customer, staff]) {
+    const res = await api('/api/shoots/demo-result', { cookie });
+    assert.equal(res.status, 200);
+    const { data } = (await res.json()) as { data: Record<string, unknown> };
+    for (const field of ['fileLinks', 'originals', 'photos', 'selections', 'retouchJobs'])
+      assert.deepEqual(data[field], [], field);
+    assert.doesNotMatch(JSON.stringify(data), /legacy-private|archived-review/);
   }
+  await expectError(
+    await api('/api/uploads/demo-original-upload-1/blob', { cookie: customer }),
+    404,
+    'NOT_FOUND',
+  );
+  for (const decision of ['complete', 'reject']) {
+    await expectError(
+      await api('/api/shoots/demo-result/actions', {
+        cookie: staff,
+        method: 'POST',
+        body: {
+          type: 'resolve_request',
+          requestId: 'archived-review',
+          decision,
+        },
+      }),
+      404,
+      'NOT_FOUND',
+    );
+  }
+  assert.equal(
+    db.database.prepare("SELECT state FROM requests WHERE id='archived-review'").get()?.state,
+    'new',
+  );
+  assert.equal(
+    db.database
+      .prepare("SELECT COUNT(*) AS n FROM campaign_claims WHERE request_id='archived-review'")
+      .get()?.n,
+    0,
+  );
 });
 
 async function login(api: ReturnType<typeof setup>['api'], role: string) {
@@ -1161,6 +1082,34 @@ async function customerLogin(api: ReturnType<typeof setup>['api'], token: string
   return response.headers.get('Set-Cookie')!.split(';')[0]!;
 }
 
+async function sendPhoto(
+  env: Env,
+  cookie: string,
+  kind: string,
+  {
+    key,
+    name = '사내 사진.jpg',
+    bytes = [255, 216, 255],
+  }: { key?: string; name?: string; bytes?: number[] } = {},
+) {
+  const form = new FormData();
+  form.set('shootId', 'demo-result');
+  form.set('kind', kind);
+  form.set('file', new File([new Uint8Array(bytes)], name, { type: 'image/jpeg' }));
+  return handleRequest(
+    new Request('http://localhost:8787/api/uploads', {
+      method: 'POST',
+      headers: {
+        Cookie: cookie,
+        Origin: 'http://localhost:3002',
+        ...(key ? { 'Idempotency-Key': key } : {}),
+      },
+      body: form,
+    }),
+    env,
+  );
+}
+
 async function expectError(response: Response, status: number, code: string) {
   assert.equal(response.status, status);
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
@@ -1172,140 +1121,26 @@ async function expectError(response: Response, status: number, code: string) {
   return result.error;
 }
 
-test('extra selection creates an exact pending charge and cannot start retouching before staff payment confirmation', async () => {
+test('historical extra payments cannot restart a retired workflow', async () => {
   const { api, db } = setup();
-  const customer = await customerLogin(api, 'demo-selection-access', '1003');
   const staff = await login(api, 'staff');
-  const photoIds = Array.from({ length: 8 }, (_, i) => `demo-selection-photo-${i + 1}`);
-  const response = await api('/api/shoots/demo-selection/actions', {
+  db.database.exec(
+    "INSERT INTO payments(id,shoot_id,kind,channel,amount) VALUES('obsolete-charge','demo-result','extra_retouch','transfer',35000)",
+  );
+  const res = await api('/api/shoots/demo-result/actions', {
+    cookie: staff,
     method: 'POST',
-    cookie: customer,
-    body: { type: 'submit_selection', photoIds },
+    body: { type: 'confirm_payment', paymentId: 'obsolete-charge' },
   });
-  assert.equal(response.status, 200);
-  const charge = db.database
-    .prepare(
-      "SELECT id,amount FROM payments WHERE shoot_id='demo-selection' AND kind='selection_extra'",
-    )
-    .get();
-  assert.equal(charge?.amount, 10000);
+  assert.equal(res.ok, false);
   assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-      .get()?.n,
-    0,
+    db.database.prepare("SELECT state FROM payments WHERE id='obsolete-charge'").get()?.state,
+    'pending',
   );
   assert.equal(
-    (
-      await api('/api/shoots/demo-selection/actions', {
-        method: 'POST',
-        cookie: staff,
-        body: { type: 'confirm_payment', paymentId: charge?.id },
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-      .get()?.n,
+    db.database.prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-result'").get()
+      ?.n,
     1,
-  );
-  assert.equal(
-    db.database.prepare("SELECT status FROM shoots WHERE id='demo-selection'").get()?.status,
-    'retouch_assigned',
-  );
-  assert.equal(
-    (
-      await api('/api/shoots/demo-selection/actions', {
-        method: 'POST',
-        cookie: staff,
-        body: { type: 'confirm_payment', paymentId: charge?.id },
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-      .get()?.n,
-    1,
-  );
-});
-
-test('retoucher candidate access follows assigned rounds and never exposes unpaid extra selections', async () => {
-  const { api, db } = setup();
-  const customer = await customerLogin(api, 'demo-selection-access', '1003');
-  const staff = await login(api, 'staff');
-  const retoucher = await login(api, 'retoucher');
-  const action = (body: unknown, cookie = customer) =>
-    api('/api/shoots/demo-selection/actions', { method: 'POST', cookie, body });
-  assert.equal(
-    (await action({ type: 'submit_selection', photoIds: ['demo-selection-photo-1'] })).status,
-    200,
-  );
-  db.database.exec(
-    "UPDATE retouch_jobs SET state='complete' WHERE shoot_id='demo-selection'; UPDATE shoots SET status='delivered' WHERE id='demo-selection'",
-  );
-  assert.equal(
-    (await action({ type: 'request_extra_retouch', photoIds: ['demo-selection-photo-2'] })).status,
-    200,
-  );
-  const detail = (await (
-    await api('/api/shoots/demo-selection', { cookie: retoucher })
-  ).json()) as { data: { photos: { id: string }[] } };
-  assert.ok(detail.data.photos.some((photo) => photo.id === 'demo-selection-photo-1'));
-  assert.ok(!detail.data.photos.some((photo) => photo.id === 'demo-selection-photo-2'));
-  const extraUpload = db.database
-    .prepare("SELECT upload_id FROM photos WHERE id='demo-selection-photo-2'")
-    .get()?.upload_id;
-  assert.equal((await api(`/api/uploads/${extraUpload}/blob`, { cookie: retoucher })).status, 404);
-  db.database.exec(
-    "INSERT INTO staff(id,name,email,role) VALUES('other-extra-retoucher','추가 가상 보정가','other-extra@example.invalid','retoucher')",
-  );
-  assert.equal(
-    (
-      await action(
-        { type: 'assign_staff', retoucherId: 'other-extra-retoucher', reason: '추가 작업 분리' },
-        staff,
-      )
-    ).status,
-    200,
-  );
-  const paymentId = db.database
-    .prepare("SELECT id FROM payments WHERE shoot_id='demo-selection' AND kind='extra_retouch'")
-    .get()?.id;
-  assert.equal((await action({ type: 'confirm_payment', paymentId }, staff)).status, 200);
-  assert.equal((await api(`/api/uploads/${extraUpload}/blob`, { cookie: retoucher })).status, 404);
-});
-
-test('a reassigned revision retoucher can read exactly the requested previous results', async () => {
-  const { api, db } = setup();
-  const customer = await customerLogin(api, 'demo-result-access', '1004');
-  const retoucher = await login(api, 'retoucher');
-  db.database.exec(
-    "INSERT INTO staff(id,name,email,role) VALUES('previous-retoucher','이전 가상 보정가','previous@example.invalid','retoucher'); UPDATE retouch_jobs SET retoucher_id='previous-retoucher' WHERE id='demo-result-job'; UPDATE uploads SET retouch_job_id='demo-result-job',uploaded_by='previous-retoucher' WHERE shoot_id='demo-result' AND kind='retouched'",
-  );
-  assert.equal(
-    (
-      await api('/api/shoots/demo-result/actions', {
-        method: 'POST',
-        cookie: customer,
-        body: {
-          type: 'request_revision',
-          items: [{ photoId: 'demo-result-photo-1', comment: '가상 수정 요청' }],
-        },
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    (await api('/api/uploads/demo-result-upload-1/blob', { cookie: retoucher })).status,
-    200,
-  );
-  assert.equal(
-    (await api('/api/uploads/demo-result-upload-2/blob', { cookie: retoucher })).status,
-    404,
   );
 });
 
@@ -1640,32 +1475,61 @@ test('notification and settings routes enforce their distinct staff role gates',
   }
 });
 
-test('upload lists reject missing or foreign shoot scope and mask retoucher file names', async () => {
-  const { api } = setup();
-  const customer = await customerLogin(api, 'demo-selection-access', '1003');
+test('customer upload listings require the correct shoot and expose only customer-owned categories and shared references', async () => {
+  const { api, db } = setup();
+  const customer = await customerLogin(api, 'demo-result-access', '1004');
+  const retoucher = await login(api, 'retoucher');
+  const insert = db.database.prepare(
+    "INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,visible) VALUES(?,'demo-result',?,?,'개인 파일','image/jpeg',1,'demo-director',?)",
+  );
+  for (const [kind, visible] of [
+    ['survey', 0],
+    ['outfit', 0],
+    ['plan_ref', 0],
+    ['plan_ref', 1],
+    ['internal_photo', 0],
+    ['review', 1],
+  ] as const) {
+    const id = `read-${kind}-${visible}`;
+    insert.run(id, kind, 'demo/' + id, visible);
+  }
   await expectError(await api('/api/uploads', { cookie: customer }), 400, 'SHOOT_REQUIRED');
   await expectError(
-    await api('/api/uploads?shootId=demo-result', { cookie: customer }),
+    await api('/api/uploads?shootId=demo-selection', { cookie: customer }),
     404,
     'NOT_FOUND',
   );
-  const own = await api('/api/uploads?shootId=demo-selection', { cookie: customer });
+  const own = await api('/api/uploads?shootId=demo-result', { cookie: customer });
   assert.equal(own.status, 200);
-  const ownData = (await own.json()) as { data: { items: { shootId: string }[] } };
-  assert.equal(ownData.data.items.length, 8);
-  assert.ok(ownData.data.items.every((item) => item.shootId === 'demo-selection'));
-  const retoucher = await login(api, 'retoucher');
+  const { data } = (await own.json()) as {
+    data: { items: { id: string; url: string; shootId: string; object_key?: string }[] };
+  };
+  assert.deepEqual(data.items.map((i) => i.id).sort(), [
+    'read-outfit-0',
+    'read-plan_ref-1',
+    'read-survey-0',
+  ]);
+  for (const item of data.items) {
+    assert.equal(item.shootId, 'demo-result');
+    assert.equal(item.object_key, undefined);
+    assert.equal((await api(item.url, { cookie: customer })).status, 200);
+  }
+  for (const id of [
+    'read-plan_ref-0',
+    'read-internal_photo-0',
+    'read-review-1',
+    'demo-original-upload-1',
+    'demo-result-upload-1',
+  ]) {
+    await expectError(await api(`/api/uploads/${id}/blob`, { cookie: customer }), 404, 'NOT_FOUND');
+  }
   const masked = await api('/api/uploads?shootId=demo-result', { cookie: retoucher });
   assert.equal(masked.status, 200);
-  const maskedData = (await masked.json()) as {
-    data: { items: { name: string; kind: string; object_key?: string }[] };
-  };
-  assert.ok(maskedData.data.items.length > 0);
-  assert.ok(
-    maskedData.data.items.every(
-      (item) =>
-        item.name === '보정 작업 사진' && item.kind !== 'original' && item.object_key === undefined,
-    ),
+  assert.deepEqual(((await masked.json()) as { data: { items: unknown[] } }).data.items, []);
+  await expectError(
+    await api('/api/uploads/read-survey-0/blob', { cookie: retoucher }),
+    404,
+    'NOT_FOUND',
   );
 });
 
@@ -1952,10 +1816,13 @@ test('shared test API connects customer bookings and admin-issued links while is
 });
 
 test('admin test fixture images require a staff session and preserve normal file access', async () => {
-  const { env, api } = setup();
+  const { env, api, db } = setup();
   const staff = await login(api, 'admin');
   const customer = await customerLogin(api, 'demo-selection-access', '1003');
-  const photo = '/api/uploads/demo-selection-upload-1/blob';
+  db.database.exec(
+    "INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by) VALUES('demo-survey-image','demo-selection','survey','demo/survey/image','시연 사진','image/jpeg',4,'demo-selection')",
+  );
+  const photo = '/api/uploads/demo-survey-image/blob';
 
   const remotePhoto = (surface: string, cookie: string, adminTest = true) =>
     handleRequest(
@@ -2104,13 +1971,13 @@ async function bookingCalendarDay(response: Response, date: string) {
 test('booking uses saved intervals and allows an adjacent appointment at the exact end', async () => {
   const { api, db } = setup();
   const date = futureBookingDate();
-  db.database.prepare("UPDATE packages SET duration=240 WHERE id='one'").run();
+  db.database.prepare("UPDATE packages SET shoot_duration_minutes=240 WHERE id='one'").run();
   assert.equal(
     (await api('/api/start', { method: 'POST', body: bookingInput(date, '11:00', '01000002400') }))
       .status,
     201,
   );
-  db.database.prepare("UPDATE packages SET duration=90 WHERE id='one'").run();
+  db.database.prepare("UPDATE packages SET shoot_duration_minutes=90 WHERE id='one'").run();
   const response = await api('/api/calendar?packageId=one');
   const day = await bookingCalendarDay(response, date);
   assert.deepEqual(day.slots, [
@@ -2185,7 +2052,7 @@ test('reassignment checks saved intervals and uses the same add-on eligibility a
     ).status,
     200,
   );
-  db.database.prepare("UPDATE packages SET duration=240 WHERE id='one'").run();
+  db.database.prepare("UPDATE packages SET shoot_duration_minutes=240 WHERE id='one'").run();
   const create = (time: string, phone: string, addons = [] as { id: string; quantity: number }[]) =>
     api('/api/start', { method: 'POST', body: { ...bookingInput(date, time, phone), addons } });
   const firstBooking = await create('11:00', '01000002430', [{ id: 'hair', quantity: 1 }]);
@@ -2198,7 +2065,7 @@ test('reassignment checks saved intervals and uses the same add-on eligibility a
       "INSERT INTO staff(id,name,email,role) VALUES('director-two','디렉터 2','two@example.test','director')",
     )
     .run();
-  db.database.prepare("UPDATE packages SET duration=90 WHERE id='one'").run();
+  db.database.prepare("UPDATE packages SET shoot_duration_minutes=90 WHERE id='one'").run();
   const secondBooking = await create('13:00', '01000002431');
   assert.equal(secondBooking.status, 201, await secondBooking.clone().text());
   const secondAccess = (await bookingResponse(secondBooking)).localAccess;
@@ -2245,7 +2112,7 @@ test('a booking that spans midnight conflicts with a holiday on the next date', 
       method: 'POST',
       body: bookingInput(date, '17:00', '01000002440'),
     });
-  db.database.prepare("UPDATE packages SET duration=1440 WHERE id='one'").run();
+  db.database.prepare("UPDATE packages SET shoot_duration_minutes=1440 WHERE id='one'").run();
   assert.equal((await holiday(true)).status, 200);
   assert.equal((await book()).status, 409);
   assert.equal((await holiday(false)).status, 200);
@@ -2343,107 +2210,26 @@ test('production booking does not reveal active numbers through capacity checks 
   );
 });
 
-test('selection rejects foreign photo, checks candidates once, and prevents duplicate submission', async (context) => {
+test('all stages after shooting are blocked through the status action even with a staff override reason', async () => {
   const { api, db } = setup();
-  const cookie = await customerLogin(api, 'demo-selection-access', '1003');
-  const bad = await api('/api/shoots/demo-selection/actions', {
-    method: 'POST',
-    cookie,
-    surface: 'user',
-    body: { type: 'submit_selection', photoIds: ['demo-result-photo-1'] },
-  });
-  assert.equal(bad.status, 400);
-  const queries = context.mock.method(db, 'prepare', db.prepare.bind(db));
-  const payload = {
-    type: 'submit_selection',
-    photoIds: ['demo-selection-photo-2', 'demo-selection-photo-1'],
-  };
-  const result = await api('/api/shoots/demo-selection/actions', {
-    method: 'POST',
-    cookie,
-    surface: 'user',
-    body: payload,
-  });
-  assert.equal(result.status, 200, await result.text());
-  assert.equal(
-    queries.mock.calls.filter(({ arguments: [sql] }) =>
-      /FROM photos WHERE.*kind='candidate'/s.test(sql),
-    ).length,
-    1,
-  );
-  assert.equal(
-    db.database.prepare("SELECT picks_json FROM selections WHERE shoot_id='demo-selection'").get()
-      ?.picks_json,
-    JSON.stringify(payload.photoIds),
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-      .get()?.n,
-    1,
-  );
-  assert.equal(
-    (
-      await api('/api/shoots/demo-selection/actions', {
-        method: 'POST',
+  const cookie = await login(api, 'admin');
+  db.database.prepare("UPDATE shoots SET status='shoot_complete' WHERE id='demo-result'").run();
+  for (const [status, , stage] of STATUS_DEFINITIONS) {
+    if (stage <= 5) continue;
+    await expectError(
+      await api('/api/shoots/demo-result/actions', {
         cookie,
-        surface: 'user',
-        body: payload,
-      })
-    ).status,
-    409,
-  );
-});
-
-test('extra selection validates up to 100 eligible candidates in one query', async (context) => {
-  const { api, db } = setup();
-  const cookie = await customerLogin(api, 'demo-result-access', '1004');
-  db.database.exec(`
-    WITH RECURSIVE cuts(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cuts WHERE n<100)
-    INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,visible,uploaded_by)
-    SELECT 'extra-upload-'||n,'demo-result','candidate','extra/'||n,'후보 사진','image/jpeg',1,1,'demo-director'
-    FROM cuts;
-    WITH RECURSIVE cuts(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cuts WHERE n<100)
-    INSERT INTO photos(id,shoot_id,upload_id,kind,cut_no,visible,uploaded_by)
-    SELECT 'extra-photo-'||n,'demo-result','extra-upload-'||n,'candidate',n+3,1,'demo-director'
-    FROM cuts;
-  `);
-  const photoIds = Array.from({ length: 100 }, (_, index) => `extra-photo-${100 - index}`);
-  const request = (ids: string[]) =>
-    api('/api/shoots/demo-result/actions', {
-      method: 'POST',
-      cookie,
-      surface: 'user',
-      body: { type: 'request_extra_retouch', photoIds: ids },
-    });
-  await expectError(await request([...photoIds, 'extra-photo-101']), 400, 'SELECTION_COUNT');
-  await expectError(await request([photoIds[0], photoIds[0]]), 400, 'SELECTION_COUNT');
-  for (const ineligible of [
-    'demo-selection-photo-1',
-    'demo-result-candidate-photo-1',
-    'demo-result-photo-1',
-  ])
-    await expectError(await request([photoIds[0], ineligible]), 400, 'INVALID_PHOTO');
-  db.database.exec("UPDATE photos SET visible=0 WHERE id='extra-photo-1'");
-  await expectError(await request(photoIds), 400, 'INVALID_PHOTO');
-  db.database.exec("UPDATE photos SET visible=1 WHERE id='extra-photo-1'");
-
-  const queries = context.mock.method(db, 'prepare', db.prepare.bind(db));
-  const result = await request(photoIds);
-  assert.equal(result.status, 200, await result.text());
+        method: 'POST',
+        body: { type: 'change_status', status, reason: '이력 정정' },
+      }),
+      400,
+      'UNKNOWN_STATUS',
+    );
+  }
   assert.equal(
-    queries.mock.calls.filter(({ arguments: [sql] }) =>
-      /FROM photos WHERE.*kind='candidate'/s.test(sql),
-    ).length,
-    1,
+    db.database.prepare("SELECT status FROM shoots WHERE id='demo-result'").get()?.status,
+    'shoot_complete',
   );
-  assert.equal(
-    db.database
-      .prepare("SELECT picks_json FROM selections WHERE shoot_id='demo-result' AND round='extra'")
-      .get()?.picks_json,
-    JSON.stringify(photoIds),
-  );
-  await expectError(await request(photoIds), 409, 'EXTRA_ALREADY_SELECTED');
 });
 
 test('revision cap is a DB invariant and request/photo ownership is enforced', () => {
@@ -2529,7 +2315,7 @@ test('private original gate, authorized upload persists R2, and hostile upload i
   );
   const form = new FormData();
   form.set('shootId', 'demo-result');
-  form.set('kind', 'review');
+  form.set('kind', 'survey');
   form.set(
     'file',
     new File([new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0])], 'local.jpg', {
@@ -2553,7 +2339,7 @@ test('private original gate, authorized upload persists R2, and hostile upload i
   );
   const hostile = new FormData();
   hostile.set('shootId', 'demo-result');
-  hostile.set('kind', 'review');
+  hostile.set('kind', 'survey');
   hostile.set('file', new File(['<script>bad</script>'], 'bad.jpg', { type: 'image/jpeg' }));
   assert.equal(
     (
@@ -2574,7 +2360,7 @@ test('private original gate, authorized upload persists R2, and hostile upload i
   );
 
   const staff = await login(api, 'staff');
-  form.set('kind', 'original');
+  form.set('kind', 'internal_photo');
   const original = await handleRequest(
     new Request('http://localhost:8787/api/uploads', {
       method: 'POST',
@@ -2604,6 +2390,20 @@ test('payment, survey and plan preserve independent customer progress', async ()
   const action = (body: unknown, cookie = customer) =>
     api('/api/shoots/demo-payment/actions', { method: 'POST', cookie, body });
   assert.equal((await action({ type: 'request_deposit', depositor: '로컬 입금자' })).status, 200);
+  assert.equal((await action({ type: 'request_deposit', depositor: '로컬 입금자' })).status, 200);
+  assert.equal(
+    db.database
+      .prepare(
+        "SELECT reported_depositor FROM deposit_reports WHERE payment_id='demo-payment-base'",
+      )
+      .get()?.reported_depositor,
+    '로컬 입금자',
+  );
+  assert.equal(
+    db.database.prepare("SELECT depositor FROM payments WHERE id='demo-payment-base'").get()
+      ?.depositor,
+    null,
+  );
   assert.equal(
     db.database.prepare("SELECT state FROM payments WHERE id='demo-payment-base'").get()?.state,
     'pending',
@@ -2640,7 +2440,7 @@ test('payment, survey and plan preserve independent customer progress', async ()
   for (const [key, invalid] of [
     ['purposes', []],
     ['referral', ''],
-    ['reviewParticipation', null],
+    ['safetyRead', false],
   ]) {
     assert.equal(
       (
@@ -2719,309 +2519,78 @@ test('payment, survey and plan preserve independent customer progress', async ()
   );
 });
 
-test('new revision requires its own result and review approval opens originals once', async () => {
-  const { api, env, db } = setup();
+test('only operations staff and the assigned director can create and read an internal photo', async () => {
+  const { api, db, env, objects } = setup();
   const customer = await customerLogin(api, 'demo-result-access', '1004');
-  const retoucher = await login(api, 'retoucher');
+  const admin = await login(api, 'admin');
   const staff = await login(api, 'staff');
-  const action = (body: unknown, cookie = customer) =>
-    api('/api/shoots/demo-result/actions', { method: 'POST', cookie, body });
-  assert.equal(
-    (
-      await action({
-        type: 'request_revision',
-        items: [{ photoId: 'demo-result-photo-1', comment: '가상 수정 의견' }],
-      })
-    ).status,
-    200,
-  );
-  assert.equal((await action({ type: 'finish_retouch' }, retoucher)).status, 400);
-  const form = new FormData();
-  form.set('shootId', 'demo-result');
-  form.set('kind', 'revision');
-  form.set(
-    'file',
-    new File([new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0])], 'revision.jpg', {
-      type: 'image/jpeg',
-    }),
-  );
-  assert.equal(
-    (
-      await handleRequest(
-        new Request('http://localhost:8787/api/uploads', {
-          method: 'POST',
-          headers: { Cookie: retoucher, Origin: 'http://localhost:3002' },
-          body: form,
-        }),
-        env,
-      )
-    ).status,
-    201,
-  );
-  assert.equal((await action({ type: 'finish_retouch' }, retoucher)).status, 200);
-  db.database
-    .prepare(
-      "INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by) VALUES('review-proof','demo-result','review','demo/review','가상 후기','image/jpeg',1,'demo-result')",
-    )
-    .run();
-  assert.equal((await action({ type: 'review_submit', uploadId: 'review-proof' })).status, 200);
-  const requestId = db.database
-    .prepare("SELECT id FROM requests WHERE shoot_id='demo-result' AND type='review'")
-    .get()?.id;
-  assert.equal(
-    (await action({ type: 'resolve_request', requestId, decision: 'complete' }, staff)).status,
-    200,
-  );
-  assert.equal(
-    (await api('/api/uploads/demo-original-upload-1/blob', { cookie: customer })).status,
-    200,
-  );
-  assert.equal(
-    (await action({ type: 'resolve_request', requestId, decision: 'complete' }, staff)).status,
-    409,
-  );
-  assert.equal((await action({ type: 'review_submit', uploadId: 'review-proof' })).status, 409);
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM campaign_claims WHERE shoot_id='demo-result'")
-      .get()?.n,
-    1,
-  );
+  const director = await login(api, 'director');
+  const retoucher = await login(api, 'retoucher');
+  await expectError(await sendPhoto(env, customer, 'internal_photo'), 403, 'FORBIDDEN');
+  await expectError(await sendPhoto(env, retoucher, 'internal_photo'), 403, 'FORBIDDEN');
+  for (const kind of ['candidate', 'original', 'retouched', 'revision', 'review']) {
+    await expectError(await sendPhoto(env, director, kind), 403, 'FORBIDDEN');
+    await expectError(await sendPhoto(env, customer, kind), 403, 'FORBIDDEN');
+  }
+  const urls: string[] = [];
+  for (const cookie of [admin, staff, director]) {
+    const response = await sendPhoto(env, cookie, 'internal_photo');
+    assert.equal(response.status, 201, await response.clone().text());
+    const { data } = (await response.json()) as { data: { url: string } };
+    urls.push(data.url);
+  }
+  assert.equal(objects.size, 3);
+  for (const url of urls) {
+    for (const cookie of [admin, staff, director])
+      assert.equal((await api(url, { cookie })).status, 200);
+    for (const cookie of [customer, retoucher])
+      await expectError(await api(url, { cookie }), 404, 'NOT_FOUND');
+  }
+  db.database.prepare("UPDATE shoots SET director_id=NULL WHERE id='demo-result'").run();
+  await expectError(await api(urls[0]!, { cookie: director }), 404, 'NOT_FOUND');
+  await expectError(await sendPhoto(env, director, 'internal_photo'), 404, 'NOT_FOUND');
+  assert.equal(objects.size, 3);
 });
 
-test('a historical retoucher cannot read, upload or complete another retoucher job', async () => {
-  const { api, env, db } = setup();
-  const cookie = await login(api, 'retoucher');
-  db.database.exec(`
-    INSERT INTO staff(id,name,email,role) VALUES('other-retoucher','다른 가상 보정가','other-demo@manspick.co.kr','retoucher');
-    INSERT INTO requests(id,shoot_id,type,message) VALUES('other-request','demo-result','revision','다른 담당자 작업 의견');
-    INSERT INTO retouch_jobs(id,shoot_id,retoucher_id,kind,request_id) VALUES('other-job','demo-result','other-retoucher','revision','other-request');
-    INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,retouch_job_id) VALUES('other-upload','demo-result','revision','demo/other-result','다른 담당자 결과','image/jpeg',1,'other-retoucher','other-job');
-    INSERT INTO photos(id,shoot_id,upload_id,kind,cut_no,uploaded_by) VALUES('other-photo','demo-result','other-upload','revision',1,'other-retoucher');
-    UPDATE shoots SET status='retouching',retoucher_id='other-retoucher' WHERE id='demo-result';
-  `);
-  const response = await api('/api/shoots/demo-result', { cookie });
-  assert.equal(response.status, 200);
-  const detail = (
-    (await response.json()) as { data: { photos: { id: string }[]; requests: { id: string }[] } }
-  ).data;
-  assert.ok(!detail.photos.some((photo) => photo.id === 'other-photo'));
-  assert.ok(!detail.requests.some((request) => request.id === 'other-request'));
-  assert.equal((await api('/api/uploads/other-upload/blob', { cookie })).status, 404);
-  const form = new FormData();
-  form.set('shootId', 'demo-result');
-  form.set('kind', 'revision');
-  form.set(
-    'file',
-    new File([new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0])], 'other.jpg', {
-      type: 'image/jpeg',
+test('retries keep exactly one internal photo and conflicting or failed requests leave R2 consistent', async () => {
+  const { env, api, db, objects } = setup();
+  const staff = await login(api, 'staff');
+  const key = crypto.randomUUID();
+  const upload = () => sendPhoto(env, staff, 'internal_photo', { key });
+  const responses = await Promise.all([upload(), upload(), upload()]);
+  const ids = await Promise.all(
+    responses.map(async (response) => {
+      assert.equal(response.status, 201, await response.clone().text());
+      return ((await response.json()) as { data: { id: string } }).data.id;
     }),
   );
-  assert.equal(
-    (
-      await handleRequest(
-        new Request('http://localhost:8787/api/uploads', {
-          method: 'POST',
-          headers: { Cookie: cookie, Origin: 'http://localhost:3002' },
-          body: form,
-        }),
-        env,
-      )
-    ).status,
-    409,
-  );
-  assert.equal(
-    (
-      await api('/api/shoots/demo-result/actions', {
-        method: 'POST',
-        cookie,
-        body: { type: 'finish_retouch' },
-      })
-    ).status,
-    409,
-  );
-  assert.equal(
-    db.database.prepare("SELECT state FROM retouch_jobs WHERE id='other-job'").get()?.state,
-    'pending',
-  );
-  assert.equal(
-    db.database.prepare("SELECT visible FROM uploads WHERE id='other-upload'").get()?.visible,
-    0,
-  );
-  db.database.exec(`
-    INSERT INTO retouch_jobs(id,shoot_id,retoucher_id,kind) VALUES('own-job','demo-result','demo-retoucher','base');
-    INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,retouch_job_id) VALUES('own-upload','demo-result','retouched','demo/own-result','본인 결과','image/jpeg',1,'demo-retoucher','own-job');
-    INSERT INTO photos(id,shoot_id,upload_id,kind,cut_no,uploaded_by) VALUES('own-photo','demo-result','own-upload','retouched',4,'demo-retoucher');
-    INSERT INTO photo_metadata(photo_id,parent_photo_id) VALUES('own-photo','demo-result-candidate-photo-1');
-  `);
-  const finish = () =>
-    api('/api/shoots/demo-result/actions', {
-      method: 'POST',
-      cookie,
-      body: { type: 'finish_retouch' },
-    });
-  await expectError(await finish(), 400, 'RESULT_REQUIRED');
-  async function uploadCut(cut: string, key = crypto.randomUUID()) {
-    const form = new FormData();
-    form.set('shootId', 'demo-result');
-    form.set('kind', 'retouched');
-    form.set('retouchJobId', 'own-job');
-    form.set('parentPhotoId', cut);
-    form.set('file', new File([new Uint8Array([255, 216, 255])], '컷.jpg', { type: 'image/jpeg' }));
-    return handleRequest(
-      new Request('http://localhost:8787/api/uploads', {
-        method: 'POST',
-        headers: { Cookie: cookie, Origin: 'http://localhost:3002', 'Idempotency-Key': key },
-        body: form,
-      }),
-      env,
-    );
-  }
-  await expectError(await uploadCut('demo-result-photo-1'), 400, 'RESULT_CUT_REQUIRED');
-  const key = crypto.randomUUID();
-  const cutTwo = 'demo-result-candidate-photo-2';
-  const first = await uploadCut(cutTwo, key);
-  assert.equal(first.status, 201);
-  const uploaded = ((await first.json()) as { data: { id: string } }).data.id;
-  const repeated = await uploadCut(cutTwo, key);
-  assert.equal(repeated.status, 201);
-  assert.equal(((await repeated.json()) as { data: { id: string } }).data.id, uploaded);
+  assert.equal(new Set(ids).size, 1);
   await expectError(
-    await uploadCut('demo-result-candidate-photo-3', key),
+    await sendPhoto(env, staff, 'internal_photo', { key, name: '다른 사진.jpg' }),
     409,
     'UPLOAD_KEY_REUSED',
   );
-  // Even a legitimate replacement for the same cut does not fulfill the next cut.
-  assert.equal((await uploadCut(cutTwo)).status, 201);
-  await expectError(await finish(), 400, 'RESULT_REQUIRED');
-  assert.equal((await uploadCut('demo-result-candidate-photo-3')).status, 201);
-  assert.equal(
-    (
-      await api('/api/shoots/demo-result/actions', {
-        method: 'POST',
-        cookie,
-        body: { type: 'finish_retouch' },
-      })
-    ).status,
-    200,
+  await expectError(
+    await sendPhoto(env, staff, 'internal_photo', { key, bytes: [255, 216, 255, 0] }),
+    409,
+    'UPLOAD_KEY_REUSED',
   );
-  assert.equal(
-    db.database.prepare("SELECT state FROM retouch_jobs WHERE id='own-job'").get()?.state,
-    'complete',
+  await expectError(
+    await sendPhoto(env, staff, 'internal_photo', { key: 'invalid' }),
+    400,
+    'INVALID_UPLOAD_KEY',
   );
+  assert.equal(objects.size, 1);
+  const before = await api(`/api/uploads/${ids[0]}/blob`, { cookie: staff });
+  assert.deepEqual([...new Uint8Array(await before.arrayBuffer())], [255, 216, 255]);
+  db.database.exec(
+    "CREATE TRIGGER reject_upload BEFORE INSERT ON uploads WHEN NEW.kind='internal_photo' BEGIN SELECT RAISE(ABORT,'rejected upload'); END",
+  );
+  const failed = await sendPhoto(env, staff, 'internal_photo');
+  assert.equal(failed.ok, false);
+  assert.equal(objects.size, 1);
   assert.equal(
-    db.database.prepare("SELECT visible FROM uploads WHERE id='own-upload'").get()?.visible,
+    db.database.prepare("SELECT COUNT(*) AS n FROM uploads WHERE kind='internal_photo'").get()?.n,
     1,
   );
-  assert.equal(
-    db.database.prepare('SELECT visible FROM uploads WHERE id=?').get(uploaded)?.visible,
-    0,
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT count(*) AS n FROM uploads WHERE retouch_job_id='own-job' AND visible=1")
-      .get()?.n,
-    3,
-  );
-  assert.equal(
-    db.database.prepare("SELECT state FROM retouch_jobs WHERE id='other-job'").get()?.state,
-    'pending',
-  );
-  assert.equal(
-    db.database.prepare("SELECT visible FROM uploads WHERE id='other-upload'").get()?.visible,
-    0,
-  );
-  assert.equal(
-    db.database.prepare("SELECT status FROM shoots WHERE id='demo-result'").get()?.status,
-    'retouching',
-  );
-});
-
-test('new retouch jobs require a current active retoucher', async (t) => {
-  await t.test('included selection rejects an inactive assignee', async () => {
-    const { api, db } = setup();
-    const cookie = await customerLogin(api, 'demo-selection-access', '1003');
-    db.database.exec("UPDATE staff SET active=0 WHERE id='demo-retoucher'");
-    await expectError(
-      await api('/api/shoots/demo-selection/actions', {
-        method: 'POST',
-        cookie,
-        body: { type: 'submit_selection', photoIds: ['demo-selection-photo-1'] },
-      }),
-      409,
-      'RETOUCHER_REQUIRED',
-    );
-    assert.equal(
-      db.database.prepare("SELECT id FROM selections WHERE shoot_id='demo-selection'").get(),
-      undefined,
-    );
-  });
-
-  await t.test(
-    'extra payment checks the current role and preserves confirmed retries',
-    async () => {
-      const { api, db } = setup();
-      const customer = await customerLogin(api, 'demo-selection-access', '1003');
-      const staff = await login(api, 'staff');
-      const action = (cookie: string, body: unknown) =>
-        api('/api/shoots/demo-selection/actions', { method: 'POST', cookie, body });
-      const photoIds = Array.from({ length: 8 }, (_, i) => `demo-selection-photo-${i + 1}`);
-      assert.equal((await action(customer, { type: 'submit_selection', photoIds })).status, 200);
-      const paymentId = db.database
-        .prepare(
-          "SELECT id FROM payments WHERE shoot_id='demo-selection' AND kind='selection_extra'",
-        )
-        .get()?.id;
-      const confirm = () => action(staff, { type: 'confirm_payment', paymentId });
-      db.database.exec("UPDATE staff SET role='staff' WHERE id='demo-retoucher'");
-      await expectError(await confirm(), 409, 'RETOUCHER_REQUIRED');
-      db.database.exec("UPDATE staff SET role='retoucher' WHERE id='demo-retoucher'");
-
-      const batch = db.batch.bind(db);
-      db.batch = (statements) => {
-        db.database.exec("UPDATE staff SET active=0 WHERE id='demo-retoucher'");
-        return batch(statements);
-      };
-      await expectError(await confirm(), 409, 'CONFLICT');
-      assert.equal(
-        db.database.prepare('SELECT state FROM payments WHERE id=?').get(paymentId ?? null)?.state,
-        'pending',
-      );
-      db.batch = batch;
-      db.database.exec("UPDATE staff SET active=1 WHERE id='demo-retoucher'");
-      assert.equal((await confirm()).status, 200);
-      db.database.exec("UPDATE staff SET active=0 WHERE id='demo-retoucher'");
-      assert.equal((await confirm()).status, 200);
-      assert.equal(
-        db.database
-          .prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-selection'")
-          .get()?.n,
-        1,
-      );
-    },
-  );
-
-  await t.test('revision rejects an assignee with a different role', async () => {
-    const { api, db } = setup();
-    const cookie = await customerLogin(api, 'demo-result-access', '1004');
-    db.database.exec("UPDATE staff SET role='staff' WHERE id='demo-retoucher'");
-    await expectError(
-      await api('/api/shoots/demo-result/actions', {
-        method: 'POST',
-        cookie,
-        body: {
-          type: 'request_revision',
-          items: [{ photoId: 'demo-result-photo-1', comment: '가상 수정 요청' }],
-        },
-      }),
-      409,
-      'RETOUCHER_REQUIRED',
-    );
-    assert.equal(
-      db.database
-        .prepare("SELECT id FROM requests WHERE shoot_id='demo-result' AND type='revision'")
-        .get(),
-      undefined,
-    );
-  });
 });

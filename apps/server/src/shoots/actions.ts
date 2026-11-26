@@ -11,13 +11,12 @@ import { shootDetail } from './queries.ts';
 import { prepareLifecycle } from './commands/lifecycle.ts';
 import { preparePayment } from './commands/payments.ts';
 import { preparePreparation } from './commands/preparation.ts';
-import { prepareSelection } from './commands/selection.ts';
-import { prepareRetouch } from './commands/retouch.ts';
 import { prepareFollowUp } from './commands/follow-up.ts';
 import type { PreparedCommand } from './commands/types.ts';
 import { prepareWorkspace } from './commands/workspace.ts';
 import { prepareAssignment } from './assignment.ts';
-import { prepareExtraRetouch } from './commands/extra-retouch.ts';
+import { prepareScheduleConfirmation } from './commands/schedule-confirmation.ts';
+import { prepareOperations } from './commands/operations.ts';
 
 export async function act(env: Env, actor: Actor, shootId: string, body: Record<string, unknown>) {
   const shoot = await accessibleShoot(env, actor, shootId);
@@ -28,6 +27,14 @@ export async function act(env: Env, actor: Actor, shootId: string, body: Record<
   const context = { env, actor, shoot, shootId, body, now };
   let prepared: PreparedCommand | null;
   switch (type) {
+    case 'add_task':
+    case 'complete_task':
+    case 'enter_campaign':
+      prepared = await prepareOperations(type, context);
+      break;
+    case 'confirm_schedule':
+      prepared = await prepareScheduleConfirmation(context);
+      break;
     case 'change_status':
     case 'note':
     case 'cancel':
@@ -42,15 +49,6 @@ export async function act(env: Env, actor: Actor, shootId: string, body: Record<
     case 'share_plan':
       prepared = await preparePreparation(type, context);
       break;
-    case 'start_selection':
-    case 'submit_selection':
-      prepared = await prepareSelection(type, context);
-      break;
-    case 'request_revision':
-    case 'finish_retouch':
-      prepared = await prepareRetouch(type, context);
-      break;
-    case 'review_submit':
     case 'resolve_request':
       prepared = await prepareFollowUp(type, context);
       break;
@@ -59,14 +57,10 @@ export async function act(env: Env, actor: Actor, shootId: string, body: Record<
     case 'confirm_preparation':
     case 'save_field_checklist':
     case 'complete_field':
-    case 'save_file_link':
       prepared = await prepareWorkspace(type, context);
       break;
     case 'assign_staff':
       prepared = await prepareAssignment(context);
-      break;
-    case 'request_extra_retouch':
-      prepared = await prepareExtraRetouch(context);
       break;
     default:
       throw new DomainError('UNKNOWN_ACTION', '지원하지 않는 동작입니다.');

@@ -6,11 +6,16 @@ import { useEffect, useState } from 'react';
 import { Button, Notice, Loading, TimeSlot } from '@manspick/design-system/components';
 import { ChoiceCard, TextField, RadioPills } from '@manspick/design-system/patterns';
 import { Icon, type IconName } from '@manspick/design-system/icons';
-import { api } from '@manspick/web/client';
+import { api, trackEvent, visitId } from '@manspick/web/client';
 import { money } from '@manspick/web/format';
-import type { AddonDTO, BookingResultDTO, PackageDTO } from '@manspick/contracts';
+import type {
+  AddonDTO,
+  BookingResultDTO,
+  OperationsSettingsDTO,
+  PackageDTO,
+} from '@manspick/contracts';
 import { CustomerShell, SceneFooter, kakaoChannelUrl } from '../shell';
-import { packageName, prepaidPlatform, shootTime } from '../customer/presentation';
+import { packageName, prepaidPlatform } from '../customer/presentation';
 import { customerPath } from '../customer/routes';
 import { addonQuantityLimit, validateCatalogQuantities } from '@manspick/domain';
 import type { OperationsPolicy } from '@manspick/domain';
@@ -24,12 +29,6 @@ import styles from './booking.module.css';
 const landingOrigin =
   process.env.NEXT_PUBLIC_LANDING_APP_ORIGIN?.trim().replace(/\/+$/, '') ||
   (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '');
-
-const packageDetails: Record<string, string[]> = {
-  one: ['의상 가이드 + 코디북'],
-  hybrid: ['무드 2가지 (캐주얼 + 포멀)', '의상 가이드 + 코디북 · 그루밍 노션'],
-  allday: ['헤어 · 메이크업 포함', '외모 피드백 · 그루밍 노션 · 차량 이동'],
-};
 
 const addonIcons: Record<string, IconName> = {
   hair: 'solar/magic-stick-3-bold',
@@ -46,8 +45,7 @@ export function Booking() {
   const [catalog, setCatalog] = useState<{
     packages: PackageDTO[];
     addons: AddonDTO[];
-    retouchUnitPrice?: number;
-    extraRetouchAvailable?: boolean;
+    packageItems?: OperationsSettingsDTO['packageItems'];
   }>();
   const [policy, setPolicy] = useState<OperationsPolicy>();
   const { pathname, navigate, back } = useFlowNavigation('/start');
@@ -57,21 +55,26 @@ export function Booking() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [nickname, setNickname] = useState('');
+  const [platformNickname, setPlatformNickname] = useState('');
   const [reportedAmount, setReportedAmount] = useState('');
-  const [channel, setChannel] = useState('bank');
+  const [channel, setChannel] = useState('pg');
   const [privacy, setPrivacy] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const [days, setDays] = useState<CalendarDay[]>([]);
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [timeOptions, setTimeOptions] = useState<{ date: string; time: string }[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<BookingResultDTO & { platform?: string }>();
+  const [result, setResult] = useState<BookingResultDTO & { platform?: string; channel: string }>();
   const bookingToken = result?.bookingAccess?.token ?? result?.localAccess?.token;
   const platform = result?.platform;
   const detailsReady = Boolean(
-    name.trim() && phone.replace(/\D/g, '').length >= 10 && privacy && notifications,
+    name.trim() &&
+    phone.replace(/\D/g, '').length >= 10 &&
+    privacy &&
+    notifications &&
+    (!prepaidPlatform(channel) || platformNickname.trim()),
   );
 
   useEffect(() => {
@@ -79,6 +82,11 @@ export function Booking() {
     else if (step === 4) navigate('/start', true);
     else if (step === 3 && !detailsReady) navigate('/start/details', true);
   }, [step, detailsReady, result, navigate]);
+
+  useEffect(() => {
+    const event = ['order_options', 'order_details', 'order_schedule'][step - 1];
+    if (event) trackEvent(event, { channel });
+  }, [channel, step]);
 
   function setStep(next: number) {
     navigate(bookingPaths[next - 1]!);
@@ -91,8 +99,15 @@ export function Booking() {
     .join(',');
 
   useEffect(() => {
-    api<{ packages: PackageDTO[]; addons: AddonDTO[] }>('/catalog')
-      .then(setCatalog)
+    api<NonNullable<typeof catalog>>('/catalog')
+      .then((catalog) => {
+        setCatalog(catalog);
+        setPackage((current) =>
+          catalog.packages.some((pack) => pack.id === current)
+            ? current
+            : (catalog.packages[0]?.id ?? ''),
+        );
+      })
       .catch((failure: Error) => setError(failure.message));
   }, []);
 
@@ -137,17 +152,24 @@ export function Booking() {
       })
     : '';
 
+  function limitFor(pack: PackageDTO, addon: AddonDTO) {
+    const limit = addonQuantityLimit(pack, addon);
+    if (!catalog?.packageItems) return limit;
+    const item = catalog.packageItems.find(
+      (entry) => entry.packageId === pack.id && entry.itemId === addon.id,
+    );
+    return item?.inclusionType === 'optional' ? Math.min(limit, item.quantity) : 0;
+  }
+
   function choosePackage(id: string) {
+    if (id === packageId) return;
     const pack = catalog?.packages.find((entry) => entry.id === id);
     setPackage(id);
     setExtras((previous) => {
       let remaining = pack?.outfits ?? 1;
       return Object.fromEntries(
         (catalog?.addons ?? []).map((addon) => {
-          let quantity = Math.min(
-            previous[addon.id] ?? 0,
-            pack ? addonQuantityLimit(pack, addon) : 0,
-          );
+          let quantity = Math.min(previous[addon.id] ?? 0, pack ? limitFor(pack, addon) : 0);
           if (addon.quantityMode === 'outfit') {
             quantity = Math.min(quantity, remaining);
             remaining -= quantity;
@@ -157,7 +179,7 @@ export function Booking() {
       );
     });
     setDate('');
-    setTime('');
+    setTimeOptions([]);
     setDays([]);
   }
 
@@ -179,7 +201,7 @@ export function Booking() {
     setExtras((previous) => ({ ...previous, [id]: quantity }));
     if (Boolean(quantity) !== Boolean(extras[id])) {
       setDate('');
-      setTime('');
+      setTimeOptions([]);
       setDays([]);
     }
   }
@@ -203,7 +225,7 @@ export function Booking() {
   }
 
   async function submit() {
-    if (busy || result || !detailsReady) return;
+    if (busy || result || !detailsReady || !timeOptions.length) return;
     setBusy(true);
     setError('');
     try {
@@ -216,17 +238,18 @@ export function Booking() {
           addons: Object.entries(extras)
             .filter(([, quantity]) => quantity > 0)
             .map(([id, quantity]) => ({ id, quantity })),
-          date,
-          time,
+          timeOptions,
+          visitorId: visitId(),
+          platformNickname: prepaidPlatform(channel) ? platformNickname.trim() : undefined,
           paymentChannel: channel,
-          paymentAmount: Number(reportedAmount || total),
+          paymentAmount: channel === 'pg' ? total : Number(reportedAmount || total),
           kakaoNickname: nickname,
           privacyConsent: privacy,
           serviceNotificationConsent: notifications,
           marketingConsent: marketing,
         }),
       });
-      setResult({ ...booking, platform: prepaidPlatform(channel) });
+      setResult({ ...booking, platform: prepaidPlatform(channel), channel });
       window.scrollTo({ top: 0 });
     } catch (failure) {
       setError((failure as Error).message);
@@ -255,7 +278,9 @@ export function Booking() {
           <p>
             {platform
               ? `${platform} 결제 내역을 직원이 확인하면 설문을 작성할 수 있어요.`
-              : '입금 확인이 끝나면 설문을 작성할 수 있어요.'}
+              : result.channel === 'pg'
+                ? '테스트 주문을 접수했어요. 실제 결제는 진행되지 않으며 직원이 수납 확인 후 설문을 안내해요.'
+                : '입금 확인이 끝나면 설문을 작성할 수 있어요.'}
           </p>
           {result.localAccess && (
             <Notice>
@@ -264,7 +289,9 @@ export function Booking() {
           )}
           {bookingToken ? (
             <Link href={customerPath(bookingToken, 'payment')} className={styles.primaryLink}>
-              {platform ? '결제 확인 상태 보기' : '입금 안내 확인하고 계속하기'}{' '}
+              {platform || result.channel === 'pg'
+                ? '결제 확인 상태 보기'
+                : '입금 안내 확인하고 계속하기'}{' '}
               <Icon name="arrow" size={18} />
             </Link>
           ) : (
@@ -297,7 +324,7 @@ export function Booking() {
                 <>
                   가능한 날짜와 시간만 보여드려요.
                   <br />
-                  담당 디렉터는 예약이 확정되면 알려드려요.
+                  여러 날짜와 시간을 고를 수 있어요. 담당 디렉터가 그중 한 일정을 확정해요.
                 </>
               )}
             </p>
@@ -347,11 +374,27 @@ export function Booking() {
                                 <Icon name="solar/check-circle-bold" size={12} /> 보정본{' '}
                                 {entry.retouchCount}장
                               </span>
-                              {(packageDetails[entry.id] ?? [entry.description]).map((detail) => (
-                                <span key={detail}>
-                                  <Icon name="solar/check-circle-bold" size={12} /> {detail}
-                                </span>
-                              ))}
+                              {[
+                                entry.description,
+                                ...(catalog.packageItems ?? [])
+                                  .filter(
+                                    (item) =>
+                                      item.packageId === entry.id &&
+                                      item.inclusionType === 'included',
+                                  )
+                                  .map((item) => {
+                                    const addon = catalog.addons.find(
+                                      (candidate) => candidate.id === item.itemId,
+                                    );
+                                    return addon ? `${addon.name} × ${item.quantity}` : '';
+                                  }),
+                              ]
+                                .filter(Boolean)
+                                .map((detail) => (
+                                  <span key={detail}>
+                                    <Icon name="solar/check-circle-bold" size={12} /> {detail}
+                                  </span>
+                                ))}
                             </span>
                             <span className={styles.recommendation}>
                               이런 분께 ·{' '}
@@ -366,25 +409,13 @@ export function Booking() {
                       />
                     ))}
                   </fieldset>
-                  <section className={styles.commonCard}>
-                    <h2>모든 패키지 공통</h2>
-                    <p>
-                      아이폰 촬영 (카페 · 야외 스팟) · 사전 컨설팅 · 포즈·표정 디렉팅 · 수정 3회
-                    </p>
-                    <p>
-                      원본은 후기 확인 후 전체 제공 ·{' '}
-                      {catalog.extraRetouchAvailable === false
-                        ? '추가 보정 신청은 현재 중단되어 있어요'
-                        : `추가 보정 1장 ${money(catalog.retouchUnitPrice ?? 10000)}`}
-                    </p>
-                  </section>
                   <section className={layout.stack}>
                     <h2 className={styles.sectionTitle}>
                       부가서비스 <span>선택 사항</span>
                     </h2>
                     <div className={styles.addonList}>
                       {catalog.addons
-                        .filter((addon) => pkg && addonQuantityLimit(pkg, addon) > 0)
+                        .filter((addon) => pkg && limitFor(pkg, addon) > 0)
                         .sort(compareAddonDisplayOrder)
                         .map((addon) => (
                           <div
@@ -414,36 +445,31 @@ export function Booking() {
                               checked={Boolean(extras[addon.id])}
                               onCheckedChange={(checked) => chooseExtra(addon.id, checked ? 1 : 0)}
                             />
-                            {Boolean(extras[addon.id]) &&
-                              pkg &&
-                              addonQuantityLimit(pkg, addon) > 1 && (
-                                <div className={styles.quantity}>
-                                  <span>
-                                    {addon.quantityMode === 'outfit' ? '의상 수량' : '신청 수량'}
-                                  </span>
-                                  <select
-                                    aria-label={`${addon.name} 수량`}
-                                    value={extras[addon.id]}
-                                    onChange={(event) =>
-                                      chooseExtra(addon.id, Number(event.target.value))
-                                    }
-                                  >
-                                    {Array.from(
-                                      { length: addonQuantityLimit(pkg, addon) },
-                                      (_, index) => (
-                                        <option key={index + 1} value={index + 1}>
-                                          {index + 1}
-                                          {addon.quantityMode === 'outfit'
-                                            ? '벌'
-                                            : addon.quantityMode === 'shopping'
-                                              ? '회'
-                                              : '개'}
-                                        </option>
-                                      ),
-                                    )}
-                                  </select>
-                                </div>
-                              )}
+                            {Boolean(extras[addon.id]) && pkg && limitFor(pkg, addon) > 1 && (
+                              <div className={styles.quantity}>
+                                <span>
+                                  {addon.quantityMode === 'outfit' ? '의상 수량' : '신청 수량'}
+                                </span>
+                                <select
+                                  aria-label={`${addon.name} 수량`}
+                                  value={extras[addon.id]}
+                                  onChange={(event) =>
+                                    chooseExtra(addon.id, Number(event.target.value))
+                                  }
+                                >
+                                  {Array.from({ length: limitFor(pkg, addon) }, (_, index) => (
+                                    <option key={index + 1} value={index + 1}>
+                                      {index + 1}
+                                      {addon.quantityMode === 'outfit'
+                                        ? '벌'
+                                        : addon.quantityMode === 'shopping'
+                                          ? '회'
+                                          : '개'}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
                           </div>
                         ))}
                     </div>
@@ -456,7 +482,8 @@ export function Booking() {
                       </div>
                       <span className={layout.small}>결제 방법은 다음 화면에서</span>
                     </div>
-                    <Button fullWidth onClick={next}>
+                    {!pkg && <Notice>지금 신청할 수 있는 촬영 패키지가 없습니다.</Notice>}
+                    <Button fullWidth onClick={next} disabled={!pkg}>
                       다음: 기본정보 입력
                     </Button>
                     <p>
@@ -486,33 +513,47 @@ export function Booking() {
                   </section>
                   <RadioPills
                     className={styles.channelPills}
-                    label="결제는 어디서 하셨나요?"
+                    label="결제 경로"
                     value={channel}
                     onValueChange={setChannel}
                     options={[
+                      { value: 'pg', label: '자사몰 결제 (테스트)' },
                       { value: 'bank', label: '계좌이체' },
                       { value: 'kmong', label: '크몽' },
                       { value: 'frip', label: '프립' },
                       { value: 'soomgo', label: '숨고' },
                       { value: 'smartstore', label: '스마트스토어' },
-                      { value: 'unpaid', label: '아직 결제 전' },
                     ]}
                   />
-                  <div className={styles.amountEntry}>
+                  {channel === 'pg' && (
+                    <p>실제 결제 없이 주문을 접수하고 직원이 수납을 확인하는 테스트 경로예요.</p>
+                  )}
+                  {prepaidPlatform(channel) && (
                     <TextField
-                      className={styles.amountField}
-                      label="결제 금액 (원)"
-                      value={reportedAmount || String(total)}
-                      onValueChange={setReportedAmount}
-                      type="number"
-                      min={0}
-                      max={100000000}
-                      hint="선택하신 구성과 결제 금액이 다르면 직원이 확인 후 연락드려요. 계좌이체는 날짜를 고른 뒤 입금 안내를 드려요."
+                      label="결제한 플랫폼 닉네임"
+                      required
+                      value={platformNickname}
+                      onValueChange={setPlatformNickname}
+                      maxLength={80}
                     />
-                    <span className={styles.formattedAmount} aria-hidden="true">
-                      {Number(reportedAmount || total).toLocaleString('ko-KR')}
-                    </span>
-                  </div>
+                  )}
+                  {channel !== 'pg' && (
+                    <div className={styles.amountEntry}>
+                      <TextField
+                        className={styles.amountField}
+                        label="결제 금액 (원)"
+                        value={reportedAmount || String(total)}
+                        onValueChange={setReportedAmount}
+                        type="number"
+                        min={0}
+                        max={100000000}
+                        hint="선택하신 구성과 결제 금액이 다르면 직원이 확인 후 연락드려요. 계좌이체는 날짜를 고른 뒤 입금 안내를 드려요."
+                      />
+                      <span className={styles.formattedAmount} aria-hidden="true">
+                        {Number(reportedAmount || total).toLocaleString('ko-KR')}
+                      </span>
+                    </div>
+                  )}
                   <TextField
                     label="이름"
                     value={name}
@@ -602,7 +643,6 @@ export function Booking() {
                     value={date}
                     onValueChange={(value) => {
                       setDate(value);
-                      setTime('');
                     }}
                   />
                   <section className={layout.stack}>
@@ -616,8 +656,21 @@ export function Booking() {
                             key={slot.time}
                             label={slot.time}
                             availability={slot.available ? 'available' : 'booked'}
-                            selected={time === slot.time}
-                            onClick={() => setTime(slot.time)}
+                            selected={timeOptions.some(
+                              (entry) => entry.date === date && entry.time === slot.time,
+                            )}
+                            onClick={() =>
+                              setTimeOptions((current) => {
+                                const selected = current.some(
+                                  (entry) => entry.date === date && entry.time === slot.time,
+                                );
+                                return selected
+                                  ? current.filter(
+                                      (entry) => entry.date !== date || entry.time !== slot.time,
+                                    )
+                                  : [...current, { date, time: slot.time }];
+                              })
+                            }
                           />
                         ))}
                       </div>
@@ -629,34 +682,48 @@ export function Booking() {
                       </p>
                     )}
                   </section>
-                  <Notice tone="warning" className={styles.notice}>
-                    <strong>결제 방법에 따라 이렇게 진행돼요</strong>
-                    <p>
-                      크몽 · 프립 · 숨고 · 스마트스토어: 직원 확인 후 확정돼요.
-                      <br />
-                      계좌이체: 최대 {policy?.holdHours ?? 24}시간 일정을 잡아둬요. 촬영{' '}
-                      {policy?.holdCutoffHours ?? 2}시간 전까지 입금 확인이 필요해요.
-                    </p>
-                  </Notice>
+                  {timeOptions.length > 0 && (
+                    <section className={layout.stack} aria-label="선택한 희망 일정">
+                      <h2 className={styles.sectionTitle}>선택한 희망 일정</h2>
+                      {timeOptions.map((entry) => (
+                        <div key={entry.date + entry.time} className={layout.between}>
+                          <span>
+                            {entry.date} {entry.time}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            aria-label={`${entry.date} ${entry.time} 삭제`}
+                            onClick={() =>
+                              setTimeOptions((current) =>
+                                current.filter(
+                                  (option) =>
+                                    option.date !== entry.date || option.time !== entry.time,
+                                ),
+                              )
+                            }
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      ))}
+                    </section>
+                  )}
                   <SceneFooter>
                     <div className={styles.summaryStrip}>
                       <div className={styles.footerSummary}>
-                        <span>선택한 일정</span>
-                        <strong>
-                          {date && time
-                            ? `${dateLabel} ${shootTime(`${date}T${time}:00+09:00`)}`
-                            : '날짜와 시간을 골라주세요'}
-                        </strong>
+                        <span>선택한 희망 일정</span>
+                        <strong>{timeOptions.length}개</strong>
                       </div>
                       <span className={layout.small}>디렉터는 확정 후 안내</span>
                     </div>
                     <Button
                       fullWidth
-                      disabled={!date || !time || !privacy || !notifications}
+                      disabled={!timeOptions.length || !privacy || !notifications}
                       loading={busy}
                       onClick={submit}
                     >
-                      이 시간으로 예약하기
+                      희망 일정 제출하기
                     </Button>
                     <p>
                       <a href={kakaoChannelUrl} target="_blank" rel="noopener noreferrer">

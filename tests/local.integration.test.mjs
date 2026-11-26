@@ -27,6 +27,110 @@ async function request(base, path, { cookie, body, method = 'GET', origin, heade
       .join('; '),
   };
 }
+
+test('real order, deposit report, survey and director confirmation share one booking across customer and admin', async () => {
+  const customerPost = (path, body, cookie) =>
+    request(user, path, { method: 'POST', body, cookie, origin: 'http://localhost:3001' });
+  const staffPost = (path, body, cookie) =>
+    request(admin, path, { method: 'POST', body, cookie, origin: 'http://localhost:3002' });
+  const [manager, director, calendar] = await Promise.all([
+    staffPost('/demo/session', { role: 'admin' }),
+    staffPost('/demo/session', { role: 'director' }),
+    request(user, '/calendar?packageId=one'),
+  ]);
+  assert.equal(manager.response.status, 200);
+  assert.equal(director.response.status, 200);
+  assert.equal(calendar.response.status, 200);
+  const options = calendar.json.data.days
+    .flatMap(({ date, slots }) =>
+      slots.filter((slot) => slot.available).map(({ time }) => ({ date, time })),
+    )
+    .slice(-2);
+  assert.equal(options.length, 2);
+  const phone =
+    '010000' + String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000).padStart(5, '0');
+  const order = await customerPost('/start', {
+    name: '로컬 검증 고객',
+    phone,
+    packageId: 'one',
+    paymentChannel: 'bank',
+    addons: [],
+    timeOptions: options,
+    serviceNotificationConsent: true,
+    privacyConsent: true,
+  });
+  assert.equal(order.response.status, 201, JSON.stringify(order.json.error));
+  const { shootId, token, last4 } = order.json.data.localAccess;
+  const route = '/shoots/' + shootId;
+  try {
+    const customer = await customerPost('/auth/customer', { token, last4 });
+    assert.equal(customer.response.status, 200);
+    const initial = await request(user, route, { cookie: customer.cookie });
+    assert.equal(initial.response.status, 200);
+    const submitted = initial.json.data.timeOptions;
+    assert.deepEqual(
+      submitted.map(({ date, time }) => ({ date, time })),
+      options,
+    );
+    assert.equal(initial.json.data.confirmedSchedule, null);
+    const base = initial.json.data.payments.find((p) => p.kind === 'base');
+    assert.equal(base.state, 'pending');
+    const act = (body) => customerPost(route + '/actions', body, customer.cookie);
+    const staffAct = (body, cookie = manager.cookie) => staffPost(route + '/actions', body, cookie);
+    const deposit = await act({
+      type: 'request_deposit',
+      depositor: '로컬 검증',
+      paymentId: base.id,
+    });
+    assert.equal(deposit.response.status, 200);
+    assert.equal(deposit.json.data.payments.find((p) => p.id === base.id).state, 'pending');
+    const paid = await staffAct({ type: 'confirm_payment', paymentId: base.id });
+    assert.equal(paid.response.status, 200);
+    const form = new FormData();
+    form.set('kind', 'survey');
+    form.set('shootId', shootId);
+    form.set(
+      'file',
+      new File([new Uint8Array([255, 216, 255, 224])], 'survey.jpg', { type: 'image/jpeg' }),
+    );
+    assert.equal((await customerPost('/uploads', form, customer.cookie)).response.status, 201);
+    const saved = await act({
+      type: 'save_survey',
+      pageDone: [1, 2, 3, 4],
+      submit: true,
+      answers: {
+        firstImpression: 4,
+        age: 30,
+        style: '캐주얼',
+        motivation: '프로필',
+        purposes: ['프로필'],
+        referral: '검색',
+        safetyRead: true,
+      },
+    });
+    assert.equal(saved.response.status, 200, JSON.stringify(saved.json.error));
+    const confirmation = {
+      type: 'confirm_schedule',
+      optionId: submitted[1].id,
+      location: '로컬 검증 스튜디오',
+    };
+    assert.equal((await staffAct(confirmation)).response.status, 403);
+    const confirmed = await staffAct(confirmation, director.cookie);
+    assert.equal(confirmed.response.status, 200, JSON.stringify(confirmed.json.error));
+    const customerView = await request(user, route, { cookie: customer.cookie });
+    assert.equal(customerView.json.data.confirmedSchedule.optionId, submitted[1].id);
+    assert.equal(customerView.json.data.confirmedSchedule.location, confirmation.location);
+    assert.equal((await staffAct(confirmation, director.cookie)).response.status, 409);
+  } finally {
+    const cleaned = await staffPost(
+      route + '/actions',
+      { type: 'cancel', reason: '로컬 자동 검사 완료' },
+      manager.cookie,
+    );
+    assert.equal(cleaned.response.status, 200, JSON.stringify(cleaned.json.error));
+  }
+});
+
 test('real local Workers D1/R2 and Vinext proxy: sessions, RBAC, bytes and shared state', async () => {
   for (const base of ['http://127.0.0.1:8787', landing, admin, user]) {
     const { response, json } = await request(base, '/health');

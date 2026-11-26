@@ -1,0 +1,26 @@
+/* 운영 지표 표는 작은 화면에서도 각 지표의 열을 유지합니다. */
+.metrics {
+  max-width: 68rem;
+  margin: auto;
+  padding: 2rem 1rem;
+  display: grid;
+  gap: 1rem;
+}
+.metrics section {
+  overflow-x: auto;
+}
+.metrics table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.metrics th,
+.metrics td {
+  padding: 0.625rem 0.5rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid currentColor;
+}
+.metrics th:first-child {
+  text-align: left;
+}

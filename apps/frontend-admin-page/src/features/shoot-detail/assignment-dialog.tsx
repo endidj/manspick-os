@@ -20,12 +20,17 @@ export function AssignmentDialog({
   const [director, setDirector] = useState(shoot.directorId ?? '');
   const [retoucher, setRetoucher] = useState(shoot.retoucherId ?? '');
   const [reason, setReason] = useState('');
+  const [cs, setCs] = useState('');
+  const [operators, setOperators] = useState<{ id: string; name: string }[]>([]);
   const [staff, setStaff] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState('');
   useEffect(() => {
     if (open)
       api<ScheduleDTO & { retouchers?: { id: string; name: string }[] }>('/schedule')
-        .then((data) => setStaff(data.retouchers ?? []))
+        .then((data) => {
+          setStaff(data.retouchers ?? []);
+          setOperators(data.operators ?? []);
+        })
         .catch((cause) => setError(cause.message));
   }, [open]);
 
@@ -33,8 +38,9 @@ export function AssignmentDialog({
     if (
       await perform({
         type: 'assign_staff',
-        ...(director ? { directorId: director } : {}),
-        ...(retoucher ? { retoucherId: retoucher } : {}),
+        ...(director && director !== shoot.directorId ? { directorId: director } : {}),
+        ...(retoucher && retoucher !== shoot.retoucherId ? { retoucherId: retoucher } : {}),
+        ...(cs ? { csId: cs } : {}),
         reason,
       })
     )
@@ -56,7 +62,17 @@ export function AssignmentDialog({
         title="담당자 변경"
         description="스킬·일정 확인 후 변경 사유를 기록합니다."
         actions={
-          <Button disabled={!reason.trim() || busy} loading={busy} onClick={save}>
+          <Button
+            disabled={
+              !reason.trim() ||
+              busy ||
+              (!cs &&
+                director === (shoot.directorId ?? '') &&
+                retoucher === (shoot.retoucherId ?? ''))
+            }
+            loading={busy}
+            onClick={save}
+          >
             담당자 변경
           </Button>
         }
@@ -98,6 +114,17 @@ export function AssignmentDialog({
             </select>
           </label>
           <TextArea label="변경 사유" value={reason} onValueChange={setReason} required />
+          <label className={styles.selectField}>
+            고객 응대 담당자
+            <select value={cs} onChange={(e) => setCs(e.target.value)}>
+              <option value="">변경하지 않음</option>
+              {operators.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </Dialog>
     </>

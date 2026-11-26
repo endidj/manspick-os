@@ -9,6 +9,8 @@ export default defineConfig([
   ...nextTypescript,
   globalIgnores([
     '**/.next/**',
+    'apps/frontend-*/dist/**',
+    'apps/frontend-*/.vinext/**',
     '**/.open-next/**',
     '**/.cloudflare/**',
     '**/.local/**',

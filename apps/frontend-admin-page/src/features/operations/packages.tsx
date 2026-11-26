@@ -20,11 +20,13 @@ import {
 } from '@manspick/design-system/patterns';
 import type {
   AddonDTO,
+  PackageItemDTO,
   OperationsSettingsDTO,
   PackageDTO,
   SettingsAction,
 } from '@manspick/contracts';
 import { api } from '@manspick/web/client';
+import { DirectorScheduleSettings } from './director-schedule-settings';
 import { money } from '@manspick/web/format';
 import { PageHeading } from '../workspace/page-heading';
 import { useSettings } from './use-settings';
@@ -121,6 +123,7 @@ function ManagedPackages() {
           [
             ['packages', '패키지'],
             ['addons', '부가서비스'],
+            ['items', '패키지 구성'],
             ['rules', '난이도 규칙'],
             ['normalization', '표기 정규화'],
           ] as const
@@ -144,6 +147,9 @@ function ManagedPackages() {
                     )
                   }
                 />
+                {tab === 'items' && (
+                  <PackageItems data={settings.data} busy={settings.busy} save={settings.save} />
+                )}
                 {tab === 'rules' && (
                   <>
                     <Panel className={styles.productCard}>
@@ -185,9 +191,8 @@ function ManagedPackages() {
                         />
                       ))}
                       <p className={styles.muted}>
-                        기본 난이도와 옵션 가중 합을 신규 예약에 기록합니다. 디렉터 자격·일정·현재
-                        예약 수로 배정하며, 난이도별 숫자 환산과 디렉터 수용 기준은 아직 정해지지
-                        않았습니다.
+                        기본 난이도와 옵션 가중 합을 신규 예약에 기록합니다. 선택한 옵션을 수행할 수
+                        있고 희망 일정이 가능한 디렉터 중 입사일이 가장 빠른 직원을 배정합니다.
                       </p>
                     </Panel>
                     <AssignmentRules
@@ -453,28 +458,6 @@ function PackageContent({
           </div>
         </>
       )}
-      {data.retoucherRules && (
-        <Panel className={styles.productCard}>
-          <h2>보정가 배정 규칙 · 촬영일 요일 기준</h2>
-          <div className={styles.weekRules}>
-            {[1, 2, 3, 4, 5, 6, 0].map((day) => (
-              <div key={day}>
-                <span>{['일', '월', '화', '수', '목', '금', '토'][day]}</span>
-                <strong>
-                  {data.staff?.find(
-                    (person) =>
-                      person.id ===
-                      data.retoucherRules?.find((rule) => rule.weekday === day)?.retoucherId,
-                  )?.name ?? '미설정'}
-                </strong>
-              </div>
-            ))}
-          </div>
-          <p className={styles.muted}>
-            셀렉 완료 시 자동 배정됩니다. 개별 담당자 변경은 고객 상세에서 사유와 함께 처리합니다.
-          </p>
-        </Panel>
-      )}
     </>
   );
 }
@@ -489,7 +472,6 @@ function AssignmentRules({
   save: (action: SettingsAction) => Promise<boolean>;
 }) {
   const directors = data.staff.filter((person) => person.role === 'director' && person.active);
-  const retouchers = data.staff.filter((person) => person.role === 'retoucher' && person.active);
   const [directorId, setDirectorId] = useState(directors[0]?.id ?? '');
   const [skills, setSkills] = useState(
     data.directorSkills
@@ -500,13 +482,6 @@ function AssignmentRules({
       )
       .map((skill) => skill.addonId),
   );
-  const [rules, setRules] = useState(
-    Array.from({ length: 7 }, (_, weekday) => ({
-      weekday,
-      retoucherId: data.retoucherRules.find((rule) => rule.weekday === weekday)?.retoucherId ?? '',
-    })),
-  );
-
   function chooseDirector(id: string) {
     setDirectorId(id);
     setSkills(
@@ -560,37 +535,107 @@ function AssignmentRules({
           저장 이후 자동 배정에 적용됩니다. 이미 배정된 촬영의 담당자는 유지됩니다.
         </p>
       </Panel>
-      <Panel className={styles.productCard}>
-        <h2>요일별 보정가 배정 편집</h2>
-        {[1, 2, 3, 4, 5, 6, 0].map((day) => (
-          <SelectField
-            key={day}
-            label={`${['일', '월', '화', '수', '목', '금', '토'][day]}요일`}
-            value={rules[day]!.retoucherId}
-            disabled={busy}
-            onValueChange={(retoucherId) =>
-              setRules((current) =>
-                current.map((rule) => (rule.weekday === day ? { ...rule, retoucherId } : rule)),
-              )
-            }
-            options={[
-              { value: '', label: '보정가 선택' },
-              ...retouchers.map((person) => ({ value: person.id, label: person.name })),
-            ]}
-          />
-        ))}
-        <Button
-          variant="secondary"
-          loading={busy}
-          disabled={rules.some((rule) => !rule.retoucherId)}
-          onClick={() => save({ type: 'retoucher_rules', rules })}
-        >
-          요일별 배정 기준 저장
-        </Button>
-        <p className={styles.muted}>
-          월요일부터 일요일까지 활성 보정가를 지정해주세요. 기존 보정 작업의 담당자는 유지됩니다.
-        </p>
-      </Panel>
+      {directorId && (
+        <DirectorScheduleSettings
+          key={directorId}
+          data={data}
+          directorId={directorId}
+          busy={busy}
+          save={save}
+        />
+      )}
     </div>
+  );
+}
+
+function PackageItems({
+  data,
+  busy,
+  save,
+}: {
+  data: OperationsSettingsDTO;
+  busy: boolean;
+  save: (action: SettingsAction) => Promise<boolean>;
+}) {
+  const [packageId, setPackageId] = useState(data.packages[0]?.id ?? '');
+  const [edited, setEdited] = useState<PackageItemDTO[]>();
+  const items = edited ?? (data.packageItems ?? []).filter((item) => item.packageId === packageId);
+  function change(
+    itemId: string,
+    inclusionType: PackageItemDTO['inclusionType'] | 'none',
+    quantity: number,
+  ) {
+    const next = items.filter((item) => item.itemId !== itemId);
+    if (inclusionType !== 'none') next.push({ packageId, itemId, inclusionType, quantity });
+    setEdited(next);
+  }
+  return (
+    <Panel className={styles.productCard}>
+      <SelectField
+        label="구성할 패키지"
+        value={packageId}
+        options={data.packages.map((pack) => ({ value: pack.id, label: pack.name }))}
+        disabled={busy}
+        onValueChange={(next) => {
+          setPackageId(next);
+          setEdited(undefined);
+        }}
+      />
+      {data.addons.map((addon) => {
+        const current = items.find((item) => item.itemId === addon.id);
+        return (
+          <div key={addon.id} className={styles.cardHeading}>
+            <SelectField
+              label={addon.name}
+              disabled={busy}
+              value={current?.inclusionType ?? 'none'}
+              options={[
+                { value: 'none', label: '미포함' },
+                { value: 'included', label: '기본 포함' },
+                { value: 'optional', label: '추가 구매 가능' },
+              ]}
+              onValueChange={(value) =>
+                change(addon.id, value as 'included' | 'optional' | 'none', current?.quantity ?? 1)
+              }
+            />
+            {current && (
+              <TextField
+                type="number"
+                label={`${addon.name} ${current.inclusionType === 'included' ? '포함 수량' : '추가 구매 한도'}`}
+                min="1"
+                step="1"
+                disabled={busy}
+                value={String(current.quantity)}
+                onValueChange={(value) => change(addon.id, current.inclusionType, Number(value))}
+              />
+            )}
+          </div>
+        );
+      })}
+      <Button
+        loading={busy}
+        disabled={
+          !packageId ||
+          !edited ||
+          items.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1)
+        }
+        onClick={async () => {
+          if (
+            await save({
+              type: 'package_items',
+              packageId,
+              items: items.map(({ itemId, inclusionType, quantity }) => ({
+                itemId,
+                inclusionType,
+                quantity,
+              })),
+            })
+          )
+            setEdited(undefined);
+        }}
+      >
+        패키지 구성 저장
+      </Button>
+    </Panel>
   );
 }

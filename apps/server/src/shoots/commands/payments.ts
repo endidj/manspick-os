@@ -6,14 +6,13 @@ import { first, statement } from '../../database/statements.ts';
 import { requiredText } from '../../http/input.ts';
 import { id } from '../../security/crypto.ts';
 import { operator, customer } from '../../security/permissions.ts';
-import { activeRetoucherCondition } from '../assignment.ts';
 import type { CommandContext, PreparedCommand } from './types.ts';
 
 export async function preparePayment(
   type: string,
   context: CommandContext,
 ): Promise<PreparedCommand | null> {
-  const { env, actor, shoot, shootId, body, now } = context;
+  const { env, actor, shootId, body, now } = context;
   const statements: D1PreparedStatement[] = [];
   let to: ShootStatus = context.shoot.status;
   let reason = '';
@@ -50,64 +49,15 @@ export async function preparePayment(
         sql: "EXISTS(SELECT 1 FROM payments WHERE id=? AND shoot_id=? AND state='pending' AND (held_until IS NULL OR held_until>?))",
         values: [paymentId, shootId, now],
       };
-      if (payment.kind === 'base') to = 'survey_pending';
-      if (['selection_extra', 'extra_retouch'].includes(payment.kind)) {
-        const order = await first<{ request_id: string; job_kind: string }>(
-          env,
-          'SELECT request_id,job_kind FROM retouch_orders WHERE payment_id=?',
-          paymentId,
-        );
-        const retoucher = await activeRetoucherCondition(env, shoot.retoucher_id);
-        if (!order || !retoucher)
-          throw new DomainError(
-            'RETOUCHER_REQUIRED',
-            '추가 보정 주문과 보정가 배정을 확인해주세요.',
-            409,
-          );
-        condition = {
-          sql: `${condition.sql} AND ${retoucher.sql}`,
-          values: [...condition.values, ...retoucher.values],
-        };
-        if (
-          await first(
-            env,
-            "SELECT id FROM retouch_jobs WHERE shoot_id=? AND state!='complete'",
-            shootId,
-          )
-        )
-          throw new DomainError(
-            'RETOUCH_IN_PROGRESS',
-            '기존 보정 작업 완료 후 추가 주문 입금을 확인해주세요.',
-            409,
-          );
-        statements.push(
-          statement(
-            env,
-            'INSERT INTO retouch_jobs(id,shoot_id,retoucher_id,kind,request_id,due_at) VALUES(?,?,?,?,?,?)',
-            id(),
-            shootId,
-            shoot.retoucher_id,
-            order.job_kind,
-            order.request_id,
-            new Date(Date.now() + 3 * 86400000).toISOString(),
-          ),
-        );
-        statements.push(
-          statement(
-            env,
-            "UPDATE requests SET state='processing',handled_by=? WHERE id=?",
-            actor.id,
-            order.request_id,
-          ),
-        );
-        to = 'retouch_assigned';
-      }
+      if (payment.kind !== 'base')
+        throw new DomainError('PAYMENT_STATE', '현재 예약의 기본 주문 결제를 선택해주세요.', 409);
+      to = 'survey_pending';
       statements.push(
         statement(
           env,
-          "UPDATE requests SET state='complete',handled_by=? WHERE shoot_id=? AND type='deposit' AND state IN ('new','processing')",
+          "UPDATE requests SET state='complete',handled_by=? WHERE id IN (SELECT request_id FROM deposit_reports WHERE payment_id=?) AND state IN ('new','processing')",
           actor.id,
-          shootId,
+          paymentId,
         ),
       );
       statements.push(
@@ -132,22 +82,34 @@ export async function preparePayment(
         ...(paymentId ? [paymentId] : []),
       );
       if (!payment) throw new DomainError('PAYMENT_STATE', '확인 대기 중인 결제가 없습니다.', 409);
-      statements.push(
-        statement(
+      if (
+        await first(
           env,
-          "UPDATE payments SET depositor=? WHERE shoot_id=? AND id=? AND state='pending'",
-          depositor,
-          shootId,
+          "SELECT 1 FROM deposit_reports d JOIN requests r ON r.id=d.request_id WHERE d.payment_id=? AND d.reported_depositor=? AND r.state IN ('new','processing')",
           payment.id,
-        ),
-      );
+          depositor,
+        )
+      )
+        return null;
+      const requestId = id();
+      condition = {
+        sql: "EXISTS(SELECT 1 FROM payments WHERE id=? AND state='pending')",
+        values: [payment.id],
+      };
       statements.push(
         statement(
           env,
           "INSERT INTO requests(id,shoot_id,type,message) VALUES(?,?,'deposit',?)",
-          id(),
+          requestId,
           shootId,
           `입금자명: ${depositor} · 결제 ${payment.id}`,
+        ),
+        statement(
+          env,
+          'INSERT INTO deposit_reports(request_id,payment_id,reported_depositor) VALUES(?,?,?)',
+          requestId,
+          payment.id,
+          depositor,
         ),
       );
       reason = '고객 입금 확인 요청 · 결제 확정 아님';

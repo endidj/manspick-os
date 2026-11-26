@@ -4,6 +4,7 @@ import type { Viewport } from 'next';
 import { semanticTokens } from '@manspick/design-system/tokens';
 import '@manspick/design-system/styles/landing.css';
 import { FontPreload, siteMetadata } from '../features/seo';
+import { LandingAnalytics } from '../features/landing/landing-analytics';
 
 export const metadata = siteMetadata;
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           본문으로 바로가기
         </a>
         {children}
+        <LandingAnalytics />
       </body>
     </html>
   );

@@ -80,6 +80,10 @@ export async function schedule(env: Env, actor: Actor, week: string): Promise<Sc
   );
   return {
     directors,
+    operators: await rows<{ id: string; name: string }>(
+      env,
+      "SELECT id,name FROM staff WHERE role IN ('admin','staff') AND active=1 ORDER BY name,id",
+    ),
     retouchers: await rows<{ id: string; name: string }>(
       env,
       "SELECT id,name FROM staff WHERE role='retoucher' AND active=1 ORDER BY id",

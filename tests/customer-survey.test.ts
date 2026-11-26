@@ -9,14 +9,11 @@ const answers = {
   style: '캐주얼',
   motivation: '프로필 촬영',
   purposes: ['비즈니스'],
-  retouchStrength: 0,
-  selector: 'customer',
   referral: '지인 소개',
-  reviewParticipation: false,
   safetyRead: true,
 };
 
-test('survey accepts declining optional consent and zero retouch strength', () => {
+test('survey accepts complete shooting answers without selection, retouch or review questions', () => {
   assert.deepEqual(surveyIssues(answers, { wardrobe: false, hasFacePhoto: true }), []);
 });
 
@@ -26,11 +23,10 @@ test('final validation catches previously completed fields in their original pag
     ['style', '  ', 2],
     ['motivation', '', 3],
     ['purposes', [], 3],
-    ['retouchStrength', null, 3],
-    ['retouchStrength', '', 3],
-    ['retouchStrength', 37, 3],
+    ['firstImpression', 0, 1],
+    ['firstImpression', 6, 1],
+    ['age', 121, 1],
     ['referral', '', 4],
-    ['reviewParticipation', undefined, 4],
     ['safetyRead', false, 4],
   ] as const;
   for (const [field, value, page] of cases) {

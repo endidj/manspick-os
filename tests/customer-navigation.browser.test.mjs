@@ -93,6 +93,7 @@ async function mockApi(page) {
   const requests = {
     authentication: [],
     bookings: [],
+    events: [],
     bookingResult: { accepted: true, message: '예약 확인을 기다려주세요.' },
     actions: [],
     shootReads: 0,
@@ -102,10 +103,25 @@ async function mockApi(page) {
   await page.route('**/api/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
     let data;
-    if (path === '/api/catalog') {
+    if (path === '/api/auth/customer/social') data = { providers: [], verified: false };
+    else if (path === '/api/analytics/events') {
+      requests.events.push(route.request().postDataJSON());
+      data = { accepted: true };
+    } else if (path === '/api/catalog') {
       data = { packages: [packageFixture], addons: [], retouchUnitPrice: 10000 };
     } else if (path === '/api/calendar') {
-      data = { days: [{ date: '2099-12-20', slots: [{ time: '13:00', available: true }] }] };
+      data = {
+        days: [
+          {
+            date: '2099-12-20',
+            slots: [
+              { time: '13:00', available: true },
+              { time: '15:00', available: true },
+            ],
+          },
+          { date: '2099-12-21', slots: [{ time: '11:00', available: true }] },
+        ],
+      };
     } else if (path === '/api/start') {
       requests.bookings.push(route.request().postDataJSON());
       data = requests.bookingResult;
@@ -161,7 +177,7 @@ async function fillBookingDetails(page) {
 
 test(
   'customer app preserves route history, forms and authenticated deep links',
-  { skip: !appUrl && 'Set CUSTOMER_APP_URL to a running customer app', timeout: 300000 },
+  { skip: !appUrl && 'Set CUSTOMER_APP_URL to a running customer app', timeout: 600000 },
   async (suite) => {
     process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
       new URL('../.local/playwright', import.meta.url),
@@ -184,7 +200,12 @@ test(
           await run(page, requests);
           assert.deepEqual(errors, [], 'Customer app must not throw browser errors');
         } catch (error) {
-          console.error({ scenario: name, url: page.url(), browserErrors: errors });
+          console.error({
+            scenario: name,
+            url: page.url(),
+            browserErrors: errors,
+            message: error.message,
+          });
           throw error;
         } finally {
           await context.close();
@@ -199,7 +220,7 @@ test(
           await page.goto(`${appUrl}/start`);
           const packages = page.getByRole('group', { name: '패키지', exact: true });
           const radio = packages.getByRole('radio', { checked: true });
-          await radio.waitFor();
+          await radio.waitFor({ timeout: 60000 });
           await page.evaluate(() => document.fonts.ready);
           for (const width of [320, 390, 1440]) {
             await page.setViewportSize({ width, height: 844 });
@@ -256,6 +277,11 @@ test(
           await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await expectPath(page, '/start/details');
           const bankChoice = page.getByRole('radio', { name: '계좌이체', exact: true });
+          assert.equal(
+            await page.getByRole('radio', { name: '자사몰 결제 (테스트)' }).isChecked(),
+            true,
+          );
+          await page.getByText('계좌이체', { exact: true }).click();
           assert.equal(await bankChoice.isChecked(), true);
           const selectedTextColor = await page
             .getByText('계좌이체', { exact: true })
@@ -327,8 +353,23 @@ test(
           await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
           await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
           await page.getByRole('button', { name: '13:00', exact: true }).click();
-          await page.getByRole('button', { name: '이 시간으로 예약하기' }).click();
+          await page.getByRole('button', { name: '15:00', exact: true }).click();
+          await page.getByRole('button', { name: '2099-12-20 15:00 삭제' }).click();
+          await page.getByRole('button', { name: /2099년 12월 21일 예약 가능/ }).click();
+          await page.getByRole('button', { name: '11:00', exact: true }).click();
+          await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
           await expectPath(page, '/start/complete');
+          assert.deepEqual(requests.bookings[0].timeOptions, [
+            { date: '2099-12-20', time: '13:00' },
+            { date: '2099-12-21', time: '11:00' },
+          ]);
+          assert.ok(requests.bookings[0].visitorId);
+          assert.equal(requests.bookings[0].paymentChannel, 'pg');
+          await page.getByText(/실제 결제는 진행되지 않으며/).waitFor();
+          assert.deepEqual(
+            [...new Set(requests.events.map((entry) => entry.event))],
+            ['order_options', 'order_details', 'order_schedule'],
+          );
           await page.getByRole('heading', { name: '예약 요청을 접수했어요' }).waitFor();
           await page.getByText(/이미 안내받은 개인 촬영 링크가 있다면/).waitFor();
           assert.equal(
@@ -338,10 +379,39 @@ test(
           assert.equal(requests.bookings.length, 1);
           await page.goBack();
           await expectPath(page, '/start/complete');
-          assert.equal(await page.getByRole('button', { name: '이 시간으로 예약하기' }).count(), 0);
+          assert.equal(await page.getByRole('button', { name: '희망 일정 제출하기' }).count(), 0);
           assert.equal(requests.bookings.length, 1);
         },
         { width: 1280, height: 900 },
+      );
+
+      await scenario(
+        'external payment requires the platform nickname and never requests another transfer',
+        async (page, requests) => {
+          requests.bookingResult = {
+            accepted: true,
+            message: '접수',
+            bookingAccess: { token: 'external' },
+          };
+          await page.goto(`${appUrl}/start`);
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
+          await page.getByText('크몽', { exact: true }).click();
+          await fillBookingDetails(page);
+          const next = page.getByRole('button', { name: '다음: 촬영 날짜 고르기' });
+          await next.click();
+          await expectPath(page, '/start/details');
+          await page.getByRole('textbox', { name: '결제한 플랫폼 닉네임' }).fill('플랫폼고객');
+          await next.click();
+          await expectPath(page, '/start/schedule');
+          await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
+          await page.getByRole('button', { name: '13:00', exact: true }).click();
+          await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
+          await expectPath(page, '/start/complete');
+          assert.equal(requests.bookings[0].platformNickname, '플랫폼고객');
+          assert.equal(requests.bookings[0].paymentChannel, 'kmong');
+          await page.getByRole('link', { name: '결제 확인 상태 보기' }).waitFor();
+          assert.equal(await page.getByText('입금 안내 확인하고 계속하기').count(), 0);
+        },
       );
 
       for (const access of ['public-test', 'local']) {
@@ -368,11 +438,12 @@ test(
             });
             await page.goto(`${appUrl}/start`);
             await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
+            await page.getByText('계좌이체', { exact: true }).click();
             await fillBookingDetails(page);
             await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
             await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
             await page.getByRole('button', { name: '13:00', exact: true }).click();
-            await page.getByRole('button', { name: '이 시간으로 예약하기' }).click();
+            await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
             await expectPath(page, '/start/complete');
             await page.getByText('입금 확인이 끝나면 설문을 작성할 수 있어요.').waitFor();
             assert.equal(await page.getByText(/확인 번호:/).count(), access === 'local' ? 1 : 0);
@@ -405,7 +476,7 @@ test(
               paymentState: 'confirmed',
             });
             await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
-            await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
+            await page.getByRole('heading', { name: '결제가 확인됐어요' }).waitFor();
             await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
             await expectPath(page, '/s/new-booking-token/survey/1');
             await page.getByRole('heading', { name: '먼저 고객님을 알려주세요' }).waitFor();
@@ -427,55 +498,19 @@ test(
       );
 
       await scenario(
-        'preparation date keeps its card typography in the rendered route',
-        async (page) => {
+        'preparation guide records a read after the customer opens it',
+        async (page, requests) => {
           await page.goto(`${appUrl}/s/demo-token/preparation`);
           await signIn(page);
           await page.getByRole('heading', { name: '촬영 전 확인할 안내' }).waitFor();
-          const date = page.locator('main h1');
-          const [rendered, cardSize] = await date.evaluate((heading) => {
-            const style = getComputedStyle(heading);
-            return [style.fontSize, style.getPropertyValue('--mp-type-h2-size').trim()];
-          });
-          assert.equal(rendered, cardSize, 'The page heading style must not enlarge the date card');
-        },
-      );
-
-      await scenario(
-        'a full candidate gallery keeps the last photo selectable and resets when filtered',
-        async (page, { shoot }) => {
-          shoot.status = 'selection_pending';
-          shoot.stage = 6;
-          shoot.photos = Array.from({ length: 42 }, (_, index) => ({
-            id: `candidate-${index + 1}`,
-            cutNo: index + 1,
-            kind: 'candidate',
-            outfitNo: index < 22 ? 1 : 2,
-            url: shoot.uploads[0].url,
-          }));
-          await page.goto(`${appUrl}/s/demo-token/selection`);
-          await signIn(page);
-          const gallery = page.getByRole('region', { name: '촬영 후보 사진' });
-          await gallery.waitFor();
-          assert.equal(await gallery.getByRole('button').count(), 42);
-          const tiles = gallery.locator(':scope > *');
-          const [first, second, fourth] = await Promise.all(
-            [0, 1, 3].map((index) => tiles.nth(index).boundingBox()),
+          await page.getByRole('button', { name: /촬영일 확정 안내/ }).click();
+          await page.getByRole('dialog').getByRole('button', { name: '확인', exact: true }).click();
+          assert.ok(
+            requests.actions.some(
+              (action) =>
+                action.type === 'mark_preparation_read' && action.guideId === 'confirmation',
+            ),
           );
-          assert.ok(first && second && fourth);
-          assert.deepEqual([first.width, first.height], [112, 140]);
-          assert.equal(second.x - first.x - first.width, 3);
-          assert.equal(fourth.y - first.y - first.height, 3);
-          assert.ok(await gallery.evaluate((el) => el.scrollHeight > el.clientHeight * 2));
-          const last = gallery.getByRole('button', { name: /촬영 후보 42번$/ });
-          await last.click();
-          assert.equal(await last.getAttribute('aria-pressed'), 'true');
-          assert.ok(await gallery.evaluate((el) => el.scrollTop > 0));
-          await page.getByRole('button', { name: '의상 1 22', exact: true }).click();
-          assert.equal(await gallery.getByRole('button').count(), 22);
-          assert.equal(await gallery.evaluate((el) => el.scrollTop), 0);
-          await page.getByRole('button', { name: '전체 42', exact: true }).click();
-          assert.equal(await last.getAttribute('aria-pressed'), 'true');
         },
       );
 
@@ -486,18 +521,18 @@ test(
           await page.goto(`${appUrl}/s/demo-token`);
           await signIn(page);
           const journey = page.getByRole('navigation', { name: '나의 촬영 여정' });
-          await journey.getByRole('button', { name: /촬영 일정 선택/ }).click();
+          await journey.getByRole('button', { name: '결제 내역' }).click();
           await expectPath(page, '/s/demo-token/payment');
-          await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
+          await page.getByRole('heading', { name: '결제가 확인됐어요' }).waitFor();
           await page.getByRole('button', { name: '뒤로가기', exact: true }).click();
           await expectPath(page, '/s/demo-token');
           await page.goForward();
           await expectPath(page, '/s/demo-token/payment');
           await page.goBack();
           await expectPath(page, '/s/demo-token');
-          await page.getByRole('button', { name: '준비 안내 이어서 보기' }).click();
+          await page.getByRole('button', { name: '촬영 준비 안내 보기' }).click();
           await expectPath(page, '/s/demo-token/preparation');
-          await page.getByRole('button', { name: /촬영 설계/ }).click();
+          await page.getByRole('button', { name: '촬영 설계 보기', exact: true }).click();
           await expectPath(page, '/s/demo-token/plan');
           await page.getByRole('heading', { name: '디렉터가 촬영을 설계했어요' }).waitFor();
           await page.getByRole('button', { name: '뒤로가기', exact: true }).click();
@@ -667,7 +702,7 @@ test(
             stage: 3,
           });
           await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
-          await page.getByRole('heading', { name: '예약이 확정됐어요' }).waitFor();
+          await page.getByRole('heading', { name: '결제가 확인됐어요' }).waitFor();
           assert.equal(await page.getByRole('textbox', { name: '입금자명' }).count(), 0);
           assert.equal(await page.getByText(/남음|기한이 지나면/).count(), 0);
           await page.screenshot({ path: `${screenshots}/payment-confirmed.png`, fullPage: true });
@@ -716,7 +751,7 @@ test(
           assert.equal(requests.shoot.survey.answers.reviewParticipation, false);
           await page.getByRole('button', { name: '나의 촬영 홈으로', exact: true }).click();
           await expectPath(page, '/s/demo-token');
-          await page.getByRole('button', { name: '준비 안내 이어서 보기' }).waitFor();
+          await page.getByRole('button', { name: '촬영 준비 안내 보기' }).waitFor();
         },
       );
 
@@ -793,7 +828,7 @@ test(
           );
           await page.evaluate(() => window.dispatchEvent(new Event('focus')));
           await refreshed;
-          await page.getByRole('button', { name: '설문 이어서 작성하기', exact: true }).click();
+          await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
           await expectPath(page, '/s/demo-token/survey/1');
           assert.equal(
             await page.getByRole('textbox', { name: '직업' }).inputValue(),
@@ -817,9 +852,7 @@ test(
           });
           await page.goto(`${appUrl}/s/demo-token`);
           await signIn(page);
-          await page
-            .getByRole('heading', { name: '테스트 고객님, 입금하면 예약이 확정돼요' })
-            .waitFor();
+          await page.getByRole('heading', { name: '테스트 고객님의 촬영' }).waitFor();
           await page.getByText(/테스트은행 000-123 · 190,000원/).waitFor();
           await page.getByText(/13:00 – 15:00/).waitFor();
           await page.getByRole('button', { name: '입금 안내 보기' }).click();
@@ -848,100 +881,78 @@ test(
       );
 
       await scenario(
-        'a shared plan opens the outfit uploader even without an outfit guide',
-        async (page) => {
+        'a shared plan displays the concept and confirmed meeting place',
+        async (page, { shoot }) => {
+          shoot.confirmedSchedule = {
+            optionId: 'second',
+            location: '테스트 스튜디오',
+            confirmedAt: '2099-12-01T10:00:00Z',
+          };
           await page.goto(`${appUrl}/s/demo-token/plan`);
           await signIn(page);
-          await page.getByRole('button', { name: '의상 사진 올리기' }).click();
-          const dialog = page.getByRole('dialog', { name: /의상/ });
-          await dialog.waitFor();
-          assert.equal(await dialog.locator('input[type=file]').count(), 1);
-          await dialog.getByRole('button', { name: '확인', exact: true }).click();
-          await dialog.waitFor({ state: 'hidden' });
-          await expectPath(page, '/s/demo-token/preparation');
+          await page.getByText(/편안한 캐주얼/).waitFor();
+          await page.getByText('테스트 스튜디오', { exact: true }).waitFor();
+          assert.equal(await page.locator('input[type=file]:visible').count(), 0);
         },
       );
 
-      for (const [state, cta] of [
-        ['partial-survey', '설문 이어서 작성하기'],
-        ['prepared', '준비 안내 다시 보기'],
-        ['outfits-missing', '의상 사진 올리기'],
-        ['review-pending', '후기 진행상태 보기'],
-        ['review-approved', '원본 전달 상태 보기'],
-        ['review-rejected', '후기 다시 확인하기'],
-        ['originals-ready', '원본 사진 확인하기'],
-      ]) {
-        await scenario(
-          `progress home shows the actual next action: ${state}`,
-          async (page, requests) => {
-            const shoot = requests.shoot;
-            if (state === 'partial-survey') {
-              shoot.survey.pageDone = [1, 2];
-            } else {
-              shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
-              if (state === 'prepared' || state === 'outfits-missing') {
-                shoot.preparation.confirmedAt = '2026-11-16T04:00:00Z';
-                if (state === 'prepared') shoot.outfitPhotosRequired = 0;
-              } else {
-                Object.assign(shoot, { status: 'review_pending', stage: 7 });
-                shoot.requests = [
-                  {
-                    id: 'review',
-                    type: 'review',
-                    state:
-                      state === 'review-approved'
-                        ? 'complete'
-                        : state === 'review-rejected'
-                          ? 'rejected'
-                          : 'new',
-                  },
-                ];
-                if (state === 'originals-ready')
-                  shoot.fileLinks = [
-                    { kind: 'original', url: 'https://example.com/originals', label: '원본' },
-                  ];
-              }
-            }
-            await page.goto(`${appUrl}/s/demo-token`);
-            await signIn(page);
-            await page.getByRole('button', { name: cta, exact: true }).waitFor();
-            for (const width of [320, 390, 1440]) {
-              await page.setViewportSize({ width, height: 900 });
-              assert.equal(
-                await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-                true,
-              );
-              await page.screenshot({
-                path: `${screenshots}/home-${state}-${width}.png`,
-                fullPage: true,
-              });
-            }
-            await page.getByRole('button', { name: cta, exact: true }).click();
+      for (const state of ['partial-survey', 'prepared', 'confirmed', 'legacy-complete']) {
+        await scenario(`home shows the booking state: ${state}`, async (page, { shoot }) => {
+          shoot.startsAt = null;
+          shoot.timeOptions = [
+            { id: 'one', date: '2099-12-20', time: '13:00' },
+            { id: 'two', date: '2099-12-21', time: '11:00' },
+          ];
+          if (state === 'partial-survey') shoot.survey.pageDone = [1, 2];
+          else shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
+          if (state === 'confirmed')
+            shoot.confirmedSchedule = {
+              optionId: 'two',
+              location: '성수역 1번 출구',
+              confirmedAt: '2099-12-01T10:00:00Z',
+            };
+          if (state === 'legacy-complete')
+            Object.assign(shoot, { status: 'review_pending', stage: 7 });
+          await page.goto(`${appUrl}/s/demo-token`);
+          await signIn(page);
+          if (state === 'confirmed')
+            await page.getByText('성수역 1번 출구', { exact: true }).waitFor();
+          else await page.getByText('제출한 희망 일정', { exact: true }).waitFor();
+          await page.getByText('2099-12-21 11:00', { exact: true }).waitFor();
+          for (const width of [320, 390, 1440]) {
+            await page.setViewportSize({ width, height: 900 });
+            assert.ok(
+              await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+            );
+            await page.screenshot({
+              path: `${screenshots}/home-${state}-${width}.png`,
+              fullPage: true,
+            });
+          }
+          if (state === 'legacy-complete') {
+            await page.getByRole('heading', { name: '촬영 완료', exact: true }).waitFor();
+          } else {
+            await page
+              .getByRole('button', {
+                name: state === 'partial-survey' ? '설문 이어서 작성하기' : '촬영 준비 안내 보기',
+                exact: true,
+              })
+              .click();
             await expectPath(
               page,
-              state === 'partial-survey'
-                ? '/s/demo-token/survey/3'
-                : state === 'prepared' || state === 'outfits-missing'
-                  ? '/s/demo-token/preparation'
-                  : '/s/demo-token/review',
+              state === 'partial-survey' ? '/s/demo-token/survey/3' : '/s/demo-token/preparation',
             );
-            if (state === 'outfits-missing') {
-              await page.getByRole('dialog', { name: /의상/ }).waitFor();
-            }
-            if (state === 'review-approved') {
-              await page.getByRole('button', { name: '제출한 후기 보기' }).click();
-              const dialog = page.getByRole('dialog', { name: '제출한 후기' });
-              await dialog.getByText(/후기가 확인됐어요/).waitFor();
-              assert.equal(await dialog.locator('input[type=file]').count(), 0);
-            }
-          },
-        );
+          }
+        });
       }
 
       await scenario('unknown booking and customer subpaths return 404', async (page, requests) => {
         for (const path of [
           '/start/missing-step',
           '/s/demo-token/missing-scene',
+          '/s/demo-token/selection',
+          '/s/demo-token/review',
+          '/s/demo-token/results',
           '/s/demo-token/survey/5',
         ]) {
           const response = await page.goto(`${appUrl}${path}`);

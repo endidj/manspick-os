@@ -12,13 +12,11 @@ export type View =
   | 'packages'
   | 'followups'
   | 'settings'
-  | 'retouch'
-  | 'completed'
   | 'my-customers'
   | 'today'
   | 'profile';
 
-export type DetailScreen = 'overview' | 'manage' | 'field' | 'candidates' | 'retouch';
+export type DetailScreen = 'overview' | 'manage' | 'field';
 
 export const roles: {
   id: StaffRole;
@@ -34,7 +32,6 @@ export const menu: { id: View; label: string; icon: string }[] = [
   { id: 'board', label: '고객 보드', icon: 'board' },
   { id: 'detail', label: '고객 상세', icon: 'solar/user-id-bold' },
   { id: 'calendar', label: '디렉터 배정·스케줄', icon: 'calendar' },
-  { id: 'retouch', label: '보정 작업', icon: 'solar/magic-stick-3-bold' },
   { id: 'templates', label: '안내 템플릿', icon: 'solar/document-text-bold' },
   { id: 'packages', label: '패키지·옵션', icon: 'solar/tag-price-bold' },
   { id: 'followups', label: '후속 이벤트', icon: 'solar/gift-bold' },
@@ -47,14 +44,10 @@ const directorMenu: typeof menu = [
   { id: 'profile', label: '내 정보', icon: 'solar/user-bold' },
 ];
 
-const retoucherMenu: typeof menu = [
-  { id: 'retouch', label: '내 보정 작업', icon: 'solar/magic-stick-3-bold' },
-  { id: 'completed', label: '완료 내역', icon: 'solar/check-read-bold' },
-];
-
 export function visibleMenu(role: StaffRole) {
   if (role === 'director') return directorMenu;
-  if (role === 'retoucher') return retoucherMenu;
+  if (role === 'retoucher')
+    return [{ id: 'profile' as const, label: '내 정보', icon: 'solar/user-bold' }];
   return menu.filter((item) => item.id !== 'settings' || role === 'admin');
 }
 
@@ -69,13 +62,7 @@ export function resolveView(requested: string | null, role: StaffRole): View {
 }
 
 export function needsShootList(view: View) {
-  return (
-    view === 'my-customers' ||
-    view === 'today' ||
-    view === 'retouch' ||
-    view === 'completed' ||
-    view === 'detail'
-  );
+  return view === 'my-customers' || view === 'today' || view === 'detail';
 }
 
 export function requestedView(role: StaffRole = 'staff'): View {
@@ -83,9 +70,8 @@ export function requestedView(role: StaffRole = 'staff'): View {
 }
 
 export function detailScreen(requested: string | null, role: StaffRole): DetailScreen {
-  if (role === 'retoucher') return 'retouch';
-  if (role === 'director')
-    return requested === 'field' || requested === 'candidates' ? requested : 'manage';
+  if (role === 'retoucher') return 'overview';
+  if (role === 'director') return requested === 'field' ? 'field' : 'manage';
   return 'overview';
 }
 

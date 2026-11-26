@@ -42,7 +42,7 @@ export function ShootTable({ shoots, role }: { shoots: ShootSummary[]; role: Sta
               </td>
               <td>{shoot.packageName}</td>
               <td>
-                <Badge tone="blue">{shoot.statusLabel}</Badge>
+                <Badge tone="blue">{shoot.stage > 5 ? '촬영 완료' : shoot.statusLabel}</Badge>
               </td>
               <td>{dateTime(shoot.startsAt)}</td>
               <td>

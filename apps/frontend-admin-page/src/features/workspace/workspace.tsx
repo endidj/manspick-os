@@ -7,11 +7,11 @@ import { StaffLogin, useStaffLoginToken } from '../authentication';
 import { CustomerBoard } from '../board';
 import { MyCustomers, MobileHeader } from '../director';
 import { Followups, Notifications, Packages, Settings, Templates } from '../operations';
-import { RetouchWorkspace } from '../retouch';
 import { Schedule } from '../schedule';
 import { AdminShell } from '../shell';
 import { ShootDetailScreen } from '../shoot-detail';
 import { PageHeading } from './page-heading';
+import { StaffInbox } from '../operations/staff-inbox';
 import { useShootList } from './use-shoot-list';
 import { useWorkspace } from './use-workspace';
 import { needsShootList, resolveView } from './model';
@@ -73,8 +73,6 @@ export function AdminApp({ initialShootId }: { initialShootId?: string }) {
             />
           ) : view === 'calendar' ? (
             <Schedule role={role} />
-          ) : view === 'retouch' || view === 'completed' ? (
-            <RetouchWorkspace shoots={shoots ?? []} role={role} completed={view === 'completed'} />
           ) : view === 'templates' ? (
             <Templates key={session.actor.id} role={role} />
           ) : view === 'packages' ? (
@@ -91,6 +89,7 @@ export function AdminApp({ initialShootId }: { initialShootId?: string }) {
                 description="서버에 기록된 안내와 수동 발송 상태를 확인합니다."
               />
               <Notifications />
+              <StaffInbox />
             </>
           ) : view === 'detail' ? (
             <>
@@ -115,10 +114,11 @@ export function AdminApp({ initialShootId }: { initialShootId?: string }) {
             </>
           ) : view === 'profile' ? (
             <>
-              <MobileHeader title="내 정보" subtitle="DIRECTOR" />
+              <MobileHeader title="내 정보" subtitle={role === 'director' ? '디렉터' : '보정가'} />
               <Panel>
                 <h1>{session.actor.name}</h1>
-                <p>디렉터 · 본인에게 배정된 촬영만 접근합니다.</p>
+                <p>본인에게 배정된 예약의 알림을 받습니다.</p>
+                <StaffInbox />
                 <Button variant="secondary" loading={busy} onClick={workspace.logout}>
                   로그아웃
                 </Button>

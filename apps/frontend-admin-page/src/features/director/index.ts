@@ -2,5 +2,4 @@
 export { MyCustomers } from './my-customers';
 export { FieldChecklist } from './field-checklist';
 export { MobileHeader } from './mobile-header';
-export { CandidateUpload } from './candidate-upload';
 export { CustomerManage } from './customer-manage';

@@ -105,6 +105,7 @@ export interface ShootBoardDTO {
   };
 }
 export interface AssetDTO {
+  uploadedByName?: string;
   id: string;
   shootId: string;
   kind: string;
@@ -179,6 +180,7 @@ export interface AssignmentCandidateDTO {
 }
 
 export interface ScheduleDTO {
+  operators?: { id: string; name: string }[];
   directors: { id: string; name: string }[];
   retouchers: { id: string; name: string }[];
   slots: {
@@ -235,9 +237,25 @@ export interface SettingsHistoryEntryDTO {
   next: unknown;
 }
 
+export interface PackageItemDTO {
+  packageId: string;
+  itemId: string;
+  inclusionType: 'included' | 'optional';
+  quantity: number;
+}
+
 export interface OperationsSettingsDTO {
+  packageItems?: PackageItemDTO[];
   policy: OperationsPolicy;
-  staff: { id: string; name: string; email: string; role: StaffRole; active: number }[];
+  staff: {
+    id: string;
+    name: string;
+    email: string;
+    role: StaffRole;
+    active: number;
+    hiredOn?: string | null;
+  }[];
+  directorAvailability?: { directorId: string; startsAt: string; endsAt: string }[];
   packages: PackageDTO[];
   addons: AddonDTO[];
   paymentInstructions: ShootDetail['paymentInstructions'];
@@ -263,6 +281,13 @@ export interface OperationsSettingsDTO {
 }
 
 export type SettingsAction =
+  | {
+      type: 'director_schedule';
+      directorId: string;
+      hiredOn: string | null;
+      windows: { startsAt: string; endsAt: string }[];
+    }
+  | { type: 'package_items'; packageId: string; items: Omit<PackageItemDTO, 'packageId'>[] }
   | { type: 'operations_policy'; value: OperationsPolicy }
   | { type: 'payment_instructions'; value: NonNullable<ShootDetail['paymentInstructions']> }
   | { type: 'neighborhood'; value: OperationsSettingsDTO['neighborhoods'][number] }
@@ -275,6 +300,11 @@ export type SettingsAction =
   | { type: 'preparation_guides'; guides: PreparationDTO['guides'] };
 
 export interface ShootDetail extends ShootSummary {
+  tasks?: { id: string; title: string; assignee: string | null; completedAt: string | null }[];
+  notices?: { id: string; body: string; createdAt: string }[];
+  campaigns?: { id: string; name: string; entered: number }[];
+  timeOptions?: { id: string; date: string; time: string }[];
+  confirmedSchedule?: { optionId: string; location: string; confirmedAt: string } | null;
   package: PackageDTO;
   retouchUnitPrice: number;
   extraRetouchAvailable: boolean;
@@ -326,6 +356,10 @@ export interface ShootDetail extends ShootSummary {
 }
 
 export type ShootAction =
+  | { type: 'add_task'; title: string }
+  | { type: 'complete_task'; taskId: string }
+  | { type: 'enter_campaign'; campaignId: string }
+  | { type: 'confirm_schedule'; optionId: string; location: string; previousOptionId?: string }
   | { type: 'change_status'; status: ShootStatus; reason?: string }
   | { type: 'confirm_payment'; paymentId: string }
   | { type: 'save_survey'; answers: Record<string, unknown>; pageDone: number[]; submit?: boolean }
@@ -336,12 +370,18 @@ export type ShootAction =
   | {
       type: 'save_field_checklist';
       checks: string[];
-      selector: 'customer' | 'director';
-      reason: string;
+      selector?: 'customer' | 'director';
+      reason?: string;
       note: string;
     }
   | { type: 'complete_field' }
-  | { type: 'assign_staff'; directorId?: string; retoucherId?: string; reason: string }
+  | {
+      type: 'assign_staff';
+      directorId?: string;
+      retoucherId?: string;
+      csId?: string;
+      reason: string;
+    }
   | {
       type: 'save_file_link';
       kind: 'retouched' | 'original';

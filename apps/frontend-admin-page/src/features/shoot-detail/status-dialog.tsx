@@ -47,7 +47,7 @@ export function StatusDialog({
         open={open}
         onOpenChange={setOpen}
         title={`상태 변경 · ${shoot.customerName}`}
-        description="내부 상태 30개 + 취소 · 고객에게는 7단계만 보입니다"
+        description="예약과 현장 진행 상태를 변경합니다."
         className={styles.statusDialog}
         actions={
           <>
@@ -66,7 +66,7 @@ export function StatusDialog({
         }
       >
         <div className={styles.statusGroups}>
-          {STAGE_LABELS.map((label, index) => (
+          {STAGE_LABELS.slice(0, 5).map((label, index) => (
             <div className={styles.statusGroup} key={label}>
               <StageBadge stage={(index + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7} label={label} />
               <div>
@@ -109,9 +109,7 @@ export function StatusDialog({
           onValueChange={setReason}
           disabled={busy}
         />
-        <p className={styles.caption}>
-          변경 내역은 타임라인에 기록됩니다. 셀렉 공개와 보정 전달은 해당 업무 화면에서 처리합니다.
-        </p>
+        <p className={styles.caption}>변경 내역은 타임라인에 기록됩니다.</p>
       </Dialog>
     </>
   );

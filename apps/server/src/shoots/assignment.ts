@@ -19,7 +19,11 @@ async function assignmentRequirements(env: Env, shoot: ShootRow) {
   const date = shoot.starts_at ? koreaDate(new Date(shoot.starts_at)) : koreaDate();
   const [locks, addons] = await Promise.all([
     rows<{ time: string }>(env, 'SELECT time FROM slots WHERE shoot_id=?', shoot.id),
-    rows<{ addon_id: string }>(env, 'SELECT addon_id FROM shoot_addons WHERE shoot_id=?', shoot.id),
+    rows<{ addon_id: string }>(
+      env,
+      'SELECT DISTINCT item_id AS addon_id FROM order_items WHERE order_id=(SELECT order_id FROM bookings WHERE id=?)',
+      shoot.id,
+    ),
   ]);
   const times = locks.map((lock) => lock.time);
   const interval =
@@ -116,6 +120,12 @@ export async function prepareAssignment(context: CommandContext): Promise<Prepar
       `NOT EXISTS(SELECT 1 FROM shoots s WHERE ${conflicts.sql})`,
     ];
     const bindings = [person, skills.value, person, date, lastDate, ...conflicts.values];
+    if (interval) {
+      checks.push(
+        '(NOT EXISTS(SELECT 1 FROM director_availability WHERE director_id=?) OR EXISTS(SELECT 1 FROM director_availability WHERE director_id=? AND starts_at<=? AND ends_at>=?))',
+      );
+      bindings.push(person, person, interval.startsAt, interval.endsAt);
+    }
     const candidate = await first(env, `SELECT 1 WHERE ${checks.join(' AND ')}`, ...bindings);
     if (!candidate)
       throw new DomainError(
@@ -143,6 +153,32 @@ export async function prepareAssignment(context: CommandContext): Promise<Prepar
         "UPDATE retouch_jobs SET retoucher_id=? WHERE shoot_id=? AND state!='complete'",
         person,
         shootId,
+      ),
+    );
+  }
+  if (body.csId !== undefined) {
+    const cs = requiredText(body, 'csId', 100);
+    const sql = "EXISTS(SELECT 1 FROM staff WHERE id=? AND role IN ('admin','staff') AND active=1)";
+    if (!(await first(env, 'SELECT 1 WHERE ' + sql, cs)))
+      throw new DomainError('INVALID_ASSIGNEE', '활성 운영 직원을 선택해주세요.');
+    clauses.push(sql);
+    values.push(cs);
+    statements.push(
+      statement(
+        env,
+        "UPDATE booking_staff SET released_at=? WHERE booking_id=? AND role='cs' AND released_at IS NULL AND staff_id!=?",
+        context.now,
+        shootId,
+        cs,
+      ),
+      statement(
+        env,
+        "INSERT INTO booking_staff(booking_id,staff_id,role,assigned_at) SELECT ?,?,'cs',? WHERE NOT EXISTS(SELECT 1 FROM booking_staff WHERE booking_id=? AND staff_id=? AND role='cs' AND released_at IS NULL)",
+        shootId,
+        cs,
+        context.now,
+        shootId,
+        cs,
       ),
     );
   }

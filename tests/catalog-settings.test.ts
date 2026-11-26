@@ -254,14 +254,15 @@ test('administrator can add an option and toggle it without losing historical or
   db.database.close();
 });
 
-test('photo-only extra retouch defaults can be saved but never sold through initial booking', async () => {
+test('retired retouch stays outside the settings, public catalog and order flow', async () => {
   const { db, api, login, data } = setup();
   const admin = await login();
   const settings = await data<OperationsSettingsDTO>(await api('/settings', undefined, admin));
-  const extra = settings.addons.find((addon) => addon.id === 'extra_retouch')!;
-  assert.equal(extra.maxQuantity, 100);
-  assert.equal(extra.quantityMode, 'photo');
-  await data(await api('/settings', { type: 'addon', value: { ...extra, price: 12000 } }, admin));
+  assert.equal(
+    settings.addons.some((addon) => addon.id === 'extra_retouch'),
+    false,
+  );
+  const extra = { ...settings.addons[0], id: 'extra_retouch' };
   const catalog = await data<{ addons: AddonDTO[]; retouchUnitPrice: number }>(
     await api('/catalog'),
   );
@@ -269,7 +270,7 @@ test('photo-only extra retouch defaults can be saved but never sold through init
     catalog.addons.some((addon) => addon.id === 'extra_retouch'),
     false,
   );
-  assert.equal(catalog.retouchUnitPrice, 12000);
+  assert.equal(catalog.retouchUnitPrice, 0);
   assert.equal(
     (await api('/start', booking('01000008107', [{ id: 'extra_retouch', quantity: 1 }]))).status,
     400,

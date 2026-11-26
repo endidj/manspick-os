@@ -56,7 +56,7 @@ export async function preparePreparation(
 
         const budgetNeeded = await first(
           env,
-          "SELECT addon_id FROM shoot_addons WHERE shoot_id=? AND addon_id IN ('rental','outfit','shopping') AND quantity>0 LIMIT 1",
+          "SELECT item_id FROM order_items WHERE order_id=(SELECT order_id FROM bookings WHERE id=?) AND item_id IN ('rental','outfit','shopping') AND quantity>0 LIMIT 1",
           shootId,
         );
         const facePhoto = await first(
@@ -83,7 +83,7 @@ export async function preparePreparation(
       statements.push(
         statement(
           env,
-          'INSERT INTO surveys(shoot_id,answers_json,page_done_json,submitted_at,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(shoot_id) DO UPDATE SET answers_json=excluded.answers_json,page_done_json=excluded.page_done_json,submitted_at=COALESCE(excluded.submitted_at,surveys.submitted_at),updated_at=excluded.updated_at',
+          'INSERT INTO booking_surveys(booking_id,answers_json,page_done_json,submitted_at,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(booking_id) DO UPDATE SET answers_json=excluded.answers_json,page_done_json=excluded.page_done_json,submitted_at=COALESCE(excluded.submitted_at,booking_surveys.submitted_at),updated_at=excluded.updated_at',
           shootId,
           JSON.stringify(answers),
           JSON.stringify(pages),
@@ -102,7 +102,7 @@ export async function preparePreparation(
       statements.push(
         statement(
           env,
-          'INSERT INTO shoot_plans(shoot_id,concept,outfits,note,shared_at) VALUES(?,?,?,?,?) ON CONFLICT(shoot_id) DO UPDATE SET concept=excluded.concept,outfits=excluded.outfits,note=excluded.note,shared_at=excluded.shared_at',
+          'INSERT INTO shoot_briefs(booking_id,concept,outfits,note,shared_at) VALUES(?,?,?,?,?) ON CONFLICT(booking_id) DO UPDATE SET concept=excluded.concept,outfits=excluded.outfits,note=excluded.note,shared_at=excluded.shared_at',
           shootId,
           concept,
           outfits,
@@ -110,7 +110,8 @@ export async function preparePreparation(
           now,
         ),
       );
-      if (statusInfo(shoot.status).order < statusInfo('preparing').order) to = 'preparing';
+      if (shoot.starts_at && statusInfo(shoot.status).order < statusInfo('preparing').order)
+        to = 'preparing';
       statements.push(
         notification(env, shootId, 'plan_shared', '촬영 설계가 공유되었습니다. · 외부 발송 없음'),
       );

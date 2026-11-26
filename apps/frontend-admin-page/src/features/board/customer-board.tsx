@@ -104,13 +104,6 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
       tone: 'purple',
       onClick: () => set('scope', 'deposit'),
     },
-    {
-      label: '보정 마감 D-1',
-      count: counts?.retouchDueTomorrow,
-      hint: '보정 작업의 마감 일정',
-      tone: 'red',
-      onClick: () => onViewChange('retouch'),
-    },
   ];
 
   function saveFilters() {

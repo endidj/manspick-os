@@ -12,7 +12,7 @@ import {
 test('admin menu exposes original operating screens and staff cannot enter administrator settings', () => {
   assert.deepEqual(
     visibleMenu('admin').map((item) => item.id),
-    ['board', 'detail', 'calendar', 'retouch', 'templates', 'packages', 'followups', 'settings'],
+    ['board', 'detail', 'calendar', 'templates', 'packages', 'followups', 'settings'],
   );
   assert.equal(
     visibleMenu('staff').some((item) => item.id === 'settings'),
@@ -30,28 +30,28 @@ test('director and retoucher receive their own work routes instead of operator s
   );
   assert.deepEqual(
     visibleMenu('retoucher').map((item) => item.id),
-    ['retouch', 'completed'],
+    ['profile'],
   );
   assert.equal(resolveView(null, 'director'), 'my-customers');
   assert.equal(resolveView('templates', 'director'), 'my-customers');
-  assert.equal(resolveView('settings', 'retoucher'), 'retouch');
+  assert.equal(resolveView('settings', 'retoucher'), 'profile');
   assert.equal(resolveView('calendar', 'director'), 'my-customers');
   assert.equal(resolveView('list', 'director'), 'my-customers');
-  assert.equal(resolveView('board', 'retoucher'), 'retouch');
+  assert.equal(resolveView('board', 'retoucher'), 'profile');
   assert.equal(resolveView('list', 'staff'), 'list');
 });
 
 test('shoot screen URLs escape IDs and never give a retoucher a director screen', () => {
   assert.equal(shootHref('a/b', 'field'), '/shoots/a%2Fb?screen=field');
   assert.equal(detailScreen('field', 'director'), 'field');
-  assert.equal(detailScreen('candidates', 'director'), 'candidates');
+  assert.equal(detailScreen('candidates', 'director'), 'manage');
   assert.equal(detailScreen(null, 'director'), 'manage');
-  assert.equal(detailScreen('field', 'retoucher'), 'retouch');
+  assert.equal(detailScreen('field', 'retoucher'), 'overview');
   assert.equal(detailScreen('manage', 'admin'), 'overview');
 });
 
 test('only views rendering the shared shoot list need that request before rendering', () => {
-  for (const view of ['detail', 'my-customers', 'today', 'retouch', 'completed'] as const)
+  for (const view of ['detail', 'my-customers', 'today'] as const)
     assert.equal(needsShootList(view), true, view);
   for (const view of [
     'board',

@@ -9,29 +9,8 @@ const prepaidChannels: Record<string, string> = {
   smartstore: '스마트스토어',
 };
 
-export function isOutfitGuide(guide: { id: string; title: string }) {
-  return /outfit/i.test(guide.id) || /의상.*(사진|준비)|^의상$/.test(guide.title);
-}
-
 export function prepaidPlatform(channel: string | undefined): string | undefined {
   return channel && Object.hasOwn(prepaidChannels, channel) ? prepaidChannels[channel] : undefined;
-}
-
-export function reviewState(
-  shoot: Pick<ShootDetail, 'requests' | 'fileLinks' | 'originals' | 'status'>,
-) {
-  if (shoot.originals.length || shoot.fileLinks.some((link) => link.kind === 'original'))
-    return 'open';
-  const request = shoot.requests.find((item) => item.type === 'review');
-  if (
-    request?.state === 'complete' ||
-    ['review_confirmed', 'originals_pending', 'originals_delivered', 'follow_up'].includes(
-      shoot.status,
-    )
-  )
-    return 'approved';
-  if (request?.state === 'new' || request?.state === 'processing') return 'pending';
-  return request?.state === 'rejected' ? 'rejected' : 'available';
 }
 
 export function shootSchedule(shoot: ShootDetail) {

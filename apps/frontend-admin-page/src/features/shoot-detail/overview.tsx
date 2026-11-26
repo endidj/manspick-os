@@ -1,6 +1,5 @@
 // 고객 기본정보와 결제·설문·담당을 왼쪽에, 요청·안내·기록을 오른쪽에 배치합니다.
 import { useState } from 'react';
-import Image from 'next/image';
 import type { StaffRole } from '@manspick/domain';
 import { Button, Panel } from '@manspick/design-system/components';
 import { Icon, type IconName } from '@manspick/design-system/icons';
@@ -10,7 +9,6 @@ import {
   SectionHeader,
   TextArea,
   TextField,
-  UploadDropzone,
 } from '@manspick/design-system/patterns';
 import type { ShootDetail } from '@manspick/contracts';
 import type { ReactNode } from 'react';
@@ -18,11 +16,11 @@ import { dateTime, money } from '@manspick/web/format';
 import { ShootMessages } from './messages';
 import { ShootRequests } from './requests';
 import { ShootTimeline } from './timeline';
-import { FileLinks } from './file-links';
+import { BookingSchedule } from './booking-schedule';
+import { BookingOperations } from './booking-operations';
 import { PreparationEditor } from './preparation-editor';
 import { CustomerLink } from './customer-link';
 import type { PerformAction } from './use-shoot-detail';
-import { usePhotoUpload } from './use-photo-upload';
 import styles from './shoot-detail.module.css';
 
 type Props = {
@@ -143,14 +141,6 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
             ['원하는 무드', answers.style],
             ['고민', answers.concerns],
             ['의상', answers.outfits ?? `${shoot.package.outfits}벌`],
-            [
-              '셀렉 주체',
-              shoot.selectionMode === 'director'
-                ? '디렉터 셀렉'
-                : shoot.selectionMode === 'customer'
-                  ? '고객 셀렉'
-                  : answers.selector,
-            ],
           ].map(([label, value]) => (
             <InfoRow key={String(label)} label={String(label)} value={answer(value)} />
           ))}
@@ -159,15 +149,11 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
           <Heading icon="calendar" title="담당 · 일정" />
           <InfoRow label="디렉터" value={shoot.directorName ?? '배정 대기'} />
           <InfoRow label="보정가" value={shoot.retoucherName ?? '배정 대기'} />
-          <InfoRow label="촬영" value={dateTime(shoot.startsAt)} />
-          <InfoRow label="장소" value={shoot.preparation?.location.meetingPlace || '장소 미정'} />
-          <InfoRow label="결과물" value="후보 · 보정본 OS / 원본 외부 링크" />
-          <div className={styles.row}>
+          {role === 'admin' && (
             <Button size="sm" variant="secondary" onClick={() => onTabChange('photos')}>
-              사진 · 보정 관리
+              예약 내부 사진
             </Button>
-            <FileLinks shoot={shoot} busy={busy} perform={perform} />
-          </div>
+          )}
           {can('save_preparation') && (
             <PreparationEditor shoot={shoot} busy={busy} perform={perform} />
           )}{' '}
@@ -188,10 +174,6 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
             extra={<span className={styles.accent}>{shoot.pendingRequests}건</span>}
           />
           <InfoRow
-            label="의상 사진"
-            value={`${shoot.uploads.filter((upload) => upload.kind === 'outfit').length} / ${shoot.outfitPhotosRequired}장 · 마감 ${dateTime(shoot.outfitDueAt)}`}
-          />
-          <InfoRow
             label="입금 확인"
             value={shoot.paymentState === 'confirmed' ? '완료' : '입금 확인 대기'}
           />
@@ -199,25 +181,16 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
             label="안내 확인"
             value={`${guides.length}종 중 ${guides.filter((guide) => guide.readAt).length}종 확인`}
           />
-          <InfoRow label="수정 요청" value={`${shoot.revisionCount}회 (전달 후 최대 3회)`} />
-          <InfoRow
-            label="후기 · 추가 보정"
-            value={
-              shoot.requests.filter(
-                (request) =>
-                  ['review', 'extra_retouch'].includes(request.type) &&
-                  ['new', 'processing'].includes(request.state),
-              ).length + '건'
-            }
-          />
           {shoot.pendingRequests > 0 && (
             <ShootRequests shoot={shoot} busy={busy} perform={perform} compact />
           )}
         </Panel>
+        <BookingSchedule shoot={shoot} />
         {(role === 'admin' || role === 'staff') && <ShootMessages shootId={shoot.id} />}
         <div className={styles.lowerColumns}>
           <ShootTimeline shoot={shoot} />
           {can('note') && <NotesEditor shoot={shoot} busy={busy} perform={perform} />}
+          {can('add_task') && <BookingOperations shoot={shoot} busy={busy} perform={perform} />}
         </div>
       </div>
       <Dialog open={planOpen} onOpenChange={setPlanOpen} title="고객 촬영 설계">
@@ -231,9 +204,6 @@ export function PlanEditor({ shoot, busy, perform }: ActionProps) {
   const [concept, setConcept] = useState(shoot.plan?.concept ?? '');
   const [outfits, setOutfits] = useState(shoot.plan?.outfits ?? '');
   const [note, setNote] = useState(shoot.plan?.note ?? '');
-  const [uploading, setUploading] = useState(false);
-  const upload = usePhotoUpload(shoot.id, async () => {}, setUploading);
-  const references = shoot.uploads.filter((item) => item.kind === 'plan_ref');
   return (
     <Panel className={styles.stack}>
       <SectionHeader heading="h3" eyebrow="SHOOT PLAN" title="고객에게 전할 촬영 설계" />
@@ -251,40 +221,6 @@ export function PlanEditor({ shoot, busy, perform }: ActionProps) {
         onValueChange={setOutfits}
         disabled={busy}
       />
-      <UploadDropzone
-        label="설계 참고사진 추가"
-        hint="고객에게 설계를 공유해야 새 참고사진도 공개됩니다."
-        multiple
-        accept="image/jpeg,image/png,image/webp"
-        disabled={busy || uploading}
-        onFilesSelected={(files) => void upload.upload(Array.from(files), 'plan_ref')}
-      />
-      <div className={styles.photoGrid}>
-        {references.map((item) => (
-          <a key={item.id} href={item.url} target="_blank" rel="noreferrer">
-            <Image src={item.url} alt="설계 참고사진" width={160} height={200} unoptimized />
-          </a>
-        ))}
-        {upload.items.map((item) => (
-          <div key={item.id}>
-            {item.preview && (
-              <Image src={item.preview} alt={item.name} width={160} height={200} unoptimized />
-            )}
-            <p className={styles.caption}>
-              {item.state === 'done'
-                ? '공유 대기'
-                : item.state === 'failed'
-                  ? item.error
-                  : '업로드 중'}
-            </p>
-            {item.state === 'failed' && (
-              <Button size="sm" disabled={uploading} onClick={() => void upload.retry(item)}>
-                다시 시도
-              </Button>
-            )}
-          </div>
-        ))}
-      </div>
       <TextArea
         label="고객 공개 메모"
         placeholder="준비물과 함께 전할 내용"
@@ -296,9 +232,7 @@ export function PlanEditor({ shoot, busy, perform }: ActionProps) {
         <Button
           size="md"
           loading={busy}
-          disabled={
-            !concept.trim() || uploading || upload.items.some((item) => item.state === 'failed')
-          }
+          disabled={!concept.trim()}
           onClick={() => perform({ type: 'share_plan', concept, outfits, note })}
         >
           고객에게 설계 공유

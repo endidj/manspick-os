@@ -23,6 +23,7 @@ Next.js 앱별 개발 규칙은 [랜딩](../apps/frontend-landing-page/AGENTS.md
 - [운영 인수인계](reference/10-client-admin-architecture.md#현재-맨즈픽-운영-인수인계) · 운영 설정, 복구 절차와 고객사별 재사용 설계
 - [검수·인계와 미팅 기록](reference/19-client-review.md) · 현재 계약의 납품·회신 기준과 11월 10일 시연 제안
 - [DB와 아키텍처](reference/20-database-review.md) · 현재 스키마, 예약 경합, 파일 권한과 회사별 확장
+- [예약·운영 DB 설계안](reference/28-booking-database-design.md) · 패키지와 아이템, 복수 희망 일정과 확정, 내부 사진·캠페인·안내 관계도
 - [NestJS 마이그레이션](reference/21-nestjs-migration.md) · HTTP 계층 전환, Workers 런타임 제약, 회귀 검사와 배포 기록
 - [랜딩 사이트 마이그레이션](reference/23-landing-site-migration.md) · 운영 원본 화면·애니메이션 대조, 상담 상품, 당시 검색 제외
 - [사진·폰트 최적화](reference/24-media-optimization.md) · 메타데이터 없는 반응형 이미지, 증분 생성, 폰트 로딩과 검증

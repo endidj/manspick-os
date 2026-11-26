@@ -11,6 +11,8 @@ import { PreparationEditor } from '../shoot-detail/preparation-editor';
 import { ShootMessages } from '../shoot-detail/messages';
 import type { PerformAction } from '../shoot-detail/use-shoot-detail';
 import { shootHref } from '../workspace/model';
+import { BookingOperations } from '../shoot-detail/booking-operations';
+import { BookingSchedule } from '../shoot-detail/booking-schedule';
 import { MobileHeader } from './mobile-header';
 import styles from './director.module.css';
 
@@ -41,8 +43,8 @@ export function CustomerManage({
         <div className={styles.cardTop}>
           <h1>{dateTime(shoot.startsAt)}</h1>
           <StageBadge
-            stage={Math.max(1, shoot.stage) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
-            label={STAGE_LABELS[Math.max(0, shoot.stage - 1)]!}
+            stage={Math.max(1, Math.min(5, shoot.stage)) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
+            label={shoot.stage > 5 ? '촬영 완료' : STAGE_LABELS[Math.max(0, shoot.stage - 1)]!}
           />
         </div>
         <p>
@@ -55,11 +57,7 @@ export function CustomerManage({
             ['목적', answer(answers.purposes)],
             ['무드', answer(answers.style)],
             ['고민', answer(answers.concerns)],
-            [
-              '의상',
-              `${shoot.package.outfits}벌 · 의상 사진 ${shoot.uploads.filter((u) => u.kind === 'outfit').length}/${shoot.outfitPhotosRequired}`,
-            ],
-            ['셀렉', shoot.selectionMode === 'director' ? '디렉터 셀렉' : '고객 셀렉'],
+            ['의상', `${shoot.package.outfits}벌`],
           ].map(([label, value]) => (
             <div className={styles.fact} key={label}>
               <span>{label}</span>
@@ -68,6 +66,10 @@ export function CustomerManage({
           ))}
         </div>
       </Panel>
+      <BookingSchedule shoot={shoot} busy={busy} perform={perform} />
+      {shoot.capabilities.includes('add_task') && (
+        <BookingOperations shoot={shoot} busy={busy} perform={perform} />
+      )}
       <h2 className={styles.sectionTitle}>
         촬영 설계
         <span>
@@ -97,9 +99,7 @@ export function CustomerManage({
         <PreparationEditor shoot={shoot} busy={busy} perform={perform} />
       </Panel>
       <Panel className={styles.planCard}>
-        <h2>
-          벌별 코디 제안<span>참고 사진 {shoot.plan?.referenceImages.length ?? 0}장</span>
-        </h2>
+        <h2>벌별 코디 제안</h2>
         <p className={styles.planText}>
           {shoot.plan?.outfits || '의상별 코디 제안을 작성해주세요.'}
         </p>
@@ -109,7 +109,7 @@ export function CustomerManage({
             disabled={busy || !shoot.capabilities.includes('share_plan')}
             onClick={() => setEditor(true)}
           >
-            코디 · 참고 사진 편집
+            코디 제안 편집
           </Button>
           {shoot.plan?.sharedAt && <span>✓ 고객 공개됨</span>}
         </div>
@@ -140,14 +140,6 @@ export function CustomerManage({
       <div className={styles.sticky}>
         <Link className={styles.primaryLink} href={shootHref(shoot.id, 'field')}>
           촬영 당일 체크리스트 시작
-        </Link>
-        <Link className={styles.secondaryLink} href={shootHref(shoot.id, 'candidates')}>
-          {shoot.selectionMode === 'director' &&
-          shoot.selections.some((selection) => selection.round === 'base')
-            ? '최종 셀렉 확인'
-            : shoot.selectionMode === 'director' && shoot.status === 'selection_pending'
-              ? '디렉터 최종 셀렉 진행'
-              : '후보 사진 올리기'}
         </Link>
         <p>외부 카카오 채널 주소는 운영 설정 후 연결됩니다.</p>
       </div>

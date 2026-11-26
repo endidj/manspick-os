@@ -28,6 +28,11 @@ test('customer paths validate scene and exact survey page bounds', () => {
     ['survey', '01'],
     ['survey', '1', 'extra'],
     ['results', '1'],
+    ['results'],
+    ['review'],
+    ['selection'],
+    ['extra-retouch'],
+    ['revision'],
   ])
     assert.equal(customerRoute(segments), null);
 });
@@ -37,6 +42,4 @@ test('deep links fall back within their own shoot and encode the token as one se
   assert.equal(customerParent('token', 'survey', 3), '/s/token/survey/2');
   assert.equal(customerParent('token', 'survey', 1), '/s/token');
   assert.equal(customerParent('token', 'plan', null), '/s/token/preparation');
-  assert.equal(customerParent('token', 'revision', null), '/s/token/results');
-  assert.equal(customerParent('token', 'extra-retouch', null), '/s/token/review');
 });

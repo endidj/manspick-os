@@ -2,7 +2,11 @@
 
 export async function proxyRequest(request: Request, surface: string): Promise<Response> {
   const url = new URL(request.url);
-  if (surface === 'landing' && !['/api/catalog', '/api/health'].includes(url.pathname)) {
+  if (
+    surface === 'landing' &&
+    !['/api/catalog', '/api/health'].includes(url.pathname) &&
+    !(request.method === 'POST' && url.pathname === '/api/analytics/events')
+  ) {
     return Response.json(
       { error: { code: 'FORBIDDEN', message: '공개 사이트에서는 업무 API를 사용할 수 없습니다.' } },
       { status: 403 },

@@ -43,18 +43,15 @@ export function MyCustomers({
       label: '준비 필요',
       test: (s: ShootSummary) => s.stage === 3 || s.stage === 4,
     },
-    { id: 'complete', label: '촬영 완료', test: (s: ShootSummary) => s.stage >= 6 },
     {
-      id: 'selection',
-      label: '셀렉 대기',
-      test: (s: ShootSummary) => s.status === 'selection_pending',
+      id: 'complete',
+      label: '촬영 완료',
+      test: (s: ShootSummary) => s.stage >= 6 || s.status === 'shoot_complete',
     },
   ];
   const visible =
     filter === 'all' ? shoots : shoots.filter(groups.find((g) => g.id === filter)!.test);
-  const todo = shoots.filter(
-    (s) => s.stage === 3 || s.stage === 4 || s.status === 'shoot_complete',
-  );
+  const todo = shoots.filter((s) => s.stage === 3 || s.stage === 4);
   return (
     <div className={styles.mobile}>
       <MobileHeader
@@ -76,7 +73,7 @@ export function MyCustomers({
       </div>
       {todo.length > 0 && (
         <div className={styles.todo}>
-          <Icon name="chat" size={18} />할 일 {todo.length}건 — 촬영 설계·장소 세팅·후보 업로드
+          <Icon name="chat" size={18} />할 일 {todo.length}건 — 일정 확정 · 촬영 준비
         </div>
       )}
       <div className={styles.customerList}>
@@ -90,8 +87,8 @@ export function MyCustomers({
             <div className={styles.cardTop}>
               <span>{dateTime(shoot.startsAt)}</span>
               <StageBadge
-                stage={Math.max(1, shoot.stage) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
-                label={STAGE_LABELS[Math.max(0, shoot.stage - 1)]!}
+                stage={Math.max(1, Math.min(5, shoot.stage)) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
+                label={shoot.stage > 5 ? '촬영 완료' : STAGE_LABELS[Math.max(0, shoot.stage - 1)]!}
               />
             </div>
             <div className={styles.customerName}>
@@ -100,8 +97,8 @@ export function MyCustomers({
               <Icon name="chevron" size={16} />
             </div>
             <p>
-              {shoot.statusLabel}
-              <span> · {shoot.nextAction}</span>
+              {shoot.stage > 5 ? '촬영 완료' : shoot.statusLabel}
+              {shoot.stage <= 5 && <span> · {shoot.nextAction}</span>}
             </p>
           </Link>
         ))}

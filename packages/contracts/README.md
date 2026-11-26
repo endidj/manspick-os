@@ -12,4 +12,4 @@ import type { ShootDetail, SessionDTO, ShootAction } from '@manspick/contracts';
 
 `BookingResultDTO`는 예약 접수 결과를 공유합니다. `bookingAccess`는 공개 테스트의 신규 예약을 개인 촬영 화면으로 연결하며, `localAccess`는 로컬 시연 확인 정보입니다. 일반 운영·기존 예약의 링크 조회 권한을 추가하지 않습니다.
 
-상품 DTO의 스팟·난이도·별칭·옵션 수량 규칙은 기존 예약 스냅샷과 호환되도록 선택 항목입니다. 관리자 설정의 `policy`는 도메인의 `OperationsPolicy` 타입을 참조합니다. 촬영 상세의 `retouchUnitPrice`·`extraRetouchAvailable`은 현재 추가 주문의 단가·판매 상태이며, 이미 접수한 주문 금액은 결제 DTO에 저장한 값을 사용합니다.
+상품 DTO의 스팟·난이도·별칭·옵션 수량 규칙은 기존 예약 스냅샷과 호환되도록 선택 항목입니다. 관리자 설정의 `policy`는 도메인의 `OperationsPolicy` 타입을 참조합니다. 보정 주문 종료에 따라 호환 필드 `retouchUnitPrice`·`extraRetouchAvailable`은 0·false를 반환합니다. 기존 주문 금액은 결제 DTO에 보존합니다.

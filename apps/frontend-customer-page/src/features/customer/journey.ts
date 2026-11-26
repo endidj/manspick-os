@@ -1,39 +1,17 @@
-// 서버 상태를 고객이 볼 화면과 일곱 단계 여정으로 연결합니다.
+// 서버 상태를 고객이 볼 화면과 다섯 단계 여정으로 연결합니다.
 import { statusInfo } from '@manspick/domain';
 import type { ShootStatus } from '@manspick/domain';
 
 export type CustomerScene =
-  | 'home'
-  | 'payment'
-  | 'survey'
-  | 'survey-complete'
-  | 'preparation'
-  | 'plan'
-  | 'shoot-day'
-  | 'selection'
-  | 'results'
-  | 'extra-retouch'
-  | 'revision'
-  | 'review';
+  'home' | 'payment' | 'survey' | 'survey-complete' | 'preparation' | 'plan' | 'shoot-day';
 
 export type JourneyState =
-  | 'options'
-  | 'payment'
-  | 'survey'
-  | 'preparation'
-  | 'shoot-day'
-  | 'selection'
-  | 'director-selection'
-  | 'retouching'
-  | 'results'
-  | 'follow-up'
-  | 'cancelled';
+  'options' | 'payment' | 'survey' | 'preparation' | 'shoot-day' | 'complete' | 'cancelled';
 
 type JourneyInput = {
   status: ShootStatus;
   startsAt: string | null;
   paymentState: string;
-  selectionMode?: 'customer' | 'director' | null;
   survey?: { submittedAt: string | null; answers: Record<string, unknown> } | null;
 };
 
@@ -51,18 +29,8 @@ export function resolveJourney(shoot: JourneyInput, now = new Date()): Journey {
     return { state: 'payment', stage: 2, scene: 'payment' };
   if (status.stage <= 4 && !shoot.survey?.submittedAt)
     return { state: 'survey', stage: 3, scene: 'survey' };
-  if (status.stage === 7) return { state: 'follow-up', stage: 7, scene: 'review' };
-  if (shoot.status === 'delivered') return { state: 'results', stage: 6, scene: 'results' };
-  if (shoot.status === 'selection_pending') {
-    const mode = shoot.selectionMode ?? shoot.survey?.answers.selector;
-    return {
-      state: mode === 'director' ? 'director-selection' : 'selection',
-      stage: 6,
-      scene: 'selection',
-    };
-  }
-  if (status.stage === 6 || shoot.status === 'shoot_complete')
-    return { state: 'retouching', stage: 6, scene: 'results' };
+  if (status.stage >= 6 || shoot.status === 'shoot_complete')
+    return { state: 'complete', stage: 5, scene: 'shoot-day' };
   if (
     status.stage === 5 ||
     shoot.status === 'shoot_day' ||

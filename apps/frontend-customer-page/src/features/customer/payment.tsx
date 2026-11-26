@@ -63,9 +63,9 @@ export function PaymentView({
     (r) => r.type === 'deposit' && ['new', 'processing'].includes(r.state),
   );
   const instructions = shoot.paymentInstructions;
-  const platform = prepaidPlatform(
-    shoot.payments.find((payment) => payment.kind === 'base')?.channel,
-  );
+  const channel = shoot.payments.find((payment) => payment.kind === 'base')?.channel;
+  const platform = prepaidPlatform(channel);
+  const awaitingStaff = Boolean(platform) || channel === 'pg';
 
   async function copy(value: string) {
     try {
@@ -96,14 +96,14 @@ export function PaymentView({
       <>
         <header className={layout.stack}>
           <p className={layout.overline}>STEP 2 · 결제 완료</p>
-          <h1>예약이 확정됐어요</h1>
+          <h1>결제가 확인됐어요</h1>
           <p>
             {needsSurvey
               ? '결제 확인이 끝났어요. 이제 설문을 작성하고 촬영을 준비해주세요.'
               : '결제 확인이 끝났어요. 나의 촬영 홈에서 다음 진행상태를 확인해주세요.'}
           </p>
         </header>
-        <Notice tone="success">결제 확인 완료 · 예약한 일정이 확정됐어요.</Notice>
+        <Notice tone="success">결제 확인 완료</Notice>
         <SummaryCard
           label="예약한 촬영"
           value={
@@ -138,15 +138,17 @@ export function PaymentView({
       <header className={layout.stack}>
         <p className={layout.overline}>STEP 2 · 결제</p>
         <h1>
-          {platform
+          {awaitingStaff
             ? '결제 확인을 기다리고 있어요'
             : requested
               ? '입금 확인을 기다리고 있어요'
-              : '입금하면 예약이 확정돼요'}
+              : '예약 금액을 입금해주세요'}
         </h1>
         <p>
           {platform ? (
-            `${platform}에서 결제하신 내역을 직원이 확인하면 예약이 확정돼요.`
+            `${platform}에서 결제하신 내역을 직원이 확인하고 있어요.`
+          ) : channel === 'pg' ? (
+            '테스트 주문을 접수했어요. 실제 결제 없이 직원의 수납 확인을 기다리고 있어요.'
           ) : requested ? (
             '직원이 입금자명과 금액을 확인하고 있어요. 확인이 끝나면 설문을 작성할 수 있어요.'
           ) : (
@@ -155,7 +157,7 @@ export function PaymentView({
                 ? '아래 계좌로 기한 안에 입금해주세요.'
                 : '입금 계좌는 카카오채널로 문의해주세요.'}
               <br />
-              직원이 입금을 확인하면 예약이 확정돼요.
+              직원이 입금을 확인하면 설문을 작성할 수 있어요.
             </>
           )}
         </p>
@@ -168,13 +170,13 @@ export function PaymentView({
             까지
           </strong>
           <p>
-            {!requested && !platform && (
+            {!requested && !awaitingStaff && (
               <>
                 입금한 뒤 ‘입금했어요’를 눌러주세요.
                 <br />
               </>
             )}
-            기한이 지나면 잡아둔 일정이 해제될 수 있어요.
+            기한이 지나면 예약 신청이 취소될 수 있어요.
           </p>
         </Notice>
       )}
@@ -194,8 +196,12 @@ export function PaymentView({
           </button>
         }
       />
-      {platform ? (
-        <SummaryCard className={styles.paymentCard} label="결제 경로" value={platform} />
+      {awaitingStaff ? (
+        <SummaryCard
+          className={styles.paymentCard}
+          label="결제 경로"
+          value={platform ?? '자사몰 테스트 주문'}
+        />
       ) : instructions ? (
         <SummaryCard
           className={styles.paymentCard}
@@ -221,7 +227,7 @@ export function PaymentView({
       )}
       <SummaryCard
         className={styles.paymentCard}
-        label={platform ? '촬영 금액' : '입금할 금액'}
+        label={awaitingStaff ? '촬영 금액' : '입금할 금액'}
         value={money(shoot.totalAmount)}
         action={
           <button className={styles.textAction} onClick={() => copy(String(shoot.totalAmount))}>
@@ -234,7 +240,7 @@ export function PaymentView({
           {copyMessage}
         </p>
       )}
-      {!platform && (
+      {!awaitingStaff && (
         <div className={styles.depositor}>
           <TextField
             label="입금자명"
@@ -247,11 +253,13 @@ export function PaymentView({
           />
         </div>
       )}
-      {!platform && requested && (
-        <Notice tone="success">입금 확인을 요청했어요. 직원이 확인하면 예약이 확정돼요.</Notice>
+      {!awaitingStaff && requested && (
+        <Notice tone="success">
+          입금 확인을 요청했어요. 직원이 확인하면 설문을 작성할 수 있어요.
+        </Notice>
       )}
       <SceneFooter>
-        {!platform && (
+        {!awaitingStaff && (
           <Button
             fullWidth
             loading={busy}
@@ -261,20 +269,20 @@ export function PaymentView({
             {requested ? '입금 확인 요청 완료' : '입금했어요'}
           </Button>
         )}
-        {(requested || platform) && (
+        {(requested || awaitingStaff) && (
           <Button
-            variant={platform ? 'primary' : 'secondary'}
+            variant={awaitingStaff ? 'primary' : 'secondary'}
             fullWidth
             loading={refreshing}
             disabled={busy}
             onClick={() => void onRefresh()}
           >
-            {platform ? '결제 확인 상태 새로고침' : '입금 확인 상태 새로고침'}
+            {awaitingStaff ? '결제 확인 상태 새로고침' : '입금 확인 상태 새로고침'}
           </Button>
         )}
-        {!platform && (
+        {!awaitingStaff && (
           <p className={styles.paymentFooterHint}>
-            입금자명과 금액을 직원이 확인하면 바로 확정돼요.
+            입금자명과 금액을 직원이 확인하면 설문을 작성할 수 있어요.
           </p>
         )}
       </SceneFooter>

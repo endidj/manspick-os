@@ -62,40 +62,22 @@ test('shoot-day home begins at Seoul midnight and does not replace completed sho
   };
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T14:59:59Z')).state, 'preparation');
   assert.equal(resolveJourney(shoot, new Date('2026-11-05T15:00:00Z')).state, 'shoot-day');
-  assert.equal(resolveJourney({ ...shoot, status: 'shoot_complete' }, now).state, 'retouching');
+  assert.equal(resolveJourney({ ...shoot, status: 'shoot_complete' }, now).state, 'complete');
 });
 
-test('director selection is read-only and confirmed mode takes precedence over survey preference', () => {
-  const shoot = {
-    ...base,
-    status: 'selection_pending' as const,
-    survey: { submittedAt: '2026-11-05T03:00:00Z', answers: { selector: 'director' } },
-  };
-  assert.equal(resolveJourney(shoot, now).state, 'director-selection');
-  assert.equal(resolveJourney(shoot, now).scene, 'selection');
-  assert.equal(resolveJourney({ ...shoot, selectionMode: 'customer' }, now).state, 'selection');
-  assert.equal(
-    resolveJourney({ ...shoot, selectionMode: 'director' }, now).state,
-    'director-selection',
-  );
-});
-
-test('retouch work, delivered results and follow-up never ask for a new base selection', () => {
-  for (const status of ['selection_complete', 'retouch_assigned', 'retouching'] as const) {
-    assert.equal(resolveJourney({ ...base, status }, now).state, 'retouching');
-    assert.equal(resolveJourney({ ...base, status }, now).scene, 'results');
-  }
-  assert.equal(resolveJourney({ ...base, status: 'delivered' }, now).state, 'results');
+test('historical photo workflow states display the completed shooting without post-delivery actions', () => {
   for (const status of [
-    'review_requested',
+    'selection_pending',
+    'selection_complete',
+    'retouch_assigned',
+    'retouching',
+    'delivered',
     'review_pending',
     'originals_delivered',
     'follow_up',
   ] as const) {
     const journey = resolveJourney({ ...base, status }, now);
-    assert.equal(journey.state, 'follow-up');
-    assert.equal(journey.scene, 'review');
-    assert.equal(journey.stage, 7);
+    assert.deepEqual(journey, { state: 'complete', stage: 5, scene: 'shoot-day' });
   }
 });
 

@@ -1,5 +1,6 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
+import Link from 'next/link';
 import { SourceIcon } from './source-icon';
 
 export function SourceOffer() {
@@ -369,12 +370,13 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-500 mt-4">{'이동: 도보'}</p>
               {'\n          '}
-              <a
+              <Link
                 href="/recommend?pkg=one"
+                prefetch={false}
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 glass hover:bg-white/10 text-white font-semibold py-3 rounded-full"
               >
                 {'\n            선택하기\n          '}
-              </a>
+              </Link>
               {'\n        '}
             </div>
             {'\n\n        '}
@@ -545,14 +547,15 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-400 mt-4">{'이동: 도보'}</p>
               {'\n          '}
-              <a
+              <Link
                 href="/recommend?pkg=hybrid"
+                prefetch={false}
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 rounded-full"
               >
                 {'\n            선택하기\n            '}
                 <SourceIcon name="solar/arrow-right-linear" className="arrow" />
                 {'\n          '}
-              </a>
+              </Link>
               {'\n        '}
             </div>
             {'\n\n        '}
@@ -725,12 +728,13 @@ export function SourceOffer() {
               {'\n          '}
               <p className="text-xs text-zinc-500 mt-4">{'이동: 차량 이동'}</p>
               {'\n          '}
-              <a
+              <Link
                 href="/recommend?pkg=allday"
+                prefetch={false}
                 className="cta-primary mt-6 inline-flex items-center justify-center gap-2 glass hover:bg-white/10 text-white font-semibold py-3 rounded-full"
               >
                 {'\n            선택하기\n          '}
-              </a>
+              </Link>
               {'\n        '}
             </div>
             {'\n      '}

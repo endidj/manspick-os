@@ -3,7 +3,6 @@ import {
   datePlusDays,
   DomainError,
   koreaDate,
-  requiredSlots,
   holdExpiry,
   resolveCatalogPackage,
 } from '@manspick/domain';
@@ -11,7 +10,8 @@ import { rows } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
 import { directors } from './directors.ts';
 import { reclaimableHold } from './holds.ts';
-import { lastOccupiedDate, occupiedInterval, reservedIntervals } from './reservations.ts';
+import { lastOccupiedDate, reservedIntervals } from './reservations.ts';
+import { scheduleOption } from './schedule-options.ts';
 import { catalog } from './catalog.ts';
 import { operationsPolicy } from '../settings/operations-policy.ts';
 
@@ -25,7 +25,15 @@ export async function calendar(
   const pack = resolveCatalogPackage(availableCatalog.packages, packageId);
   if (!pack) throw new DomainError('INVALID_PACKAGE', '패키지를 확인해주세요.');
   packageId = pack.id;
-  const selectedIds = [...new Set([...addonIds, ...(shopping ? ['shopping'] : [])])];
+  const composition = availableCatalog.packageItems.filter((item) => item.packageId === packageId);
+  if (addonIds.some((id) => !composition.some((item) => item.itemId === id)))
+    throw new DomainError('INVALID_ADDONS', '패키지에서 신청 가능한 옵션을 확인해주세요.');
+  const includedIds = composition
+    .filter((item) => item.inclusionType === 'included')
+    .map((item) => item.itemId);
+  const selectedIds = [
+    ...new Set([...addonIds, ...includedIds, ...(shopping ? ['shopping'] : [])]),
+  ];
   const selected = selectedIds.map((id) =>
     availableCatalog.addons.find((addon) => addon.id === id),
   );
@@ -38,7 +46,7 @@ export async function calendar(
   const today = koreaDate(now);
   const dayCount = policy.bookingHorizonWeeks * 7;
   const end = datePlusDays(today, dayCount);
-  const [locks, daysOff, occupied] = await Promise.all([
+  const [locks, daysOff, occupied, windows, confirmed] = await Promise.all([
     rows<{ director_id: string; date: string; time: string }>(
       env,
       `SELECT l.director_id,l.date,l.time FROM slots l JOIN shoots s ON s.id=l.shoot_id
@@ -61,7 +69,19 @@ export async function calendar(
       },
       now.toISOString(),
     ),
+    rows<{ director_id: string; starts_at: string; ends_at: string }>(
+      env,
+      'SELECT director_id,starts_at,ends_at FROM director_availability',
+    ),
+    rows<{ director_id: string; starts_at: string; ends_at: string }>(
+      env,
+      `SELECT s.director_id,c.occupancy_starts_at AS starts_at,c.occupancy_ends_at AS ends_at
+      FROM booking_confirmations c JOIN shoots s ON s.id=c.booking_id WHERE s.status!='cancelled' AND c.occupancy_ends_at>=? AND c.occupancy_starts_at<?`,
+      now.toISOString(),
+      new Date(`${datePlusDays(end, 2)}T00:00:00+09:00`).toISOString(),
+    ),
   ]);
+  const configured = new Set(windows.map((item) => item.director_id));
   return {
     policy,
     days: Array.from({ length: dayCount }, (_, index) => {
@@ -69,25 +89,30 @@ export async function calendar(
       return {
         date,
         slots: policy.slotTimes.map((time) => {
-          const startsAt = new Date(`${date}T${time}:00+09:00`);
-          let needed: string[];
+          let option: ReturnType<typeof scheduleOption>;
           try {
-            needed = requiredSlots(packageId, time, shopping, policy);
-            holdExpiry(now, startsAt, policy);
+            option = scheduleOption(date, time, packageId, pack.duration, shopping, policy);
+            holdExpiry(now, new Date(option.startsAt), policy);
           } catch {
             return { time, available: false };
           }
-          const interval = occupiedInterval(
-            {
-              startsAt: startsAt.toISOString(),
-              endsAt: new Date(startsAt.getTime() + pack.duration * 60000).toISOString(),
-            },
-            date,
-            needed,
-          );
+          const { slots: needed, interval } = option;
           const lastDate = lastOccupiedDate(date, interval);
           const available = eligible.some(
             (director) =>
+              (!configured.has(director.id) ||
+                windows.some(
+                  (w) =>
+                    w.director_id === director.id &&
+                    w.starts_at <= interval.startsAt &&
+                    w.ends_at >= interval.endsAt,
+                )) &&
+              !confirmed.some(
+                (c) =>
+                  c.director_id === director.id &&
+                  c.starts_at < interval.endsAt &&
+                  c.ends_at > interval.startsAt,
+              ) &&
               !daysOff.some(
                 (off) =>
                   off.director_id === director.id && date <= off.date && off.date <= lastDate,

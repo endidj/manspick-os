@@ -24,7 +24,7 @@ import { shootDate } from '../customer/presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './survey.module.css';
 
-const pageLabels = ['나에 대해', '스타일', '촬영 · 보정', '마지막 확인'];
+const pageLabels = ['나에 대해', '스타일', '촬영', '마지막 확인'];
 const pageTitles = [
   '먼저 고객님을 알려주세요',
   '어떤 스타일을 좋아하세요?',
@@ -34,7 +34,7 @@ const pageTitles = [
 const pageDescriptions = [
   '약 10분이면 끝나요. 성실히 적어주실수록 결과물이 좋아져요.',
   '디렉터가 코디북과 촬영 장소를 고르는 데 써요.',
-  '답변은 촬영 컨셉 · 장소 · 보정 방향에 그대로 반영돼요.',
+  '답변은 촬영 컨셉과 장소에 그대로 반영돼요.',
   '추가 옵션과 동의만 확인하면 끝나요.',
 ];
 const purposes = [
@@ -89,9 +89,6 @@ export function Survey({
   const interests = Array.isArray(answers.additionalAddonInterest)
     ? answers.additionalAddonInterest
     : undefined;
-  const outfitDeadline = shoot.outfitDueAt
-    ? `${shootDate(shoot.outfitDueAt)}까지`
-    : '촬영 이틀 전까지';
   const wardrobe = shoot.addons.some(
     (addon) => ['rental', 'outfit', 'shopping'].includes(addon.id) && addon.quantity > 0,
   );
@@ -110,27 +107,26 @@ export function Survey({
   }, [shoot.survey, savingPage]);
   useEffect(() => {
     let active = true;
-    api<{ addons: AddonDTO[]; retouchUnitPrice?: number; extraRetouchAvailable?: boolean }>(
-      '/catalog',
-    )
+    api<{
+      addons: AddonDTO[];
+      packageItems?: { packageId: string; itemId: string; inclusionType: string }[];
+    }>('/catalog')
       .then((catalog) => {
         if (!active) return;
         const options = catalog.addons
-          .filter((addon) => addon.id !== 'extra_retouch')
+          .filter(
+            (addon) =>
+              addon.id !== 'extra_retouch' &&
+              (!catalog.packageItems ||
+                catalog.packageItems.some(
+                  (item) =>
+                    item.packageId === shoot.packageId &&
+                    item.itemId === addon.id &&
+                    item.inclusionType === 'optional',
+                )),
+          )
           .sort(compareAddonDisplayOrder);
-        setAddons(
-          catalog.extraRetouchAvailable && catalog.retouchUnitPrice !== undefined
-            ? [
-                ...options,
-                {
-                  id: 'extra_retouch',
-                  name: '보정본 추가',
-                  price: catalog.retouchUnitPrice,
-                  quantityMode: 'photo',
-                },
-              ]
-            : options,
-        );
+        setAddons(options);
       })
       .catch(() => {
         if (active) setAddonsFailed(true);
@@ -138,7 +134,7 @@ export function Survey({
     return () => {
       active = false;
     };
-  }, []);
+  }, [shoot.packageId]);
   useEffect(() => {
     if (!edited.current || closed || savingPage) return;
     const timer = setTimeout(() => {
@@ -399,10 +395,6 @@ export function Survey({
                 label: pillLabel(option.label, option.value === value('budget')),
               }))}
             />
-            <Notice tone="warning" className={styles.notice}>
-              <strong>의상 사진은 {outfitDeadline} ‘촬영 준비’에서 올려주세요</strong>
-              <p>입으실 옷 · 신발 사진을 보면 부족한 부분은 피드백과 대체 코디를 제안드려요.</p>
-            </Notice>
           </>
         )}
         {page === 3 && (
@@ -444,46 +436,6 @@ export function Survey({
                   />
                 ))}
               </div>
-            </fieldset>
-            <RadioPills
-              className={styles.strength}
-              label="보정은 어느 정도 원하세요?"
-              required
-              value={value('retouchStrength')}
-              onValueChange={(next) => put('retouchStrength', Number(next))}
-              options={[0, 25, 50, 75, 100].map((number) => ({
-                value: String(number),
-                label: `${number}%`,
-              }))}
-              hint={
-                <span className={styles.strengthHint}>
-                  <span>있는 그대로</span>
-                  <span>화보처럼 완벽하게</span>
-                </span>
-              }
-            />
-            <fieldset className={`${layout.fieldSet} ${styles.selectorGroup}`}>
-              <legend className={styles.fieldTitle}>
-                보정할 사진은 누가 고를까요? <span className={styles.required}>필수</span>
-              </legend>
-              <ChoiceCard
-                title="제가 직접 고를게요"
-                description="디렉터가 추린 후보 컷 중에서 골라요"
-                name="selector"
-                checked={answers.selector === 'customer'}
-                onCheckedChange={() => put('selector', 'customer')}
-              />
-              <ChoiceCard
-                title="디렉터에게 맡길게요"
-                description="가장 잘 나온 컷으로 알아서 골라드려요"
-                name="selector"
-                checked={answers.selector === 'director'}
-                onCheckedChange={() => put('selector', 'director')}
-              />
-              <p className={layout.small}>
-                촬영 당일 현장에서 마음이 바뀌면 디렉터에게 말씀해 주세요. 촬영이 끝날 때 최종
-                확정돼요.
-              </p>
             </fieldset>
             <TextArea
               label="촬영하면서 걱정되는 점이 있나요? (선택)"
@@ -562,27 +514,7 @@ export function Survey({
                 (label) => ({ value: label, label: pillLabel(label, value('referral') === label) }),
               )}
             />
-            <RadioPills
-              label="후기 작성 혜택"
-              required
-              hint="후기를 남겨주시면 원본 사진 전체를 드려요"
-              value={
-                typeof answers.reviewParticipation === 'boolean'
-                  ? String(answers.reviewParticipation)
-                  : ''
-              }
-              onValueChange={(next) => put('reviewParticipation', next === 'true')}
-              options={[
-                {
-                  value: 'true',
-                  label: pillLabel('혜택 받을게요', answers.reviewParticipation === true),
-                },
-                {
-                  value: 'false',
-                  label: pillLabel('괜찮아요', answers.reviewParticipation === false),
-                },
-              ]}
-            />
+
             <section className={layout.stack}>
               <h2 className={styles.fieldTitle}>동의</h2>
               <div className={styles.consentCard}>
@@ -612,7 +544,6 @@ export function Survey({
               </h2>
               <p>· 촬영 전날은 음주 · 과식 · 무리한 운동을 피하고 충분히 주무세요.</p>
               <p>· 촬영 장소는 코디와 설문을 보고 정해지면 바로 안내드려요.</p>
-              <p>· 의상 · 신발 사진은 {outfitDeadline} ‘촬영 준비’ 화면에서 올려주세요.</p>
               <p>· 상담은 오전 11시~오후 8시, 촬영 중에는 답변이 늦을 수 있어요.</p>
               <label className={styles.consentCard}>
                 <input
@@ -717,10 +648,6 @@ export function SurveyComplete({ shoot, onNavigate, onHelp }: CustomerViewProps)
         <InfoRow
           label="사진"
           value={`${shoot.uploads.filter((asset) => asset.kind === 'survey').length}장`}
-        />
-        <InfoRow
-          label="셀렉 방식"
-          value={answer.selector === 'director' ? '디렉터에게 맡길게요' : '제가 직접 고를게요'}
         />
         <InfoRow
           label="스타일"

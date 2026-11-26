@@ -12,9 +12,25 @@ import { schedule } from '../shoots/schedule.ts';
 import { completeNotification, saveTemplate, templates } from './commands.ts';
 import { followups } from './followups.ts';
 import { listNotifications } from './queries.ts';
+import { DomainError } from '@manspick/domain';
+import { rows } from '../database/statements.ts';
 
 @Controller('api')
 export class OperationsController {
+  @Get('staff/inbox')
+  async staffInbox(@ApiContext() context: RequestContext) {
+    if (context.actor.kind !== 'staff')
+      throw new DomainError('FORBIDDEN', '직원 계정이 필요합니다.', 403);
+    return success({
+      items: await rows(
+        context.env,
+        'SELECT id,booking_id AS bookingId,kind,body,status,created_at AS createdAt FROM staff_notifications WHERE staff_id=? ORDER BY created_at DESC,id DESC LIMIT 100',
+        context.actor.id,
+      ),
+      externalMessages: false,
+    });
+  }
+
   @RequireRole('operator')
   @Get('notifications')
   async notifications(@ApiContext() context: RequestContext) {

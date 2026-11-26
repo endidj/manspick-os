@@ -66,6 +66,15 @@ export function AdminShell({ actor, view, detail, busy, onNavigate, onLogout, ch
               {item.label}
             </NavItem>
           ))}
+          {actor.role === 'admin' && (
+            <NavItem
+              href="/metrics"
+              className={styles.navItem}
+              icon={<Icon name="board" size={18} />}
+            >
+              사이트 통계
+            </NavItem>
+          )}
         </nav>
         <div className={styles.sidebarBottom}>
           <div className={styles.identity}>

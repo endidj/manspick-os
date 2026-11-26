@@ -13,7 +13,7 @@ export async function settings(env: Env, actor: Actor): Promise<OperationsSettin
     policy: await operationsPolicy(env),
     staff: await rows<OperationsSettingsDTO['staff'][number]>(
       env,
-      'SELECT id,name,email,role,active FROM staff ORDER BY id',
+      'SELECT id,name,email,role,active,hired_on AS hiredOn FROM staff ORDER BY id',
     ),
     ...(await catalog(env, { includeInactive: true })),
     paymentInstructions: await settingValue<OperationsSettingsDTO['paymentInstructions']>(
@@ -34,6 +34,10 @@ export async function settings(env: Env, actor: Actor): Promise<OperationsSettin
     daysOff: await rows(
       env,
       'SELECT director_id AS directorId,date FROM director_days_off ORDER BY date',
+    ),
+    directorAvailability: await rows(
+      env,
+      'SELECT director_id AS directorId,starts_at AS startsAt,ends_at AS endsAt FROM director_availability ORDER BY director_id,starts_at',
     ),
     campaigns: await rows(env, 'SELECT id,name,amount,active FROM campaigns ORDER BY id'),
     directorSkills: await rows(

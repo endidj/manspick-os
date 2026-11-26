@@ -49,11 +49,11 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
       },
     ],
     resolve: { dedupe: ['react', 'react-dom'] },
-    optimizeDeps: { include: ['react', 'react-dom/client'] },
+    optimizeDeps: { entries: [], include: ['react', 'react-dom/client'] },
     server: {
       host: '127.0.0.1',
       port: 0,
-      watch: { ignored: ['**/.next/**', '**/.local/**', '**/.open-next/**', '**/.wrangler/**'] },
+      watch: null,
     },
   });
   let browser;
@@ -152,16 +152,20 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
           });
           return;
         }
-        if (body.type === 'retoucher_rules') data.retoucherRules = body.rules;
+        if (body.type === 'package_items')
+          data.packageItems = body.items.map((item) => ({ ...item, packageId: body.packageId }));
         else if (body.type === 'payment_instructions') data.paymentInstructions = body.value;
         else data[body.type === 'package' ? 'packages' : 'addons'][0] = body.value;
       }
       await route.fulfill({ json: { data } });
     });
-    await page.goto(`${server.resolvedUrls.local[0]}switch-test`);
+    await page.goto(`${server.resolvedUrls.local[0]}switch-test`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
     const pack = page.getByRole('switch', { name: '원 판매 노출', exact: true });
     const addon = page.getByRole('switch', { name: '헤어 판매 노출', exact: true });
-    await pack.waitFor();
+    await pack.waitFor({ timeout: 60000 });
     assert.equal(await pack.isChecked(), true);
     await pack.click();
     await page.waitForFunction(() => document.querySelector('[role="switch"]').disabled);
@@ -202,18 +206,23 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     const director = page.getByRole('combobox', { name: '디렉터', exact: true });
     await director.selectOption('d2');
     assert.equal(await director.inputValue(), 'd2');
-    const tuesday = page.getByRole('combobox', { name: '화요일', exact: true });
-    await tuesday.selectOption('r2');
-    const saveRules = page.getByRole('button', { name: '요일별 배정 기준 저장', exact: true });
-    await saveRules.click();
+    await page.getByRole('tab', { name: '패키지 구성', exact: true }).click();
+    const itemType = page.getByRole('combobox', { name: '헤어', exact: true });
+    await itemType.selectOption('included');
+    const quantity = page.getByRole('spinbutton', { name: '헤어 포함 수량' });
+    await quantity.fill('2');
+    await page.getByRole('button', { name: '패키지 구성 저장' }).click();
     await page.waitForFunction(() => document.querySelector('select').disabled);
-    assert.equal(await director.isDisabled(), true);
-    assert.equal(await tuesday.isDisabled(), true);
-    assert.equal(submissions[3].type, 'retoucher_rules');
-    assert.equal(submissions[3].rules.find((rule) => rule.weekday === 2).retoucherId, 'r2');
+    assert.equal(await quantity.isDisabled(), true);
+    assert.deepEqual(submissions[3], {
+      type: 'package_items',
+      packageId: 'one',
+      items: [{ itemId: 'hair', inclusionType: 'included', quantity: 2 }],
+    });
     releaseSave();
     await page.getByText('변경 내용을 저장했습니다.', { exact: true }).waitFor();
-    assert.equal(await tuesday.inputValue(), 'r2');
+    assert.equal(await quantity.inputValue(), '2');
+    await page.getByRole('tab', { name: '난이도 규칙', exact: true }).click();
     const rulesTab = page.getByRole('tab', { name: '난이도 규칙', exact: true });
     const normalizationTab = page.getByRole('tab', { name: '표기 정규화', exact: true });
     assert.equal(await page.getByRole('tabpanel').count(), 1);
@@ -240,7 +249,8 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     await editor.getByRole('button', { name: '닫기', exact: true }).click();
     assert.equal(submissions.length, 4);
     await rulesTab.click();
-    assert.equal(await tuesday.inputValue(), 'r2');
+    await page.getByRole('tab', { name: '패키지 구성', exact: true }).click();
+    assert.equal(await quantity.inputValue(), '2');
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),

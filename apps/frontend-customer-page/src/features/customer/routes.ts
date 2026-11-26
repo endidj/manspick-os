@@ -8,11 +8,6 @@ const scenes: CustomerScene[] = [
   'preparation',
   'plan',
   'shoot-day',
-  'selection',
-  'results',
-  'extra-retouch',
-  'revision',
-  'review',
 ];
 
 export function customerRoute(segments: string[]) {
@@ -35,8 +30,6 @@ export function customerParent(token: string, scene: CustomerScene, surveyPage: 
     return customerPath(token, 'survey', surveyPage - 1);
   const parent: Partial<Record<CustomerScene, CustomerScene>> = {
     plan: 'preparation',
-    revision: 'results',
-    'extra-retouch': 'review',
   };
   return customerPath(token, parent[scene] ?? 'home');
 }

@@ -1,8 +1,8 @@
-// 현장 여덟 단계를 저장하고 셀렉 주체를 확정한 뒤 후보 업로드로 이동합니다.
+// 현장 촬영 체크리스트와 메모를 저장하고 촬영 완료를 기록합니다.
 import { useState } from 'react';
 import { Button, CheckItem, Panel, StageBadge } from '@manspick/design-system/components';
 import { Icon } from '@manspick/design-system/icons';
-import { RadioPills, TextField } from '@manspick/design-system/patterns';
+import { TextField } from '@manspick/design-system/patterns';
 import type { ShootDetail } from '@manspick/contracts';
 import { dateTime } from '@manspick/web/format';
 import { shootHref } from '../workspace/model';
@@ -18,7 +18,7 @@ const steps = [
   ['outfits', '의상 점검', '셔츠 주름 · 니트 보풀 · 액세서리'],
   ['shooting', '촬영', '웃는 표정 컷은 대화하며 자연스럽게'],
   ['midcheck', '중간 확인', '모니터로 촬영 결과를 함께 보고 방향 조정'],
-  ['closing', '마무리 안내', '셀렉 방법 · 결과물 일정 · 후기 이벤트'],
+  ['closing', '마무리 안내', '촬영 진행을 정리하고 고객에게 마무리 안내'],
 ] as const;
 
 export function FieldChecklist({
@@ -31,17 +31,12 @@ export function FieldChecklist({
   perform: PerformAction;
 }) {
   const [checks, setChecks] = useState(shoot.fieldChecklist.checks);
-  const [selector, setSelector] = useState<'customer' | 'director'>(
-    shoot.selectionMode ??
-      (shoot.survey?.answers.selector === 'director' ? 'director' : 'customer'),
-  );
-  const [reason, setReason] = useState(shoot.selectorReason);
   const [note, setNote] = useState(shoot.fieldMemo);
   const finished = Boolean(shoot.fieldChecklist.completedAt);
   const allowed = shoot.capabilities.includes('save_field_checklist') && !finished;
 
   async function save(next = checks) {
-    return perform({ type: 'save_field_checklist', checks: next, selector, reason, note });
+    return perform({ type: 'save_field_checklist', checks: next, note });
   }
 
   async function toggle(key: string) {
@@ -51,7 +46,7 @@ export function FieldChecklist({
 
   async function finish() {
     if ((await save()) && (await perform({ type: 'complete_field' })))
-      window.location.assign(shootHref(shoot.id, 'candidates'));
+      window.location.assign(shootHref(shoot.id, 'manage'));
   }
 
   return (
@@ -76,7 +71,6 @@ export function FieldChecklist({
         <div className={styles.filters}>
           <span>목적: {String(shoot.survey?.answers.purpose ?? '미입력')}</span>
           <span>의상 {shoot.package.outfits}벌</span>
-          <span>셀렉: {selector === 'customer' ? '고객' : '디렉터'}</span>
         </div>
       </Panel>
       <div className={styles.progressHeading}>
@@ -99,31 +93,7 @@ export function FieldChecklist({
         ))}
       </div>
       <Panel className={styles.selector}>
-        <h2>
-          <Icon name="solar/user-check-bold" size={18} />
-          셀렉 주체 최종 확인
-        </h2>
-        <p>
-          설문 선택자: {shoot.survey?.answers.selector === 'director' ? '디렉터 셀렉' : '고객 셀렉'}{' '}
-          · 현장에서 바뀌었다면 변경 후 사유를 남겨주세요.
-        </p>
-        <RadioPills
-          label="확정 셀렉 주체"
-          value={selector}
-          disabled={busy || !allowed}
-          onValueChange={(value) => setSelector(value as 'customer' | 'director')}
-          options={[
-            { value: 'customer', label: '고객 셀렉 유지' },
-            { value: 'director', label: '디렉터 셀렉으로 변경' },
-          ]}
-        />
-        <TextField
-          label="변경 사유"
-          placeholder="셀렉 주체 변경 사유"
-          value={reason}
-          onValueChange={setReason}
-          disabled={busy || !allowed}
-        />
+        <h2>현장 기록</h2>
         <TextField
           label="특이사항 메모"
           placeholder="특이사항 메모 (예: 안경 벗고 촬영)"
@@ -146,9 +116,9 @@ export function FieldChecklist({
           loading={busy}
           onClick={finish}
         >
-          촬영 완료 → 후보 사진 올리기
+          촬영 완료
         </Button>
-        <p>8개 항목 체크 후 활성화 · 다음 화면에서 후보 40~50장을 바로 올려요.</p>
+        <p>8개 항목을 확인하면 촬영을 완료할 수 있어요.</p>
       </div>
     </div>
   );

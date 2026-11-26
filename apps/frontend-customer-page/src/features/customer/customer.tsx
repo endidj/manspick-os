@@ -10,9 +10,8 @@ import type { SessionDTO, ShootDetail } from '@manspick/contracts';
 import { Survey, SurveyComplete } from '../survey';
 import { CustomerShell, KakaoButton, kakaoChannelUrl } from '../shell';
 import { CustomerHome } from './customer-home';
-import { PhotoWorkspace } from './photo-workspace';
-import { ReviewView } from './customer-scenes';
 import { PreparationView, PlanView, ShootDayView } from './preparation';
+import { SocialAccess } from './social-access';
 import { PaymentView } from './payment';
 import type { CustomerScene } from './journey';
 import { customerPath, customerParent, customerRoute } from './routes';
@@ -27,11 +26,6 @@ const sceneSteps: Partial<Record<CustomerScene, { title: string; current: number
   preparation: { title: '촬영 준비 확인', current: 4 },
   plan: { title: '촬영 준비 확인', current: 4 },
   'shoot-day': { title: '촬영 진행', current: 5 },
-  selection: { title: '결과물 확인', current: 6 },
-  results: { title: '결과물 확인', current: 6 },
-  'extra-retouch': { title: '후속 혜택', current: 7 },
-  revision: { title: '결과물 확인', current: 6 },
-  review: { title: '후속 혜택', current: 7 },
 };
 
 const uploadKeys = new WeakMap<File, Map<string, string>>();
@@ -45,7 +39,6 @@ export function CustomerApp({ token }: { token: string }) {
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [outfitsOpen, setOutfitsOpen] = useState(false);
   const dataVersion = useRef(0);
   const mutations = useRef(0);
   const root = customerPath(token, 'home');
@@ -111,6 +104,30 @@ export function CustomerApp({ token }: { token: string }) {
       setRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    if (sessionStorage.getItem('manspick-social-resume') !== token) return;
+    let active = true;
+    api<{ shootId: string | null }>('/auth/customer/resume', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    })
+      .then(async ({ shootId: id }) => {
+        if (!id || !active) return;
+        await refresh(id);
+        if (active) {
+          setShootId(id);
+          setVerified(true);
+          sessionStorage.removeItem('manspick-social-resume');
+        }
+      })
+      .catch((e: Error) => {
+        if (active) setError(e.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [token, refresh]);
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
@@ -206,7 +223,6 @@ export function CustomerApp({ token }: { token: string }) {
   }
 
   function navigate(next: CustomerScene) {
-    setOutfitsOpen(false);
     const resumePage = shoot?.survey?.submittedAt
       ? 1
       : ([1, 2, 3, 4].find((page) => !shoot?.survey?.pageDone.includes(page)) ?? 4);
@@ -214,11 +230,6 @@ export function CustomerApp({ token }: { token: string }) {
     setError('');
     setAnnouncement('');
     window.scrollTo({ top: 0 });
-  }
-
-  function openOutfits() {
-    navigate('preparation');
-    setOutfitsOpen(true);
   }
 
   const onHelp = () => window.open(kakaoChannelUrl, '_blank', 'noopener,noreferrer');
@@ -292,42 +303,28 @@ export function CustomerApp({ token }: { token: string }) {
           <span className={styles.screenReaderOnly} role="status">
             {announcement}
           </span>
-          {scene === 'home' && (
-            <CustomerHome
-              shoot={viewProps.shoot}
-              onNavigate={navigate}
-              onHelp={onHelp}
-              onOpenOutfits={openOutfits}
-            />
-          )}
+          <div hidden={!['home', 'survey', 'survey-complete'].includes(scene)}>
+            <SocialAccess token={token}>
+              {scene === 'home' && (
+                <CustomerHome shoot={shoot} onNavigate={navigate} onHelp={onHelp} />
+              )}
+              <Survey
+                {...viewProps}
+                active={scene === 'survey'}
+                page={surveyPage}
+                onPageChange={(page) => navigatePath(customerPath(token, 'survey', page))}
+              />
+              {scene === 'survey-complete' && shoot.survey?.submittedAt && (
+                <SurveyComplete {...viewProps} />
+              )}
+            </SocialAccess>
+          </div>
           {scene === 'payment' && (
             <PaymentView {...viewProps} refreshing={refreshing} onRefresh={checkStatus} />
           )}
-          <Survey
-            {...viewProps}
-            active={scene === 'survey'}
-            page={surveyPage}
-            onPageChange={(page) => navigatePath(customerPath(token, 'survey', page))}
-          />
-          {scene === 'survey-complete' && shoot?.survey?.submittedAt && (
-            <SurveyComplete {...viewProps} />
-          )}
-          {scene === 'preparation' && (
-            <PreparationView
-              {...viewProps}
-              outfitsOpen={outfitsOpen}
-              onOutfitsOpenChange={setOutfitsOpen}
-            />
-          )}
-          {scene === 'plan' && <PlanView {...viewProps} onOpenOutfits={openOutfits} />}
+          {scene === 'preparation' && <PreparationView {...viewProps} />}
+          {scene === 'plan' && <PlanView {...viewProps} />}
           {scene === 'shoot-day' && <ShootDayView {...viewProps} />}
-          {(scene === 'selection' ||
-            scene === 'results' ||
-            scene === 'revision' ||
-            scene === 'extra-retouch') && (
-            <PhotoWorkspace key={scene} {...viewProps} scene={scene} />
-          )}
-          {scene === 'review' && <ReviewView {...viewProps} />}
         </>
       )}
     </CustomerShell>

@@ -40,13 +40,14 @@ test('shoot actions update the current detail from their POST response', async (
               import { createRoot } from 'react-dom/client';
               import { useShootDetail } from '/apps/frontend-admin-page/src/features/shoot-detail/use-shoot-detail.ts';
 
+              import { BookingSchedule } from '/apps/frontend-admin-page/src/features/shoot-detail/booking-schedule.tsx';
               function Probe() {
                 const { shoot, busy, error, success, perform } = useShootDetail('test-shoot');
                 const [result, setResult] = useState('idle');
 
-                async function submit() {
+                async function submit(action) {
                   setResult('pending');
-                  setResult(String(await perform({ type: 'submit_selection', photoIds: ['p1'] })));
+                  const saved = await perform(action); setResult(String(saved)); return saved;
                 }
 
                 return React.createElement('main', null,
@@ -55,7 +56,7 @@ test('shoot actions update the current detail from their POST response', async (
                   React.createElement('output', { 'data-testid': 'error' }, error),
                   React.createElement('output', { 'data-testid': 'busy' }, String(busy)),
                   React.createElement('output', { 'data-testid': 'result' }, result),
-                  React.createElement('button', { disabled: busy || !shoot, onClick: submit }, '셀렉 제출'));
+                  shoot && React.createElement(BookingSchedule, { shoot,busy,perform:submit }));
               }
 
               createRoot(document.getElementById('root')).render(React.createElement(Probe));`;
@@ -63,11 +64,11 @@ test('shoot actions update the current detail from their POST response', async (
       },
     ],
     resolve: { dedupe: ['react', 'react-dom'] },
-    optimizeDeps: { include: ['react', 'react-dom/client'] },
+    optimizeDeps: { entries: [], include: ['react', 'react-dom/client'] },
     server: {
       host: '127.0.0.1',
       port: 0,
-      watch: { ignored: ['**/.next/**', '**/.local/**', '**/.open-next/**', '**/.wrangler/**'] },
+      watch: null,
     },
   });
   let browser;
@@ -82,11 +83,25 @@ test('shoot actions update the current detail from their POST response', async (
         async () => {
           const page = await browser.newPage();
           page.setDefaultTimeout(10000);
-          const before = { id: 'test-shoot', status: 'selection_pending', selections: [] };
+          const before = {
+            id: 'test-shoot',
+            status: 'preparing',
+            capabilities: ['confirm_schedule'],
+            timeOptions: [
+              { id: 'first', date: '2099-12-20', time: '13:00' },
+              { id: 'second', date: '2099-12-21', time: '11:00' },
+            ],
+            confirmedSchedule: failFirst
+              ? { optionId: 'first', location: '기존 장소', confirmedAt: '2026-11-05' }
+              : null,
+          };
           const after = {
             ...before,
-            status: 'retouch_assigned',
-            selections: [{ round: 'base', photoIds: ['p1'], submittedAt: '2026-11-06' }],
+            confirmedSchedule: {
+              optionId: 'second',
+              location: '테스트 스튜디오',
+              confirmedAt: '2026-11-06',
+            },
           };
           const requests = [];
           let reads = 0;
@@ -111,8 +126,10 @@ test('shoot actions update the current detail from their POST response', async (
                   '/api/shoots/test-shoot/actions',
                 );
                 assert.deepEqual(route.request().postDataJSON(), {
-                  type: 'submit_selection',
-                  photoIds: ['p1'],
+                  type: 'confirm_schedule',
+                  ...(failFirst ? { previousOptionId: 'first' } : {}),
+                  optionId: 'second',
+                  location: '테스트 스튜디오',
                 });
                 writes += 1;
                 await route.fulfill(
@@ -129,7 +146,21 @@ test('shoot actions update the current detail from their POST response', async (
               waitUntil: 'domcontentloaded',
               timeout: 30000,
             });
-            const submit = page.getByRole('button', { name: '셀렉 제출', exact: true });
+            await page.getByRole('heading', { name: '예약 일정' }).waitFor({ timeout: 60000 });
+            if (failFirst)
+              await page.getByRole('button', { name: '일정 변경', exact: true }).click();
+            const time = page.getByRole('combobox', { name: '확정할 희망 일정' });
+            const location = page.getByLabel('확정 촬영 장소');
+            if (failFirst) {
+              assert.equal(await time.inputValue(), 'first');
+              assert.equal(await location.inputValue(), '기존 장소');
+            }
+            await time.selectOption('second');
+            await location.fill('테스트 스튜디오');
+            const submit = page.getByRole('button', {
+              name: failFirst ? '변경한 일정 저장' : '일정과 장소 확정',
+              exact: true,
+            });
             await submit.click();
             await page
               .getByTestId('result')

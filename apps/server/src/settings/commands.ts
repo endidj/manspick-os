@@ -28,6 +28,94 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
   let next: unknown;
   let previous: unknown = null;
   switch (type) {
+    case 'director_schedule': {
+      const directorId = requiredText(body, 'directorId', 80);
+      const person = current.staff.find((p) => p.id === directorId && p.role === 'director');
+      if (!person || !Array.isArray(body.windows) || body.windows.length > 90)
+        throw new DomainError('INVALID_AVAILABILITY', '디렉터와 근무 가능 시간을 확인해주세요.');
+      const hiredOn = body.hiredOn === null ? null : requiredText(body, 'hiredOn', 10);
+      if (
+        hiredOn &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(hiredOn) ||
+          !Number.isFinite(Date.parse(hiredOn)) ||
+          new Date(hiredOn).toISOString().slice(0, 10) !== hiredOn)
+      )
+        throw new DomainError('INVALID_DATE', '입사일을 확인해주세요.');
+      const windows = body.windows
+        .map((value) => {
+          const row = objectValue(value);
+          const start = Date.parse(requiredText(row, 'startsAt', 40));
+          const end = Date.parse(requiredText(row, 'endsAt', 40));
+          if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)
+            throw new DomainError(
+              'INVALID_AVAILABILITY',
+              '근무 가능 구간의 시작과 종료 시각을 확인해주세요.',
+            );
+          return { startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString() };
+        })
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+      if (windows.some((w, i) => i > 0 && w.startsAt < windows[i - 1]!.endsAt))
+        throw new DomainError('INVALID_AVAILABILITY', '겹치는 근무 구간을 합쳐주세요.');
+      previous = {
+        hiredOn: person.hiredOn,
+        windows: current.directorAvailability?.filter((w) => w.directorId === directorId),
+      };
+      next = { directorId, hiredOn, windows };
+      statements.push(
+        statement(env, 'UPDATE staff SET hired_on=? WHERE id=?', hiredOn, directorId),
+        statement(env, 'DELETE FROM director_availability WHERE director_id=?', directorId),
+      );
+      if (windows.length) {
+        statements.push(
+          statement(
+            env,
+            "INSERT INTO director_availability(director_id,starts_at,ends_at) SELECT ?,json_extract(value,'$.startsAt'),json_extract(value,'$.endsAt') FROM json_each(?)",
+            directorId,
+            JSON.stringify(windows),
+          ),
+        );
+      }
+      break;
+    }
+    case 'package_items': {
+      const packageId = requiredText(body, 'packageId', 80);
+      if (!current.packages.some((pack) => pack.id === packageId) || !Array.isArray(body.items))
+        throw new DomainError('INVALID_PACKAGE', '패키지 구성을 확인해주세요.');
+      const seen = new Set<string>();
+      const items = body.items.map((row) => {
+        const data = objectValue(row);
+        const itemId = requiredText(data, 'itemId', 80);
+        const inclusionType = data.inclusionType;
+        const quantity = integerValue(data.quantity, 100);
+        if (
+          !quantity ||
+          seen.has(itemId) ||
+          !current.addons.some((item) => item.id === itemId && item.quantityMode !== 'photo') ||
+          (inclusionType !== 'included' && inclusionType !== 'optional')
+        )
+          throw new DomainError(
+            'INVALID_PACKAGE_ITEM',
+            '중복 항목, 구성 방식과 수량을 확인해주세요.',
+          );
+        seen.add(itemId);
+        return { itemId, inclusionType, quantity };
+      });
+      previous = current.packageItems?.filter((item) => item.packageId === packageId);
+      next = { packageId, items };
+      statements.push(statement(env, 'DELETE FROM package_items WHERE package_id=?', packageId));
+      for (const item of items)
+        statements.push(
+          statement(
+            env,
+            'INSERT INTO package_items(package_id,item_id,inclusion_type,quantity) VALUES(?,?,?,?)',
+            packageId,
+            item.itemId,
+            item.inclusionType,
+            item.quantity,
+          ),
+        );
+      break;
+    }
     case 'operations_policy': {
       next = validateOperationsPolicy(body.value);
       previous = current.policy;
@@ -170,7 +258,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
       statements.push(
         statement(
           env,
-          'UPDATE packages SET name=?,price=?,original_price=?,duration=?,outfits=?,retouch_count=?,description=?,active=? WHERE id=?',
+          'UPDATE packages SET name=?,price_krw=?,original_price_krw=?,shoot_duration_minutes=?,outfits=?,retouch_count=?,description=?,is_active=? WHERE id=?',
           value.name,
           value.price,
           value.originalPrice,
@@ -190,6 +278,8 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
     case 'addon': {
       const data = objectValue(body.value);
       const addonId = requiredText(data, 'id', 80);
+      if (addonId === 'extra_retouch' || data.quantityMode === 'photo')
+        throw new DomainError('INVALID_INPUT', '촬영 아이템만 판매할 수 있습니다.');
       if (data.active !== undefined && typeof data.active !== 'boolean')
         throw new DomainError('INVALID_INPUT', '옵션 노출 여부를 확인해주세요.');
       const value = {
@@ -223,7 +313,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
       statements.push(
         statement(
           env,
-          'INSERT INTO addons(id,name,price,description,max_quantity,active) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,price=excluded.price,description=excluded.description,max_quantity=excluded.max_quantity,active=excluded.active',
+          'INSERT INTO items(id,name,unit_price_krw,description,max_quantity,active) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,unit_price_krw=excluded.unit_price_krw,description=excluded.description,max_quantity=excluded.max_quantity,active=excluded.active',
           value.id,
           value.name,
           value.price,
@@ -232,7 +322,24 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
           value.active ? 1 : 0,
         ),
       );
-      previous = current.addons.find((addon) => addon.id === addonId) ?? null;
+      const oldAddon = current.addons.find((addon) => addon.id === addonId);
+      previous = oldAddon ?? null;
+      // 옵션 설정에서 수량 정책을 바꾸면 판매 중인 선택 구성에만 같은 한도를 적용합니다.
+      for (const pack of current.packages) {
+        const limit = value.packageQuantityLimits[pack.id] ?? value.maxQuantity;
+        const oldLimit = oldAddon?.packageQuantityLimits?.[pack.id] ?? oldAddon?.maxQuantity;
+        if (limit > 0 && (limit !== oldLimit || value.maxQuantity !== oldAddon?.maxQuantity)) {
+          statements.push(
+            statement(
+              env,
+              "UPDATE package_items SET quantity=? WHERE package_id=? AND item_id=? AND inclusion_type='optional'",
+              limit,
+              pack.id,
+              addonId,
+            ),
+          );
+        }
+      }
       statements.push(...catalogRuleStatements(env, 'addons', addonId, value, catalogSnapshot));
       next = value;
       break;

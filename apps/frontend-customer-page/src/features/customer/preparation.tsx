@@ -1,295 +1,100 @@
-// 준비 안내 열람·의상 업로드·공유 설계·당일 진행을 실제 촬영 데이터로 보여줍니다.
+// 준비 안내 열람·공유 설계·당일 진행을 실제 촬영 데이터로 보여줍니다.
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
 import { Button, CheckItem, Notice } from '@manspick/design-system/components';
 import { Dialog, InfoRow } from '@manspick/design-system/patterns';
 import { Icon } from '@manspick/design-system/icons';
 import { statusInfo } from '@manspick/domain';
 import type { PreparationDTO } from '@manspick/contracts';
-import { dateTime } from '@manspick/web/format';
 import { SceneFooter, KakaoButton } from '../shell';
 import type { CustomerViewProps } from './view-types';
-import { UploadButton, UploadList } from './uploads';
 import { daysUntil } from './journey';
-import { isOutfitGuide, packageName, shootDate, shootSchedule, shootTime } from './presentation';
+import { shootDate, shootSchedule, shootTime } from './presentation';
 import layout from '../shell/customer-shell.module.css';
 import styles from './customer.module.css';
 
 type Guide = PreparationDTO['guides'][number];
-
-const pendingGuides: Guide[] = [
-  { id: 'confirmation', title: '촬영일 확정 안내' },
-  { id: 'plan', title: '촬영 설계' },
-  { id: 'packing', title: '준비물' },
-  { id: 'outfits', title: '의상 준비 · 사진 올리기' },
-  { id: 'addons', title: '부가서비스 안내' },
-  { id: 'curriculum', title: '선택 서비스 커리큘럼' },
-  { id: 'location', title: '촬영 장소' },
-  { id: 'grooming', title: '그루밍 노션' },
-  { id: 'cancellation', title: '변경·취소 규정' },
-].map((guide) => ({
-  ...guide,
-  summary: '담당자가 안내를 준비하고 있어요',
-  body: '',
-  readAt: null,
-}));
-
-function isPlanGuide(guide: { id: string; title: string }) {
-  return (
-    /(?:^|[-_])(plan|design)(?:$|[-_])/i.test(guide.id) || /촬영\s*설계|^설계$/.test(guide.title)
-  );
-}
 
 function directorLabel(name: string | null) {
   if (!name?.trim()) return '담당 디렉터';
   return name.trim().endsWith('디렉터') ? name.trim() : `${name.trim()} 디렉터`;
 }
 
-export function PreparationView({
-  shoot,
-  busy,
-  onUpload,
-  onAction,
-  onNavigate,
-  onHelp,
-  outfitsOpen,
-  onOutfitsOpenChange,
-}: CustomerViewProps & { outfitsOpen: boolean; onOutfitsOpenChange: (open: boolean) => void }) {
-  const [openId, setOpenId] = useState<string | null>(null);
+export function PreparationView({ shoot, busy, onAction, onNavigate }: CustomerViewProps) {
+  const [selected, setSelected] = useState<Guide>();
   const preparation = shoot.preparation;
   const guides = preparation?.guides ?? [];
-  const outfitGuide = guides.find(isOutfitGuide);
-  const uploaded = shoot.uploads.filter((asset) => asset.kind === 'outfit');
-  const outfitsReady = uploaded.length >= shoot.outfitPhotosRequired;
-  const visibleGuides = guides.length
-    ? [...guides]
-    : pendingGuides.filter(
-        (guide) => guide.id !== 'grooming' || ['hybrid', 'allday'].includes(shoot.packageId),
-      );
-  if (guides.length && !outfitGuide) visibleGuides.push(pendingGuides.find(isOutfitGuide)!);
-  const selected = guides.find((guide) => guide.id === openId);
-  const dialogGuide = outfitsOpen ? outfitGuide : selected;
-  const completeGuide = (guide: Guide) =>
-    isOutfitGuide(guide) ? outfitsReady : Boolean(guide.readAt);
-  const read = visibleGuides.filter(completeGuide).length;
-  const guidesReady = guides.every((guide) => isOutfitGuide(guide) || guide.readAt);
-  const days = daysUntil(shoot.startsAt);
-
-  function guideDescription(guide: Guide) {
-    if (isOutfitGuide(guide)) {
-      if (!shoot.outfitPhotosRequired) return '올려야 할 의상 사진이 없어요';
-      const deadline = shoot.outfitDueAt ? `${shootDate(shoot.outfitDueAt)}까지` : '';
-      const progress = `${uploaded.length}장 업로드`;
-      const hasLookbook =
-        guide.url?.trim() &&
-        /코디\s*북|codi[-_ ]?book/i.test(
-          [guide.title, guide.summary, guide.body, guide.url].join(' '),
-        );
-      const guidance = hasLookbook
-        ? `코디북 가이드 · ${deadline ? `${deadline} 업로드` : progress}`
-        : [progress, deadline].filter(Boolean).join(' · ');
-      return `${shoot.outfitPhotosRequired}벌 기준 · ${guidance}`;
-    }
-    if (isPlanGuide(guide))
-      return shoot.plan?.sharedAt
-        ? '디렉터 컨셉 · 벌별 코디 제안 · 장소'
-        : '디렉터가 설계 중이에요';
-    return guide.summary;
-  }
-
-  function openGuide(guide: Guide) {
-    if (isOutfitGuide(guide)) onOutfitsOpenChange(true);
-    else if (isPlanGuide(guide)) onNavigate('plan');
-    else setOpenId(guide.id);
-    const shared = guides.find((item) => item.id === guide.id);
-    if (shared && !shared.readAt)
-      void onAction({ type: 'mark_preparation_read', guideId: shared.id });
-  }
-
-  function closeGuide() {
-    setOpenId(null);
-    onOutfitsOpenChange(false);
-  }
-
-  async function confirmPreparation() {
-    if (
-      outfitGuide &&
-      !outfitGuide.readAt &&
-      !(await onAction({ type: 'mark_preparation_read', guideId: outfitGuide.id }))
-    )
-      return;
-    await onAction({ type: 'confirm_preparation' });
-  }
-
   return (
-    <>
-      <section className={styles.dayCard}>
-        <div className={layout.between}>
-          <strong className={styles.dayTitle}>
-            {days === 0 ? 'D-DAY' : days !== null && days > 0 ? `D-${days}` : '촬영 준비'}
-          </strong>
-          <span className={styles.greenPill}>촬영 확정</span>
-        </div>
-        <h1>{shoot.startsAt ? dateTime(shoot.startsAt) : '일정 확인 중'}</h1>
-        <div className={styles.dayFacts}>
-          <p>
-            <Icon name="customer/location" size={16} />
-            <span>
-              {preparation?.location.area || '촬영 장소는 정해지면 바로 안내'}
-              {preparation?.location.meetingPlace && ` · ${preparation.location.meetingPlace}`}
-              {preparation?.location.mapUrl && (
-                <>
-                  {' '}
-                  ·{' '}
-                  <a href={preparation.location.mapUrl} target="_blank" rel="noreferrer">
-                    지도 보기
-                  </a>
-                </>
-              )}
-            </span>
-          </p>
-          <p>
-            <Icon name="customer/director" size={16} />
-            {shoot.directorName ? directorLabel(shoot.directorName) : '담당 디렉터 확인 중'}
-          </p>
-          <p>
-            <Icon name="customer/clock" size={16} />약 {shoot.package.duration / 60}시간 ·{' '}
-            {packageName(shoot.packageId, shoot.package.name)} ({shoot.package.outfits}벌)
-          </p>
-        </div>
-      </section>
-      <section className={styles.guideSection}>
-        <div className={layout.between}>
-          <h2 className={styles.sectionTitle}>촬영 전 확인할 안내</h2>
-          <span className={styles.cyan}>
-            {read} / {visibleGuides.length} 확인
-          </span>
-        </div>
-        <div
-          className={styles.progressTrack}
-          role="progressbar"
-          aria-label="촬영 준비 안내 확인"
-          aria-valuenow={read}
-          aria-valuemin={0}
-          aria-valuemax={visibleGuides.length}
-        >
-          <span style={{ width: `${(read / visibleGuides.length) * 100}%` }} />
-        </div>
-        <div className={styles.guideList}>
-          {visibleGuides.map((guide) => (
-            <CheckItem
-              className={styles.guideItem}
-              key={guide.id}
-              label={guide.title}
-              description={guideDescription(guide)}
-              completed={completeGuide(guide)}
-              trailing={<span className={styles.guideChevron} aria-hidden="true" />}
-              disabled={
-                busy ||
-                (isPlanGuide(guide)
-                  ? !shoot.plan?.sharedAt
-                  : !isOutfitGuide(guide) && !guides.length)
-              }
-              onClick={() => openGuide(guide)}
-            />
-          ))}
-        </div>
-        {shoot.plan?.sharedAt && !visibleGuides.some(isPlanGuide) && (
-          <Button variant="secondary" onClick={() => onNavigate('plan')}>
-            촬영 설계 보기
-          </Button>
-        )}
-        {!guides.length && (
-          <Notice>촬영 준비 안내를 정리하고 있어요. 담당자에게 준비 일정을 확인해주세요.</Notice>
-        )}
-      </section>
-      <Notice tone="warning" className={styles.preparationWarning}>
-        <strong>
-          <Icon name="customer/warning" size={18} /> 촬영 전날엔 이것만 피해주세요
-        </strong>
-        <div className={styles.warningTags}>
-          {['음주', '과식', '무리한 운동', '수면 부족'].map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
-        <p>푹 자고 오시는 게 제일 좋은 준비예요. 나머지는 현장에서 저희가 편하게 이끌어드릴게요.</p>
-      </Notice>
-      <SceneFooter>
-        <Button
-          fullWidth
-          loading={busy}
-          disabled={
-            busy ||
-            !guides.length ||
-            !guidesReady ||
-            !outfitsReady ||
-            Boolean(preparation?.confirmedAt)
-          }
-          onClick={confirmPreparation}
-        >
-          {preparation?.confirmedAt ? '촬영 준비 확인 완료' : '안내를 모두 확인했어요'}
+    <div className={layout.stack}>
+      <h1>촬영 준비 안내</h1>
+      <InfoRow label="촬영 일시" value={shoot.startsAt ? shootSchedule(shoot) : '일정 확정 전'} />
+      <InfoRow
+        label="만남 장소"
+        value={shoot.confirmedSchedule?.location || preparation?.location.meetingPlace || '미정'}
+      />
+      {shoot.plan?.sharedAt && (
+        <Button variant="secondary" onClick={() => onNavigate('plan')}>
+          촬영 설계 보기
         </Button>
-        <KakaoButton onClick={onHelp}>궁금한 점은 카카오톡으로</KakaoButton>
-      </SceneFooter>
+      )}
+      <h2>촬영 전 확인할 안내</h2>
+      {guides.length ? (
+        guides.map((guide) => (
+          <CheckItem
+            key={guide.id}
+            label={guide.title}
+            description={guide.summary}
+            completed={Boolean(guide.readAt)}
+            disabled={busy}
+            onClick={() => setSelected(guide)}
+          />
+        ))
+      ) : (
+        <Notice>담당자가 준비 안내를 작성하고 있어요.</Notice>
+      )}
+      {guides.length > 0 && (
+        <Button
+          disabled={
+            busy || Boolean(preparation?.confirmedAt) || guides.some((guide) => !guide.readAt)
+          }
+          onClick={() => void onAction({ type: 'confirm_preparation' })}
+        >
+          {preparation?.confirmedAt ? '준비 안내 확인 완료' : '준비 안내 전체 확인'}
+        </Button>
+      )}
       <Dialog
-        open={outfitsOpen || Boolean(selected)}
-        onOpenChange={(open) => !open && closeGuide()}
-        title={outfitsOpen ? '의상 준비 · 사진 올리기' : (selected?.title ?? '촬영 안내')}
-        actions={<Button onClick={closeGuide}>확인</Button>}
+        open={Boolean(selected)}
+        onOpenChange={(open) => {
+          if (!open) setSelected(undefined);
+        }}
+        title={selected?.title ?? '준비 안내'}
       >
-        {(selected || outfitsOpen) && (
-          <div className={layout.stack}>
-            {(dialogGuide?.body || !outfitsOpen) && (
-              <p className={layout.preWrap}>
-                {dialogGuide?.body || '담당자가 안내 내용을 준비하고 있어요.'}
-              </p>
-            )}
-            {dialogGuide?.url && (
-              <a
-                className={layout.textLink}
-                href={dialogGuide.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                안내 자세히 보기 ↗
-              </a>
-            )}
-            {outfitsOpen && (
-              <>
-                <p>
-                  필요한 의상 {shoot.outfitPhotosRequired}벌 · {uploaded.length}장 업로드
-                </p>
-                {shoot.outfitPhotosRequired > 0 && (
-                  <p className={layout.small}>
-                    {shoot.outfitDueAt
-                      ? `${shootDate(shoot.outfitDueAt)}까지 올려주세요.`
-                      : '업로드 기한은 담당자에게 확인해주세요.'}
-                  </p>
-                )}
-                <UploadButton
-                  busy={busy}
-                  label="의상 사진 올리기"
-                  onFile={(file) => onUpload(file, 'outfit')}
-                />
-                <UploadList items={uploaded} />
-              </>
-            )}
-          </div>
+        <p>{selected?.body}</p>
+        {selected?.url && (
+          <a href={selected.url} target="_blank" rel="noreferrer">
+            안내 자세히 보기
+          </a>
         )}
+        <Button
+          disabled={busy}
+          onClick={async () => {
+            if (
+              selected &&
+              (selected.readAt ||
+                (await onAction({ type: 'mark_preparation_read', guideId: selected.id })))
+            )
+              setSelected(undefined);
+          }}
+        >
+          확인
+        </Button>
       </Dialog>
-    </>
+    </div>
   );
 }
 
-export function PlanView({
-  shoot,
-  onNavigate,
-  onHelp,
-  onOpenOutfits,
-}: CustomerViewProps & { onOpenOutfits: () => void }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+export function PlanView({ shoot, onNavigate, onHelp }: CustomerViewProps) {
   const plan = shoot.plan;
   if (!plan?.sharedAt)
     return (
@@ -335,27 +140,17 @@ export function PlanView({
               {outfit}
             </p>
           ))}
-        {plan.referenceImages?.length > 0 && (
-          <div className={layout.photoGrid}>
-            {plan.referenceImages.map((asset) => (
-              <button
-                className={styles.imageButton}
-                key={asset.id}
-                onClick={() => setImageUrl(asset.url)}
-                aria-label={`${asset.name} 참고 사진 확대`}
-              >
-                <Image unoptimized src={asset.url} alt={asset.name} width={300} height={400} />
-              </button>
-            ))}
-          </div>
-        )}
       </section>
       <section className={`${layout.card} ${styles.planFacts}`}>
         <p className={styles.planCaption}>촬영 장소 · 시간</p>
         <InfoRow label="동네" value={shoot.preparation?.location.area || '정해지면 바로 안내'} />
         <InfoRow
           label="만남"
-          value={shoot.preparation?.location.meetingPlace || '정해지면 바로 안내'}
+          value={
+            shoot.confirmedSchedule?.location ||
+            shoot.preparation?.location.meetingPlace ||
+            '정해지면 바로 안내'
+          }
         />
         {shoot.preparation?.hair && (
           <InfoRow
@@ -367,27 +162,8 @@ export function PlanView({
         {plan.note && <p className={layout.small}>디렉터 메모: {plan.note}</p>}
       </section>
       <SceneFooter>
-        <Button variant="secondary" fullWidth onClick={onOpenOutfits}>
-          의상 사진 올리기
-        </Button>
         <KakaoButton onClick={onHelp}>디렉터에게 카톡으로 문의</KakaoButton>
       </SceneFooter>
-      <Dialog
-        open={Boolean(imageUrl)}
-        onOpenChange={(open) => !open && setImageUrl(null)}
-        title="촬영 참고 사진"
-      >
-        {imageUrl && (
-          <Image
-            className={styles.enlargedPhoto}
-            unoptimized
-            src={imageUrl}
-            alt="촬영 설계 참고 사진"
-            width={720}
-            height={960}
-          />
-        )}
-      </Dialog>
     </>
   );
 }
@@ -433,7 +209,7 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
     if (time) return time;
     if (completed) return '완료';
     if (status === 'mid_check') return '찍힌 컷을 함께 보고 방향을 맞춰요';
-    if (status === 'shoot_complete') return '셀렉·보정 일정 안내';
+    if (status === 'shoot_complete') return '촬영 마무리 안내';
     return '진행 예정';
   }
 
@@ -501,7 +277,7 @@ export function ShootDayView({ shoot, onHelp }: CustomerViewProps) {
       <section className={`${layout.card} ${styles.locationCard}`}>
         <strong className={styles.iconText}>
           <Icon name="solar/map-point-bold" size={17} />
-          {location?.meetingPlace || '만남 장소 확인 중'}
+          {shoot.confirmedSchedule?.location || location?.meetingPlace || '만남 장소 확인 중'}
           {today && !finished && !cancelled ? ' (오늘 만남 장소)' : ''}
         </strong>
         {hair && (

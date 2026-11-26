@@ -5,13 +5,12 @@ import { type StaffRole, STAGE_LABELS } from '@manspick/domain';
 import { Badge, Button, Loading, Notice, StageBadge } from '@manspick/design-system/components';
 import { Icon } from '@manspick/design-system/icons';
 import { dateTime } from '@manspick/web/format';
-import { CandidateUpload, CustomerManage, FieldChecklist } from '../director';
-import { RetouchDetail } from '../retouch';
+import { CustomerManage, FieldChecklist } from '../director';
 import { detailScreen } from '../workspace/model';
 import { StatusDialog } from './status-dialog';
 import { AssignmentDialog } from './assignment-dialog';
 import { ShootOverview } from './overview';
-import { ShootPhotos } from './photos';
+import { InternalPhotos } from './internal-photos';
 import { ShootRequests } from './requests';
 import { ShootSurvey } from './survey';
 import { ShootTimeline } from './timeline';
@@ -56,19 +55,11 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
       ) : role === 'director' ? (
         screen === 'field' ? (
           <FieldChecklist shoot={shoot} busy={locked} perform={perform} />
-        ) : screen === 'candidates' ? (
-          <CandidateUpload
-            shoot={shoot}
-            busy={busy}
-            perform={perform}
-            refresh={refresh}
-            onUploadingChange={setUploading}
-          />
         ) : (
           <CustomerManage shoot={shoot} busy={locked} perform={perform} />
         )
       ) : role === 'retoucher' ? (
-        <RetouchDetail shoot={shoot} busy={busy} perform={perform} refresh={refresh} role={role} />
+        <Notice>담당 예약의 알림을 확인해주세요.</Notice>
       ) : (
         <>
           <Link href="/?view=board" className={styles.back}>
@@ -80,13 +71,13 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
                 <h1>{shoot.customerName}</h1>
                 {shoot.stage > 0 ? (
                   <StageBadge
-                    stage={shoot.stage as 1 | 2 | 3 | 4 | 5 | 6 | 7}
-                    label={STAGE_LABELS[shoot.stage - 1]!}
+                    stage={Math.min(5, shoot.stage) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
+                    label={shoot.stage > 5 ? '촬영 완료' : STAGE_LABELS[shoot.stage - 1]!}
                   />
                 ) : (
                   <Badge>취소</Badge>
                 )}
-                <Badge tone="blue">{shoot.statusLabel}</Badge>
+                <Badge tone="blue">{shoot.stage > 5 ? '촬영 완료' : shoot.statusLabel}</Badge>
               </div>
               <p className={styles.detailSubtitle}>
                 {shoot.packageName}
@@ -125,9 +116,11 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
                 <Button size="sm" variant="ghost" onClick={() => setTab('survey')}>
                   설문
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => setTab('photos')}>
-                  사진·보정
-                </Button>
+                {role === 'admin' && (
+                  <Button size="sm" variant="ghost" onClick={() => setTab('photos')}>
+                    예약 내부 사진
+                  </Button>
+                )}
                 <Button size="sm" variant="ghost" onClick={() => setTab('requests')}>
                   요청
                 </Button>
@@ -140,12 +133,10 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
               </div>
               {tab === 'survey' ? (
                 <ShootSurvey shoot={shoot} />
-              ) : tab === 'photos' ? (
-                <ShootPhotos
+              ) : tab === 'photos' && role === 'admin' ? (
+                <InternalPhotos
                   shoot={shoot}
-                  role={role}
                   busy={busy}
-                  perform={perform}
                   refresh={refresh}
                   onUploadingChange={setUploading}
                 />

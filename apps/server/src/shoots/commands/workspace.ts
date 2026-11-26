@@ -3,7 +3,6 @@ import { DomainError, statusInfo } from '@manspick/domain';
 import type { PreparationDTO } from '@manspick/contracts';
 import { first, rows, statement } from '../../database/statements.ts';
 import { requiredText } from '../../http/input.ts';
-import { id } from '../../security/crypto.ts';
 import { customer, director } from '../../security/permissions.ts';
 import { objectValue, optionalText, safeUrl } from '../../settings/values.ts';
 import { parseJSON } from '../../shared/json.ts';
@@ -152,6 +151,24 @@ export async function prepareWorkspace(
         new Set(checks).size !== checks.length
       )
         throw new DomainError('INVALID_INPUT', '현장 확인 항목을 확인해주세요.');
+      if (body.selector === undefined) {
+        statements.push(
+          statement(
+            env,
+            'INSERT INTO shoot_sessions(shoot_id,steps_json) VALUES(?,?) ON CONFLICT(shoot_id) DO UPDATE SET steps_json=excluded.steps_json',
+            shootId,
+            JSON.stringify(checks),
+          ),
+          statement(
+            env,
+            'INSERT INTO shoot_workspace(shoot_id,field_memo) VALUES(?,?) ON CONFLICT(shoot_id) DO UPDATE SET field_memo=excluded.field_memo',
+            shootId,
+            optionalText(body.note),
+          ),
+        );
+        reason = '현장 체크 저장';
+        break;
+      }
       if (!['customer', 'director'].includes(String(body.selector)))
         throw new DomainError('INVALID_INPUT', '최종 셀렉 주체를 선택해주세요.');
       const previous = await first<WorkspaceRow>(
@@ -204,47 +221,14 @@ export async function prepareWorkspace(
         'SELECT steps_json FROM shoot_sessions WHERE shoot_id=?',
         shootId,
       );
-      const workspace = await first<WorkspaceRow>(
-        env,
-        'SELECT * FROM shoot_workspace WHERE shoot_id=?',
-        shootId,
-      );
       const checks = parseJSON<string[]>(session?.steps_json, []);
-      if (FIELD_KEYS.some((key) => !checks.includes(key)) || !workspace?.selection_confirmed_at)
-        throw new DomainError(
-          'FIELD_INCOMPLETE',
-          '8개 현장 확인과 셀렉 주체 확정을 마쳐주세요.',
-          409,
-        );
+      if (FIELD_KEYS.some((key) => !checks.includes(key)))
+        throw new DomainError('FIELD_INCOMPLETE', '현장 확인 8개 항목을 마쳐주세요.', 409);
       statements.push(
         statement(env, 'UPDATE shoot_sessions SET done_at=? WHERE shoot_id=?', now, shootId),
       );
       to = 'shoot_complete';
       reason = '현장 8항목 확인 후 촬영 완료';
-      break;
-    }
-    case 'save_file_link': {
-      director(actor);
-      if (!['retouched', 'original'].includes(String(body.kind)))
-        throw new DomainError('INVALID_INPUT', '파일 종류를 확인해주세요.');
-      const url = safeUrl(requiredText(body, 'url', 2000));
-      const label = requiredText(body, 'label', 100);
-      if (typeof body.visible !== 'boolean')
-        throw new DomainError('INVALID_INPUT', '공개 여부를 확인해주세요.');
-      statements.push(
-        statement(
-          env,
-          'INSERT INTO external_file_links(id,shoot_id,kind,label,url,visible,published_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(shoot_id,kind) DO UPDATE SET label=excluded.label,url=excluded.url,visible=excluded.visible,published_at=excluded.published_at',
-          id(),
-          shootId,
-          String(body.kind),
-          label,
-          url,
-          Number(body.visible),
-          body.visible ? now : null,
-        ),
-      );
-      reason = '결과 파일 링크 저장 · 원본은 후기 승인 뒤 고객에게 공개';
       break;
     }
     default:

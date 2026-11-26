@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { OperationsModule } from './activity/operations.module.ts';
+import { AnalyticsModule } from './analytics/analytics.module.ts';
 import { BookingModule } from './booking/booking.module.ts';
 import { FilesModule } from './files/files.module.ts';
 import { AccessGuard } from './http/access.ts';
@@ -20,6 +21,7 @@ class NotFoundModule {}
 @Module({
   imports: [
     SystemModule,
+    AnalyticsModule,
     BookingModule,
     AuthenticationModule,
     ShootsModule,

@@ -1,16 +1,11 @@
 // 사진별 수정 의견을 보여주고 허용된 직원만 요청을 처리하거나 반려합니다.
 import { Badge, Button, EmptyState, Panel } from '@manspick/design-system/components';
-import { InfoRow, SectionHeader } from '@manspick/design-system/patterns';
+import { SectionHeader } from '@manspick/design-system/patterns';
 import type { ShootDetail } from '@manspick/contracts';
 import { dateTime } from '@manspick/web/format';
 import type { PerformAction } from './use-shoot-detail';
 import styles from './shoot-detail.module.css';
 
-const requestLabels: Record<string, string> = {
-  revision: '보정 수정 요청',
-  review: '후기 확인 요청',
-  deposit: '입금 확인 요청',
-};
 const stateLabels: Record<string, string> = {
   new: '신규',
   processing: '처리 중',
@@ -29,9 +24,10 @@ export function ShootRequests({
   perform: PerformAction;
   compact?: boolean;
 }) {
-  const requests = compact
-    ? shoot.requests.filter((request) => ['new', 'processing'].includes(request.state))
-    : shoot.requests;
+  const requests = shoot.requests.filter(
+    (request) =>
+      request.type === 'deposit' && (!compact || ['new', 'processing'].includes(request.state)),
+  );
   return (
     <div className={styles.stack}>
       {!requests.length && (
@@ -47,7 +43,7 @@ export function ShootRequests({
           <div className={styles.sectionHeading}>
             <SectionHeader
               heading="h3"
-              title={requestLabels[request.type] ?? request.type}
+              title={'입금 확인 요청'}
               description={dateTime(request.createdAt)}
             />
             <Badge
@@ -63,14 +59,6 @@ export function ShootRequests({
             </Badge>
           </div>
           {request.message && <p className={styles.preWrap}>{request.message}</p>}
-          {request.items.map((item, index) => (
-            <InfoRow
-              key={`${item.photoId}-${index}`}
-              label={`사진 ${shoot.photos.find((photo) => photo.id === item.photoId)?.cutNo ?? item.photoId}`}
-              value={item.comment}
-              className={styles.answer}
-            />
-          ))}
           {shoot.capabilities.includes('resolve_request') &&
             ['new', 'processing'].includes(request.state) && (
               <div className={styles.row}>

@@ -1,4 +1,4 @@
-// 고객 원본의 상단바·일곱 단계 표시·하단 행동 영역을 배치합니다.
+// 고객 원본의 상단바·다섯 단계 표시·하단 행동 영역을 배치합니다.
 'use client';
 
 import type { ReactNode } from 'react';
@@ -76,7 +76,7 @@ export function CustomerShell({
           )
         }
       />
-      {step && <StepHeader className={styles.stepHeader} {...step} />}
+      {step && <StepHeader className={styles.stepHeader} total={5} {...step} />}
       <main id="main" className={styles.main}>
         {children}
       </main>

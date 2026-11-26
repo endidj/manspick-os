@@ -1,5 +1,6 @@
 // manspick-site@54f4a375의 원본 배치·문구를 보존한 React 서버 컴포넌트입니다.
 import type { CSSProperties } from 'react';
+import Link from 'next/link';
 import { SourceImage } from './source-image';
 import { sourceImageSizes } from './source-image-sizes';
 import { SourceIcon } from './source-icon';
@@ -955,8 +956,9 @@ export function SourceReviews() {
             {'\n        당신에게 가장 잘 맞는 패키지를 아래에서 확인하세요.\n      '}
           </p>
           {'\n      '}
-          <a
+          <Link
             href="/recommend"
+            prefetch={false}
             className="reveal mt-8 inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold text-sm px-6 py-3 rounded-full transition-all duration-200 shadow-lg shadow-accent-500/20"
             style={{ transitionDelay: '220ms' } as CSSProperties}
           >
@@ -965,7 +967,7 @@ export function SourceReviews() {
             {'\n        나에게 맞는 패키지 찾기\n        '}
             <SourceIcon name="solar/arrow-right-linear" className="text-base" />
             {'\n      '}
-          </a>
+          </Link>
           {'\n      '}
           <p
             className="reveal text-xs text-zinc-600 mt-3"

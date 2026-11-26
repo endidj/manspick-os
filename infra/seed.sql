@@ -5,7 +5,8 @@ INSERT INTO staff(id,name,email,role) VALUES
  ('demo-staff','데모 운영 담당','demo-staff@manspick.co.kr','staff'),
  ('demo-director','데모 디렉터','demo-director@manspick.co.kr','director'),
  ('demo-retoucher','데모 보정가','demo-retoucher@manspick.co.kr','retoucher');
-INSERT INTO packages(id,name,price,original_price,duration,outfits,retouch_count,description) VALUES
+UPDATE staff SET hired_on='2024-01-01' WHERE id='demo-director';
+INSERT INTO packages(id,name,price_krw,original_price_krw,shoot_duration_minutes,outfits,retouch_count,description) VALUES
  ('one','원',95000,135000,90,1,5,'한 벌의 스타일과 자연스러운 첫인상 · iPhone 야외 촬영'),
  ('hybrid','하이브리드',160000,210000,120,2,7,'두 가지 스타일로 넓히는 나의 이미지'),
  ('allday','올데이',500000,890000,300,4,12,'스타일링부터 촬영까지 하루를 온전히');

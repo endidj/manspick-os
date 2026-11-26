@@ -1,5 +1,5 @@
 // 촬영 준비·현장 진행·공유 링크를 모으고 고객과 보정가에게 필요한 정보만 보여줍니다.
-import type { Actor, CustomerProfileDTO, FileLinkDTO, PreparationDTO } from '@manspick/contracts';
+import type { Actor, CustomerProfileDTO, PreparationDTO } from '@manspick/contracts';
 import { first, rows } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
 import { settingValue } from '../settings/values.ts';
@@ -36,18 +36,6 @@ export async function workspaceDetail(env: Env, actor: Actor, shoot: ShootRow) {
   ]);
   const hidden = actor.role === 'retoucher';
   const preparation = parseJSON<PreparationDTO | null>(workspace?.preparation_json, null);
-  const reviewApproved = await first(
-    env,
-    "SELECT id FROM requests WHERE shoot_id=? AND type='review' AND state='complete'",
-    shoot.id,
-  );
-  const links = hidden
-    ? []
-    : await rows<FileLinkDTO & { visible: number }>(
-        env,
-        'SELECT id,kind,label,url,published_at AS publishedAt,visible FROM external_file_links WHERE shoot_id=?',
-        shoot.id,
-      );
   return {
     directorId: hidden ? null : shoot.director_id,
     retoucherId: shoot.retoucher_id,
@@ -72,13 +60,7 @@ export async function workspaceDetail(env: Env, actor: Actor, shoot: ShootRow) {
             checks: parseJSON<string[]>(session?.steps_json, []),
             completedAt: session?.done_at ?? null,
           },
-    fileLinks: links
-      .filter(
-        (link) =>
-          actor.kind !== 'customer' ||
-          (link.visible && (link.kind !== 'original' || reviewApproved)),
-      )
-      .map(({ id, kind, label, url, publishedAt }) => ({ id, kind, label, url, publishedAt })),
+    fileLinks: [],
     paymentInstructions: hidden ? null : paymentInstructions,
     profile: hidden ? null : parseJSON<CustomerProfileDTO | null>(workspace?.profile_json, null),
   };

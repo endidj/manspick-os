@@ -1,5 +1,5 @@
 // 촬영 상태 변경과 내부 메모, 예약 취소 및 만료 처리를 준비합니다.
-import { assertTransition, DomainError } from '@manspick/domain';
+import { assertTransition, DomainError, statusInfo } from '@manspick/domain';
 import type { ShootStatus, StaffRole } from '@manspick/domain';
 import { expiredHold, HOLD_RELEASE_REASON, releaseHoldStatements } from '../../booking/holds.ts';
 import { first, statement } from '../../database/statements.ts';
@@ -32,29 +32,23 @@ export async function prepareLifecycle(
       )
         throw new DomainError('JOB_REQUIRED', '본인에게 배정된 진행 중 작업이 없습니다.', 409);
       to = requiredText(body, 'status', 40) as ShootStatus;
+      if (
+        statusInfo(to).stage >= 4 &&
+        !shoot.starts_at &&
+        (await first(env, 'SELECT 1 FROM booking_time_options WHERE booking_id=?', shootId))
+      )
+        throw new DomainError(
+          'CONFIRM_SCHEDULE_FIRST',
+          '담당 디렉터가 희망 일정 중 하나를 먼저 확정해주세요.',
+          409,
+        );
+      if (to !== 'cancelled' && statusInfo(to).stage > 5)
+        throw new DomainError('UNKNOWN_STATUS', '촬영 완료까지의 진행 상태를 선택해주세요.');
       if (to === 'cancelled')
         throw new DomainError('USE_CANCEL', '취소 동작에서 사유를 입력해주세요.');
       reason = typeof body.reason === 'string' ? body.reason.slice(0, 1000) : '';
       assertTransition(shoot.status, to, actor.role as StaffRole, reason);
       if (to === shoot.status) return null;
-      if (
-        ['selection_complete', 'retouch_assigned', 'retouching'].includes(to) &&
-        !(await first(env, 'SELECT id FROM selections WHERE shoot_id=?', shootId))
-      )
-        throw new DomainError('SELECTION_REQUIRED', '셀렉 제출 후 진행해주세요.', 409);
-      if (
-        to === 'delivered' &&
-        !(await first(
-          env,
-          "SELECT id FROM photos WHERE shoot_id=? AND kind IN ('retouched','revision')",
-          shootId,
-        ))
-      )
-        throw new DomainError('RESULT_REQUIRED', '보정 결과를 먼저 업로드해주세요.', 409);
-      if (to === 'selection_pending')
-        throw new DomainError('USE_SELECTION', '후보 공개 동작으로 셀렉을 열어주세요.');
-      if (to === 'delivered')
-        throw new DomainError('USE_RETOUCH', '보정 완료 동작으로 현재 작업 결과를 공개해주세요.');
       reason ||= '정상 상태 진행';
       break;
     }

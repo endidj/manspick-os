@@ -8,6 +8,10 @@ import { success } from '../http/responses.ts';
 import { demoData } from '../runtime/demo.ts';
 import { issueCustomerLink } from './customer-link.ts';
 import { customerLogin } from './customer-login.ts';
+import { beginSocial, finishSocial, socialOptions } from './customer-social.ts';
+import { first } from '../database/statements.ts';
+import { hash } from './crypto.ts';
+import { customer } from './permissions.ts';
 import { logout } from './sessions.ts';
 import {
   confirmStaffLogin,
@@ -18,6 +22,44 @@ import {
 
 @Controller('api')
 export class AuthenticationController {
+  @Get('auth/customer/social')
+  async social(@ApiContext() context: RequestContext) {
+    return success(await socialOptions(context.request, context.env, context.actor));
+  }
+
+  @Post('auth/customer/resume')
+  async resume(@ApiContext() context: RequestContext) {
+    customer(context.actor);
+    const token = requiredText(await jsonBody(context.request), 'token', 200);
+    const match = await first(
+      context.env,
+      'SELECT 1 FROM shoots WHERE id=? AND access_token_hash=?',
+      context.actor.id,
+      await hash(token),
+    );
+    return success({ shootId: match ? context.actor.id : null });
+  }
+
+  @Post('auth/customer/social/:provider/start')
+  async begin(@ApiContext() context: RequestContext, @Param('provider') provider: string) {
+    return success(await beginSocial(context.request, context.env, context.actor, provider));
+  }
+
+  @Post('auth/customer/social/:provider/finish')
+  async finish(@ApiContext() context: RequestContext, @Param('provider') provider: string) {
+    const body = await jsonBody(context.request);
+    return success(
+      await finishSocial(
+        context.request,
+        context.env,
+        context.actor,
+        provider,
+        requiredText(body, 'state', 128),
+        requiredText(body, 'code', 4096),
+      ),
+    );
+  }
+
   @Public()
   @Get('auth/staff/options')
   options(@ApiContext() context: RequestContext) {

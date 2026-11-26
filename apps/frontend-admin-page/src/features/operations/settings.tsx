@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Button, Loading, Notice, Panel } from '@manspick/design-system/components';
 import { Dialog, InfoRow, Tabs, TextArea, TextField } from '@manspick/design-system/patterns';
 import type { OperationsSettingsDTO } from '@manspick/contracts';
-import { money } from '@manspick/web/format';
 import { PageHeading } from '../workspace/page-heading';
 import { useSettings } from './use-settings';
 import { SettingsHistory } from './settings-history';
@@ -131,38 +130,12 @@ export function Settings({ actorId }: { actorId: string }) {
                           label="설문 마감"
                           value={`촬영 ${data.policy.surveyLeadDays}일 전`}
                         />
-                        <InfoRow
-                          label="의상 사진"
-                          value={`촬영 ${data.policy.outfitLeadDays}일 전`}
-                        />
                         <InfoRow label="휴무" value="디렉터별 등록" />
                       </div>
                       <Button
                         size="sm"
                         variant="secondary"
                         onClick={() => setPolicySection('schedule')}
-                      >
-                        편집
-                      </Button>
-                    </Panel>
-                    <Panel className={styles.productCard}>
-                      <h2>결과물 · 혜택</h2>
-                      <span className={styles.mapping}>후속 기준</span>
-                      <div className={styles.price}>
-                        수정 3회<small>요청 1번 = 1회</small>
-                      </div>
-                      <div className={styles.facts}>
-                        <InfoRow
-                          label="추가 보정"
-                          value={`${money(data.addons.find((addon) => addon.id === 'extra_retouch')?.price ?? 10000)} / 장`}
-                        />
-                        <InfoRow label="후기" value="확인 → 원본 전체" />
-                        <InfoRow label="사진 보관" value="보존 정책 확정 전" />
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setPolicySection('results')}
                       >
                         편집
                       </Button>
