@@ -6,7 +6,11 @@ import { format } from 'prettier';
 import sharp from 'sharp';
 
 const directory = new URL('../apps/frontend-landing-page/src/features/seo/icons/', import.meta.url);
-const fallback = new URL('../apps/frontend-landing-page/public/favicon.ico', import.meta.url);
+const appFavicons = [
+  new URL('../apps/frontend-landing-page/public/favicon.ico', import.meta.url),
+  new URL('../apps/frontend-customer-page/src/app/favicon.ico', import.meta.url),
+  new URL('../apps/frontend-admin-page/src/app/favicon.ico', import.meta.url),
+];
 const sourceHash = '98963b29d8487c66ba5a5a43e79169970c5ec34c1919a20213ad93bafe9442c9';
 const options = {
   version: 1,
@@ -90,8 +94,11 @@ async function main() {
         throw new Error(`Missing, changed or corrupt icon: ${name}`);
       }
     }
-    if (!(await readFile(fallback)).equals(await readFile(new URL('favicon.ico', directory)))) {
-      throw new Error('Public favicon fallback is stale');
+    const favicon = await readFile(new URL('favicon.ico', directory));
+    for (const target of appFavicons) {
+      if (!(await readFile(target)).equals(favicon)) {
+        throw new Error(`App favicon is stale: ${fileURLToPath(target)}`);
+      }
     }
     console.log(
       JSON.stringify({ check: true, originalBytes: original.length, files: manifest.files }),
@@ -119,7 +126,9 @@ async function main() {
     await writeFile(new URL(name, directory), bytes);
     records[name] = { bytes: bytes.length, sha256: hash(bytes) };
   }
-  await writeFile(fallback, files['favicon.ico']);
+  for (const target of appFavicons) {
+    await writeFile(target, files['favicon.ico']);
+  }
   await writeFile(
     manifestUrl,
     await format(JSON.stringify({ sourceSha256: sourceHash, options, files: records }), {
