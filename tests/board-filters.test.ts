@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { LocalD1, LocalStatement } from './helpers/local-d1.ts';
 import test from 'node:test';
+import { SHOOT_SELECT } from '../apps/server/src/shoots/access.ts';
 import { listBoardShoots, listShoots } from '../apps/server/src/shoots/queries.ts';
 import { hash } from '../apps/server/src/security/crypto.ts';
 import type { Env } from '../apps/server/src/runtime/env.ts';
@@ -30,6 +31,41 @@ function setup() {
   const env = { DB: d1 as unknown as D1Database, BUCKET: {} as R2Bucket } satisfies Env;
   return { database: d1.database, env };
 }
+
+test('shoot summaries and recent timeline entries use booking-specific indexes', (context) => {
+  const { database } = setup();
+  context.after(() => database.close());
+  const summary = `${SHOOT_SELECT} WHERE s.id=?`;
+  const recentEvents =
+    'SELECT id FROM timeline WHERE shoot_id=? ORDER BY created_at DESC LIMIT 100';
+  const shootId = 'demo-payment';
+  const shoot = database.prepare(summary).get(shootId);
+  assert.equal(shoot?.payment_state, 'pending');
+  assert.equal(shoot?.pending_notifications, 1);
+  assert.equal(database.prepare(summary).get('demo-preparation')?.payment_state, 'confirmed');
+  assert.deepEqual(
+    database
+      .prepare(recentEvents)
+      .all(shootId)
+      .map((event) => event.id),
+    ['demo-timeline-demo-payment'],
+  );
+
+  function queryPlan(query: string) {
+    return database
+      .prepare(`EXPLAIN QUERY PLAN ${query}`)
+      .all(shootId)
+      .map((row) => row.detail)
+      .join('\n');
+  }
+
+  const summaryPlan = queryPlan(summary);
+  assert.match(summaryPlan, /SEARCH payments .*payments_shoot_kind/);
+  assert.match(summaryPlan, /SEARCH notifications .*notifications_pending_shoot/);
+  const eventsPlan = queryPlan(recentEvents);
+  assert.match(eventsPlan, /SEARCH booking_events .*booking_events_booking_created/);
+  assert.doesNotMatch(eventsPlan, /TEMP B-TREE/);
+});
 
 test('operator board paginates all shootings with independent counts and search facets', async () => {
   const { database, env } = setup();
