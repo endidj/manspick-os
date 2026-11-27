@@ -1,50 +1,40 @@
-# @manspick/frontend-landing-page
+# 맨즈픽 랜딩 앱
 
-[운영 맨즈픽](https://www.manspick.co.kr/)과 [원본 저장소](https://github.com/JeongWhale/manspick-site/tree/54f4a375b5c3babe9f9bb82ac423c4be6686fb60)를 React·TypeScript·Next App Router·Vinext/Vite·Cloudflare Workers로 포팅한 앱이다. 관리자·고객 앱과 같은 기술 스택을 사용한다.
+서비스 소개, 촬영 패키지 추천, 상담을 제공하는 공개 사이트입니다. 루트에서 `yarn dev`를 실행하고 [localhost:3000](http://localhost:3000)을 엽니다. 화면 문구·사진·연출의 기준은 [원본 사이트 소스](https://github.com/JeongWhale/manspick-site/tree/54f4a375b5c3babe9f9bb82ac423c4be6686fb60)입니다.
 
-## 화면과 책임
+## 화면과 데이터
 
-- `features/landing/source-{hero,proof,how,reviews,offer,chrome}.tsx`: 원본 마크업·문구·이미지 비율을 보존하는 서버 컴포넌트.
-- `source-experience.tsx`, `source-runtime.ts`: React 수명에 연결한 스크롤·모달·폼·슬라이드 효과. 이벤트·타이머·관찰자를 해제하고 움직임 줄이기 설정을 지원한다.
-- `source-radar.ts`: 원본 Chart.js 4.6.1의 곡선·툴팁·애니메이션. 원본에서 사용하던 라이브러리를 버전·MIT 라이선스와 함께 자체 호스팅한다.
-- `features/package-quiz`: 원본 5단계 추천·7옵션·상담 견적. `marketing-offers.ts`에 원본 상담 상품을 분리한다. 관리자·고객 앱의 예약 상품이나 데이터를 변경하지 않는다.
-- `/terms`, `/privacy`: 원본 정책 문서와 배치. 구형 `/legal`은 `/terms`로 이동한다.
-- `features/seo`: canonical·OG·사업자/서비스 JSON-LD·운영 페이지 검색 허용. 구형 `.html` 주소는 query를 보존하며 308 이동한다.
-- `/api/[...path]`: 기존 `@manspick/web/proxy`의 공개 API 권한 경계.
+| 경로                 | 제공 방식과 담당 코드                                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                  | 빌드 시 HTML과 RSC를 생성합니다. [landing](src/features/landing/)에 섹션, 갤러리, 상담 폼과 방문 지표 수집이 있습니다.                               |
+| `/recommend`         | 요청 시 렌더링합니다. `?pkg=one`, `hybrid`, `allday`를 첫 화면에 반영합니다. [package-quiz](src/features/package-quiz/)에 추천·견적 계산이 있습니다. |
+| `/terms`, `/privacy` | 빌드 시 생성하는 약관·개인정보처리방침입니다. 이전 `.html` 주소는 쿼리를 보존해 새 주소로 이동합니다.                                                |
+| `/api/*`             | `@manspick/web/proxy`를 통해 공통 서버에 요청합니다.                                                                                                 |
 
-전체 HTML 삽입이나 원본 전역 스크립트 실행은 사용하지 않는다. 원본 CSS·정적으로 추출한 Tailwind utility는 `source.module.css` 안으로 범위를 제한한다. 공용 디자인 시스템의 폰트·SVG·타입·색상 토큰을 재사용하고 원본 전용 값은 `/styles/site-tokens.css`로 제공한다. 공용 UI의 기존 모양을 원본 화면에 강제하지 않는다.
+추천 견적은 [상담용 상품](src/features/package-quiz/marketing-offers.ts)을 사용하고 카카오 상담으로 연결합니다. 실제 주문과 희망 일정은 고객 앱에서 접수합니다. 상담 폼은 동의와 연락처를 확인한 뒤 기존 Google 양식으로 제출합니다. 잔여석·열람자 표시는 시뮬레이션 값입니다.
 
-사진 72개의 원본은 운영 사이트와 바이트 단위로 대조해 보존한다. 화면은 `@manspick/design-system/assets`의 `sourceImages`에 등록한 WebP 파생본과 `srcset`·`sizes`를 사용한다. EXIF·GPS·XMP·IPTC·ICC·주석은 파생본에서 제거하고 방향·투명도는 유지한다. [출처와 변환 방법](../../packages/design-system/src/assets/site/README.md)을 참고한다. CDN Tailwind·Iconify·폰트 요청은 필요하지 않다.
+## 검색과 캐시
 
-사진을 추가하거나 수정한 경우 루트에서 `yarn images:generate`를 실행하고 생성 결과를 함께 커밋한다. 소스·변환 설정·도구 버전·출력 해시가 같은 파일은 재사용하며, 일반 앱 빌드에서는 이미지를 변환하지 않는다. `yarn images:check`는 인코딩 없이 생성 결과와 메타데이터 제거 상태를 검사한다. 기존 Sharp 버전을 개발 의존성으로 고정했다.
+운영 빌드는 `https://www.manspick.co.kr`, 테스트 빌드는 `https://manspick-landing-test.winningant8.workers.dev`를 기본 주소로 사용합니다. 두 주소의 홈·약관·개인정보 페이지가 검색과 사이트맵에 포함됩니다. 추천·API와 로컬 개발 주소는 검색에서 제외합니다. 대표 주소, OG, 구조화 데이터의 기준은 [SEO 설정](src/features/seo/settings.ts)과 [빌드 설정](vite.config.ts)에서 확인할 수 있습니다.
 
-첫 화면 아바타는 작은 썸네일을 사용하고, 갤러리는 열 때 이미지를 만든다. 화면에 가까워진 슬라이드만 다음 사진을 미리 디코딩한다. 폰트는 기존 WOFF2·한글 서브셋을 유지하며 공통 Pretendard 조각 하나, 메인·추천 화면의 Geist만 preload한다. 글자 범위나 서체를 바꾸지 않는다.
+공개 페이지를 수정하면 다시 빌드합니다. 브라우저는 HTML을 재검증하고, Worker는 배포 버전에 해당하는 사전 생성 파일을 사용합니다. 해시가 붙은 정적 자산만 장기 캐시하며 내부 `/_vinext/static-cache/*` 파일은 직접 제공하지 않습니다.
 
-## 원본 동작과 명시적 차이
+고객사에 공유할 검색 최적화 설명은 [SEO·GEO 개선 보고서(PDF)](../../output/pdf/맨즈픽_SEO_GEO_개선_보고서.pdf)에 있습니다.
 
-계약상 랜딩에서 유입된 고객은 **고객 앱의 주문 페이지**에서 결제하고 예약을 신청한다. 랜딩의 모바일·데스크톱별 섹션 이탈, 체류 시간과 클릭은 별도 지표 확인 페이지의 집계 대상이다. [제품 요구사항](../../docs/01-product-requirements.md)
+## 사진·아이콘·라이선스
 
-상담 견적은 원본의 ONE 85,000원·HYBRID 160,000원·ALL DAY 500,000원이다. 카카오 상담으로 연결되며 예약·결제로 자동 전달하지 않는다. 원본의 잔여석·열람자·최근 신청 표시는 시뮬레이션으로, 실제 예약 재고나 API에 쓰지 않는다.
-
-원본의 깨진 `team-influencer-7.jpg` 참조를 실제 `7.JPG`로 고쳤다. 의류 관심 선택 시 수량 0으로 금액만 더하던 원본 계산 오류는 수량 1로 일관되게 처리한다. 원본에서 로드되지 않는 아이콘 3개의 빈 공간은 그대로 유지한다.
-
-상담 폼은 개인정보 동의와 이름·전화번호 확인 후 원본 Google Forms에 native POST한다. 새 탭에서 접수 결과를 확인하도록 안내하며 접수 성공을 추정하지 않는다. GA/GTM 추적은 이식하지 않았다. 모달 포커스·Escape·스크롤 복구와 JavaScript 없는 본문 가독성을 보완했다.
-
-## 검색 공개와 환경
-
-2026-11-18 추가 요청에 따라 **운영 주소와 기존 Cloudflare 테스트 주소의 랜딩·약관·개인정보 페이지는 검색 허용**이다. 추천·API·고객·어드민·Empty·Storybook은 검색 제외를 유지한다. Vite의 production/test 빌드와 허용된 origin이 일치할 때 공개 메타데이터와 사이트맵을 생성한다. 개발 서버와 그 외 빌드 모드는 noindex이며 사이트맵이 비어 있다. 검색 정책은 내부 `MANSPICK_SITE_*` 빌드 상수로 전달한다.
-
-production 빌드의 `NEXT_PUBLIC_SITE_ORIGIN` 기본값은 `https://www.manspick.co.kr`이고, test 빌드는 `https://manspick-landing-test.winningant8.workers.dev`를 사용한다. 두 주소만 검색을 허용하며 다른 호스트는 HTTP `X-Robots-Tag`와 정적 자산 `_headers`로 제외한다. robots.txt는 추천 등의 noindex를 읽을 수 있도록 `Allow: /`를 유지한다. 사이트맵에는 해당 빌드 주소의 `/`, `/terms`, `/privacy`와 공개 이미지를 제공한다. 카피·사진·통계·연출은 변경하지 않았다. [검색 공개 정책과 남은 작업](../../docs/reference/27-landing-seo.md)
-
-canonical·구조화 데이터·사이트맵·공유 메타데이터는 각 빌드의 배포 주소로 일치시킨다. test 빌드는 기존 Vercel 대신 Cloudflare Worker를 자신의 대표 주소로 안내한다. 사용자가 지정한 스마트스토어 상품 이미지는 상단 인물 중심의 1200×630 가로형으로 제공한다. 얼굴은 온전히 보이게 하고 하단 `1% 비주얼…` 문구는 공유 이미지에서 제외한다. 정사각형 원본은 보관하며, 배포 검증에서는 태그의 절대 이미지 URL을 그대로 요청해 200·JPEG·1200×630을 확인한다. [이미지 출처](../../docs/reference/27-landing-seo.md#스마트스토어-og-이미지-교체--2026-11-17)
+- 랜딩 사진은 디자인 시스템의 `sourceImages`에서 가져옵니다. 사진을 교체할 때는 원본 목록과 크기별 WebP를 함께 갱신합니다. [자산 출처와 갱신](../../packages/design-system/README.md#자산-출처와-갱신)
+- 공유 이미지는 스마트스토어 상품 사진 상단을 1200×630으로 자른 JPEG입니다. 원본과 [배포 이미지](public/images/og-smartstore-11725751378-wide.jpg)를 함께 보관합니다. [원본 상품](https://smartstore.naver.com/_manspick/products/11725751378)
+- 파비콘 원본을 교체하면 `node scripts/generate-site-icons.mjs`로 생성하고 `--check`로 확인합니다. [아이콘 생성 설정과 해시](src/features/seo/icons/manifest.json)
+- 레이더 차트는 Chart.js 4.6.1을 자체 호스팅합니다. 배포 파일의 SHA-256은 `87364cc2b2a76a6684929e7d6b80b18a897794db38400caff1fcf1791c6925d2`입니다. [원본 배포 파일](https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js) · [MIT 라이선스](public/vendor/chartjs/LICENSE.md)
 
 ## 검증
 
-루트에서 `yarn typecheck`, `yarn lint`, `yarn test`, `yarn build`를 실행한다. 추천 단위 검사는 `yarn tsx --test apps/frontend-landing-page/src/features/package-quiz/recommendation.test.ts`다.
+랜딩 앱을 실행한 뒤 저장소 루트에서 브라우저 검사를 실행합니다. 상담 제출은 테스트가 가로챕니다.
 
 ```powershell
 $env:LANDING_APP_URL = 'http://127.0.0.1:3000'
 node --test --test-concurrency=1 tests/landing.browser.test.mjs tests/landing-site.browser.test.mjs tests/landing-media.browser.test.mjs tests/landing-fonts.browser.test.mjs
 ```
 
-브라우저 검사는 실제 제출을 가로채 외부 고객 정보를 보내지 않는다. 원본 대조·예외·배포 검증은 [마이그레이션 기록](../../docs/reference/23-landing-site-migration.md)에 기록한다. Vinext 개발 서버에서는 next.config의 응답 헤더가 생략되는 현상이 있으므로 검색 제외 HTTP 헤더는 배포용 빌드 프리뷰와 실제 배포에서도 검증한다.
+SSG와 검색 헤더는 빌드 프리뷰에서 확인합니다. [정적 페이지 검사](../../tests/landing-static.browser.test.mjs)는 `LANDING_BUILD_ROOT`에 빌드한 앱 디렉터리, `LANDING_APP_URL`에 해당 프리뷰 주소를 지정합니다. 검색 허용 빌드는 `LANDING_INDEXABLE=true`를 사용합니다.

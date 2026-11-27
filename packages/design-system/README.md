@@ -1,145 +1,67 @@
 # @manspick/design-system
 
-맨즈픽 admin/user/landing의 공용 Yarn workspace. Figma 원본 11종, 화면에서 추출한 반복 UI17종, 기존 앱 공통 UI8종과 토큰·폰트·아이콘·Storybook을 포함한다. DB·인증·업무 상태·업로드 네트워크 처리는 앱에 둔다.
+고객·운영·랜딩 앱이 공유하는 React 컴포넌트, 스타일과 자산을 제공한다. 화면을 추가할 때 아래 공개 경로와 Storybook에서 기존 UI의 상태와 조합을 먼저 확인한다.
 
-## 폴더와 책임
+| 공개 경로 (`@manspick/design-system/` 하위)                                  | 용도                                                                   |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [components](src/components/index.ts)                                        | Button, DateCell, PhotoTile, StageBadge 등 개별 UI와 props             |
+| [patterns](src/patterns/index.ts)                                            | 라벨·오류가 연결된 입력, 탭, 모달·드로어, 업로더 등 반복되는 화면 구성 |
+| [tokens](src/tokens/index.ts)                                                | 원본 값, 용도별 색상, 컴포넌트별 값, 타이포그래피                      |
+| [icons](src/icons/index.ts) · [assets](src/assets/index.ts)                  | 아이콘 이름과 컴포넌트, 브랜드·랜딩 사진, 로컬 폰트 URL                |
+| [styles](src/styles/base.css) · [styles/landing.css](src/styles/landing.css) | 앱 루트에서 한 번 불러오는 공통 스타일과 랜딩용 스타일 진입점          |
 
-```text
-src/
-  components/
-    button/                 # 구현·공개 index·전용 CSS·예제
-    brand/, badge/, ...     # 기존 공통 UI도 각각 한 폴더
-    index.ts                # 공개 컴포넌트·타입 재내보내기
-  patterns/
-    text-field/, dialog/ ... # 입력·선택·요약 등 화면 조합 UI
-    index.ts
-  tokens/
-    primitive.ts            # 원본 기본 값·출처·기존 기본 값 별칭
-    semantic.ts             # 배경·글자·상태와 기존 색상 별칭
-    component.ts            # 버튼·패널·날짜 칸에 연결한 값
-    typography.ts           # 글자 스타일 조합
-    index.ts
-  icons/                    # SVG 표시 컴포넌트·이름/별칭 목록
-  assets/
-    icons/, fonts/          # 변경하지 않은 원본과 라이선스
-    brand/                  # 브랜드 PNG 원본47개·WebP·manifest·Storybook
-    site/                   # manspick-site 원본 사진72개·URL 목록·SHA-256 manifest
-    manifest.ts             # 자산 수량·출처·로컬 보관 상태
-    index.ts
-  styles/
-    base.css                # 외부에서 가져오는 스타일 진입점
-    tokens.css, fonts.css   # CSS 변수·로컬 폰트
-    foundation.css          # reset·글자·기본 입력 요소
-    app-components.css      # 기존 공통 UI의 전역 클래스
-    app-layout.css          # 기존 앱 배치·사진·폼 전역 클래스
-    responsive.css          # 모바일·움직임 줄이기 덮어쓰기
-.storybook/                 # 예제 실행·문서·브라우저 테스트 설정
-```
+`components/button`, `patterns/text-field`와 같은 개별 공개 경로도 사용할 수 있다. 인터랙션에 필요한 클라이언트 경계는 개별 모듈에 둔다. Next.js에서 이벤트 핸들러를 넘길 때는 호출하는 컴포넌트에 클라이언트 경계를 둔다. [패키지 공개 경로](package.json)
 
-모든 `index.ts`는 다른 파일의 값과 타입만 내보낸다. 구현이나 초기화는 각 책임 파일에 둔다. 토큰은 서로 연결되는 네 파일로 묶어 단일 값마다 파일을 만들지 않는다. 이 패키지는 `domain`, `api`, `web`에 의존하지 않으며 업무별 이름·선택 가능 여부·저장 동작을 props와 slot으로 받는다.
+## 화면 기준
 
-컴포넌트와 패턴의 CSS Module은 구현 옆에 둔다. TextField·TextArea·SelectField는 `patterns/field-layout`에서 라벨·도움말·오류를 입력 요소에 연결한다. TextField와 TextArea는 이 폴더의 텍스트 입력 스타일도 공유한다. 기존8종의 전역 클래스는 앱에서도 직접 사용하므로 `app-components.css`에 모아 호환성을 유지한다. `base.css`는 토큰 → 폰트 → 기본 요소 → 기존 공통 UI → 기존 앱 배치 → 반응형 순서로 가져온다. 마지막 반응형 규칙을 앞쪽 파일로 이동하지 않는다.
+색상·서체·간격을 한눈에 비교할 때는 [Figma 토큰 미리보기](../../docs/sources/figma-design-tokens-preview.png)를 사용한다.
 
-소스와 설정의 맨 위에는 쉬운 한국어 설명이 있다. 원본 SVG·폰트·라이선스·JSON에는 설명 주석을 넣지 않는다. 자산 설명은 각 자산 폴더의 README와 `manifest.ts`에서 관리한다.
+- 고객과 운영 화면은 다크 배경과 파란 강조색, 4px 단위 간격을 사용한다. 고객 화면은 작은 기기부터 데스크톱까지 대응하고 운영 목록은 한눈에 볼 수 있도록 조밀하게 배치한다. 색·글자·간격을 바꿀 때는 기존 semantic·typography 토큰을 먼저 확인한다. [Figma Foundations](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=0-1) · [공통 CSS 변수](src/styles/tokens.css)
+- Figma에서 공용 컴포넌트는 Components, 고객 여정은 Customer Screens, 운영 화면은 Internal을 기준으로 비교한다. [Components](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=1-3) · [Customer Screens](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=1-2) · [Internal](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=56-2)
+- 상태는 문구로도 표시한다. 키보드 포커스·로딩·오류·빈 상태를 확인하고 움직임을 줄이는 사용자 설정을 따른다. 기본 버튼과 일부 선택 상태의 원본 파랑(`#2D76F6`)과 흰 글자 대비는 약 4.17:1이다. Storybook은 `data-contrast-exception="figma-blue500"`를 지정한 요소에서만 해당 대비 검사를 제외한다. [접근성 검사 설정](.storybook/preview.ts)
 
-## 실행
+## 컴포넌트 사용 시 주의점
 
-저장소 루트에서:
+- `Button`의 기본 타입은 `button`이다. 폼 제출에는 `type="submit"`, 아이콘만 있는 버튼에는 접근 가능한 이름을 준다. `Icon`은 기본적으로 장식용이며 정보를 전달할 때는 `label`을 준다.
+- `DateCell`은 날짜 한 칸을 표시한다. 달력 탐색과 예약 가능 여부는 앱에서 처리한다. `PhotoTile`에는 컷 번호가 포함된 이름과 선택 가능 여부를 넘긴다. `UploadDropzone`은 선택하거나 드롭한 파일을 앱에 전달한다. 접근 권한·장수 제한·서버 검증·재시도는 앱과 서버가 처리한다.
+- `StageBadge`의 `label`은 실제 업무 단계에서 매핑한다. `PriceCard`는 현재 상품의 가격을 받고, `TemplateBlock`의 복사와 수동 발송 완료 표시는 앱이 별도로 처리한다.
+
+## Storybook
+
+저장소 루트에서 실행한다. 개발 주소는 `http://127.0.0.1:6006`이며 Storybook만 띄울 때는 API나 로컬 DB가 필요하지 않다.
 
 ```sh
 yarn storybook
-# http://127.0.0.1:6006
-
-yarn storybook:browser  # 최초 한 번: Chromium을 .local/playwright에 설치
-yarn storybook:test     # 실제 Chromium interaction + axe 접근성 검사
-yarn storybook:build    # .local/storybook-static
+yarn storybook:browser  # 처음 한 번 테스트용 Chromium 설치
+yarn storybook:test     # Chromium 상호작용과 axe 접근성 검사
+yarn storybook:build    # 정적 결과물은 .local/storybook-static
 ```
 
-6006이 이미 사용 중이면 두 번째 서버를 띄우지 않고 종료한다. Storybook만 실행해도 D1/R2나 Cloudflare 계정은 필요하지 않다. 정적 빌드·브라우저 바이너리는 gitignore된 `.local`에 저장한다. Storybook은 개발 의존성이며 앱 런타임 의존성이 아니다.
+컴포넌트 옆의 `*.stories.tsx`에 주요 상태를 추가하고, 키보드·선택·닫기 같은 상호작용은 `play`에서 검사한다. 반복 실행은 `yarn storybook:watch`, 설정·예제 타입 검사는 `yarn workspace @manspick/design-system typecheck:storybook`을 사용한다.
 
-Overview에서 대표 조합을 보고 Foundations·Components·Patterns·Icons에서 개별 props와 상태를 조작한다. Docs/Controls와 접근성 패널을 제공한다. 테스트는 `play`와 `addon-a11y(test:error)`를 사용한다. 네이티브 `<summary>`/`<dialog>`의 Enter/Escape는 Chromium의 trusted keyboard로 확인한다.
+## 자산 출처와 갱신
 
-상세 실행·검사 방법과 설정은 [Storybook 가이드](../../docs/reference/STORYBOOK.md)를 참고한다.
+앱은 `@manspick/design-system/assets`에서 사진과 폰트 URL을 가져온다. 아래 명령은 저장소 루트에서 실행한다.
 
-## 사용
+### 사진
 
-앱 루트 layout에서 스타일을 한 번 가져온다. Next 앱의 `transpilePackages`에는 이 workspace가 등록돼 있다.
+- **브랜드 사진**은 Figma에서 PNG로 내보내 보관하고 `brandImages[name]`으로 WebP와 치수를 제공한다. 프로젝트에 제공된 사진만 여기에 둔다. 고객 업로드·설문·보정본은 인가된 파일 저장소에서 관리한다. [Figma 99 Assets](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=12-4) · [원본과 WebP 해시](src/assets/brand/figma-export-manifest.json)
+- **랜딩 사진**은 `sourceImages[name]`의 `src`, `srcSet`, 치수와 표시 폭에 맞는 `sizes`를 사용한다. 작은 사진에는 `thumbnailSrc`를 쓴다. 교체 시 원본과 목록의 크기·SHA-256을 갱신하고 `yarn images:generate`, `yarn images:check`를 실행한다. 방향·투명도는 보존하고 EXIF·GPS를 제거한 WebP, manifest, `src/assets/site/source-images.ts`를 함께 반영한다. [원본 저장소](https://github.com/JeongWhale/manspick-site/tree/54f4a375b5c3babe9f9bb82ac423c4be6686fb60) · [원본 목록](src/assets/site/originals/manifest.json) · [웹용 사본 목록](src/assets/site/generated/manifest.json)
 
-```tsx
-import '@manspick/design-system/styles.css';
-import { Button, PhotoTile } from '@manspick/design-system/components';
-import { TextField, Dialog } from '@manspick/design-system/patterns';
-import { Icon } from '@manspick/design-system/icons';
+### 아이콘
 
-<Button
-  loading={saving}
-  onClick={save}
-  trailingIcon={<Icon name="solar/arrow-right-linear" size={18} />}
->
-  저장하고 계속
-</Button>;
+원본 SVG는 Figma에서 내보냈다. `src/assets/icons/`의 `compat/`, `customer/`, `site/`에는 각각 앱 호환 도형, 고객 화면 도형, 공개 사이트 아이콘을 둔다. 고객 상단바 로고는 `customerLogo`로 제공한다. 변경 후 `node scripts/generate-icon-sprite.mjs`로 스프라이트를 만들고 같은 명령에 `--check`를 붙여 검사한다. [Figma 98 Icons](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/?node-id=14-2) · [원본 해시](src/assets/icons/figma-export-manifest.json)
+
+Solar의 제작자는 Damir Tuarshe / 480 Design이다. 랜딩의 카카오톡·Instagram 아이콘은 Iconify가 제공하는 Remix Design의 `ri:kakao-talk-fill`과 Pictogrammers의 `mdi:instagram`을 쓴다. MDI의 Brand/Logos에는 별도 상표 조건이 적용된다. [Solar Icon Set](https://github.com/480-Design/Solar-Icon-Set) · [Remix Icon 라이선스](https://github.com/Remix-Design/RemixIcon/blob/master/License) · [MDI 라이선스](https://pictogrammers.com/docs/general/license/)
+
+### 폰트
+
+Pretendard v1.3.9의 가변 서브셋과 Geist Sans v1.8.2를 자체 호스팅한다. 랜딩 문구의 글리프는 `Manspick Landing Sans`와 `Manspick Landing Display`에 담고 새 문자·사용자 입력은 원본 폰트로 폴백한다. 파생본의 고유 이름과 원본의 저작권 고지, Geist의 두 라이선스 파일을 보존한다. [Pretendard](https://github.com/orioncactus/pretendard/tree/v1.3.9) · [서브셋 해시](src/assets/fonts/pretendard/manifest.json) · [Geist](https://github.com/vercel/geist-font/tree/v1.8.2) · [Pretendard OFL](src/assets/fonts/OFL-Pretendard.txt) · [Geist OFL](src/assets/fonts/OFL-Geist.txt) · [Geist LICENSE](src/assets/fonts/LICENSE-Geist.txt)
+
+랜딩 문구를 바꾸면 `node scripts/generate-landing-fonts.mjs --check`를 실행한다. 새 글리프가 필요할 때 아래 명령으로 재생성한다. [생성 설정과 해시](src/assets/fonts/landing/manifest.json)
+
+```sh
+python -m pip install --target .local/font-tools --only-binary=:all: --no-deps fonttools==4.68.0 Brotli==1.2.1
+node scripts/generate-landing-fonts.mjs
+node --test tests/landing-fonts.test.mjs tests/fonts.test.ts
 ```
-
-`components/button`, `patterns/text-field`처럼 컴포넌트별 공개 index.ts 경로도 지원한다. 루트 barrel에 `use client`를 붙이지 않는다. hooks나 내부 이벤트 연결이 필요한 TextField·TextArea·SelectField·ChipGroup·RadioPills·ChoiceCard·Tabs·Dialog·UploadDropzone·TemplateBlock·Switch는 개별 client 모듈이다. 이벤트 handler를 전달하는 부모는 Next client 경계에서 작성한다. 단순 표시 컴포넌트와 SettingRow는 서버에서 렌더링할 수 있다.
-
-관리자 공통 입력은 `SelectField`(라벨·안내·오류와 native 단일 select), `ChipGroup`(다중 선택/선택 제거), `SettingRow`(제목·설명·현재 값·action slot)를 사용한다. 기존 `Tabs`의 `variant="flush"`는 관리자 원본 여백을 제공하며 같은 키보드/실제 panel 연결을 유지한다. 업무 데이터와 조건 판정·저장은 앱에 둔다. 상세 API와 예제는 [patterns README](src/patterns/README.md)를 참조한다.
-
-`Switch`는 관리자 상품 화면에서 추출한 36×20 토글이다. 필수 `label`과 `checked`/`onCheckedChange`를 받으며 `hideLabel`은 라벨을 시각적으로만 숨긴다. `disabled`·`name`·`value`·`id`·`ref` 등 native input 속성을 지원한다. `className`은 바깥 label에 적용한다. 색상·크기·thumb는 `componentTokens.switch`와 `--mp-switch-*`에 연결하고 저장·권한·로딩 상태는 앱이 결정한다. 상품·부가서비스·편집 창과 템플릿 활성에서 재사용한다. Storybook `Components/Switch`에서 클릭·Space·Tab·disabled·폼 값을 검사한다.
-
-## 원본 대응
-
-파일: [Manspick OS — Customer UI](https://www.figma.com/design/cDXVLqZAaWwZeyIo5pqnNl/). 네이티브 MCP는 편집 권한 오류가 남아 있어 로그인된 브라우저의 레이어·속성·SVG/PNG 네이티브 export를 사용했다. 원본 파일을 수정하지 않았다.
-
-| UI            | 원본 node | 핵심 인터페이스                                                                       |
-| ------------- | --------- | ------------------------------------------------------------------------------------- |
-| Button        | 3:10      | native props, variant, size, loading, fullWidth, leading/trailingIcon                 |
-| TimeSlot      | 3:17      | label, selected, availability; 선택은 onClick                                         |
-| DateCell      | 3:30      | day, selected, today, marker, native button props                                     |
-| CheckItem     | 3:47      | label, description, completed, trailing                                               |
-| PhotoTile     | 3:60      | image slot, label, selected/onSelectedChange, selectionOrder, status/progress/onRetry |
-| StepHeader    | 3:79      | title, current, total                                                                 |
-| AppBar        | 4:2       | brand, leading, actions slot                                                          |
-| StageBadge    | 51:47     | stage, 필수 label, tone                                                               |
-| TemplateBlock | 51:80     | message, sent/onSentChange, async onCopy, variableHint                                |
-| KanbanCard    | 51:96     | href, title, packageLabel, status slot, dateLabel, assignee, nextAction               |
-| NavItem       | 51:134    | href, icon, active, badge, native anchor props                                        |
-
-추가 UI는 고객(1:2), 랜딩(12:2), 추천(12:3), 내부 운영(56:2)에서 추출했다.
-
-| UI                                    | 책임                                                                                                        |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| TextField / TextArea                  | controlled value/onValueChange, label/hint/error/required, native input props                               |
-| RadioPills / ChoiceCard               | 결제 경로·추천/옵션 선택, 선택 상태·disabled·설명                                                           |
-| SectionHeader / SummaryCard / InfoRow | 제목·요약·메타 정보와 action slot                                                                           |
-| StickyActionBar                       | 안전 영역과 하단 CTA 조합. 위치 정책은 앱 className으로 조정                                                |
-| Tabs                                  | controlled value/items, 좌우/Home/End 포커스, Enter/Space 수동 활성화                                       |
-| Dialog                                | controlled open/onOpenChange, modal/drawer, title/description/actions, native focus containment/Escape/복귀 |
-| UploadDropzone                        | accept/multiple/disabled, 파일 선택·drop의 FileList 전달                                                    |
-| PriceCard / Accordion                 | 가격·기능·action 전달, native details/summary FAQ                                                           |
-
-기존 Brand·Badge·Panel·Field·EmptyState·Notice·Loading·Steps는 호환용이다. 앱의 예약 시간·사진 셀렉·운영 메뉴/카드는 새 UI로 옮겼다. 모든 기존 화면을 Figma와 픽셀 단위로 재구현한 범위는 아니다.
-
-## 토큰·폰트·아이콘
-
-- `tokens`는 primitive → semantic → component 3단계와 typography11종을 제공한다. `styles/tokens.css`에서 같은 값을 CSS custom properties로 쓴다. 색상·폰트·굵기·크기·간격·radius는 원본에서 확인했고 line-height/letter-spacing과 CSS 이름은 구현 보완이다.
-- 기본 primary 버튼·선택 날짜/시간/사진 순번 배경은 Figma 원본 blue500이다. 파란 StageBadge 글자는 blue300을 쓴다. 기본 색과 hover 색은 별도 토큰으로 유지한다.
-- 2026-11-06 사용자 결정으로 원본 blue500(`#2D76F6`)/흰 글자를 그대로 유지한다. 작은 글자의 대비는 약4.17:1로 WCAG AA 4.5:1에 못 미친다. Storybook은 이 조합을 쓰는 primary 버튼·선택 날짜/시간·추천 라벨의 `color-contrast`만 명시적으로 예외 처리하고 다른 색상·이름·키보드·포커스 검사는 유지한다. 해당 예제는 실제 배경/글자 색을 별도 검사한다. 따라서 Storybook 통과는 이 대비 조합의 접근성 충족을 뜻하지 않는다.
-- 앱 색상은 semantic `--mp-color-*`, 글자 크기·굵기·행간은 `--mp-type-*`를 먼저 사용한다. 내부 화면의 보라/분홍 상태와 채널 미리보기·사진 오버레이는 공통 semantic 토큰으로 확장했다. 화면 CSS에 HEX/RGB·반복 글자 크기를 복사하지 않는다.
-- Pretendard/Geist WOFF2를 자체 호스팅하며 OFL·해시·출처를 [fonts README](src/assets/fonts/README.md)에 보관한다. Pretendard는 공식 dynamic subset 92개를 `unicode-range`로 선택 로딩하고, Geist는 기존 약70KB 가변 파일을 사용한다. 전체 Pretendard 원본은 보존하지만 앱 CSS에서 참조하지 않으며 폰트를 전역 preload하지 않는다.
-- 원본 SVG **53개**(Solar51, Kakao1, Instagram1)는 변경 없이 보관하고 SHA-256을 기록했다. [icons README](src/assets/icons/README.md). `Icon name`은 원본 이름53개와 기존 별칭20개를 허용한다. 그 중 원본에 없는 호환 도형5개는 별도다.
-- Icon 기본24px, SVG sprite/currentColor. label이 없으면 장식용, 있으면 role=img. PhotoTile의 image에 native image/Next Image를 전달하고 URL·비공개 접근 정책은 앱에서 결정한다.
-- 브랜드 사진 **47개**를 Figma `99 Assets`(12:4)에서 PNG 3x로 가져왔다. 540×720px 원본 22,612,477바이트를 보존하고 같은 크기의 WebP 47개·2,300,354바이트를 앱에서 사용한다. 이전 38개 목록에 styling 2~9·12를 더한 실제 수량이다. [브랜드 README](src/assets/brand/README.md)와 [내보내기 manifest](src/assets/brand/figma-export-manifest.json)에 원본·압축본 해시와 출처를 기록하며, `/assets`의 `brandImages`·`BrandImageName`으로 참조한다. `Foundations/Brand images` Storybook은 47개 로딩을 확인한다. 고객 사진·설문·보정본은 공용 패키지에 저장하지 않는다.
-
-## 소비자가 지켜야 할 계약
-
-랜딩 포팅의 `sourceImageUrls`·`SourceImageName`은 `JeongWhale/manspick-site` 커밋 `54f4a375b5c3babe9f9bb82ac423c4be6686fb60`의 원본 사진 72개를 제공한다. 운영 사이트와 해시가 모두 일치하며 픽셀·자르기를 변경하지 않는다. 경로·SHA-256과 용도는 [사이트 자산 기록](src/assets/site/README.md)에 있다. 기존 `brandImages` 계약은 유지한다. 원본 전용 색상·타입 값은 `/styles/site-tokens.css`로 제공한다.
-
-Button의 기본 type은 button이다. 폼 제출에는 `type="submit"`을 지정한다. 아이콘만 넣는 버튼에는 aria-label을 준다. DateCell은 aria-label에 보이는 day를 접두사로 보존한다. PhotoTile의 label은 footer의 보이는 컷 번호를 포함해야 한다.
-
-PhotoTile은 장수 제한·결제·권한을 판단하지 않는다. 앱이 선택 가능 여부를 disabled로 전달하며 제출 이후 중복 변경을 막는다. DateCell은 단일 버튼이고 달력 전체의 roving focus나 날짜 계산을 포함하지 않는다. 업로더는 파일 선택 UI이며 파일 보안 검사·진행·네트워크 재시도는 서버/앱에 남는다.
-
-StageBadge 원본은 2=설문/3=일정이고 최신 업무 규칙은 순서가 다르다. `label`을 필수로 받아 업무 상태의 명시적 매핑을 요구한다. source preset은 원본 예시용이다. PriceCard의 가격·정책과 TemplateBlock의 변수 치환도 소비자가 전달한다. 복사/수동 발송 완료 표시는 실제 외부 메시지 전송을 뜻하지 않는다.
-
-컴포넌트 CSS Modules와 custom properties를 사용하고 앱별 스타일을 분리한다. `sideEffects: ["**/*.css"]`로 스타일 누락을 방지한다. 동적 이름을 받는 Icon manifest의 정적 URL은 번들에 포함되며 모든 SVG가 개별 tree shaking된다고 주장하지 않는다.
-
-자동 a11y/interaction 검사는 지원 범위의 증거다. 모든 브라우저, 모든 화면 픽셀 비교, 86개 제품 수용 기준 전체 검증과 구분한다. 초기 검사 결과는 [1차 구현과 검증 기록](../../docs/archive/09-implementation-status.md)에 있다.
