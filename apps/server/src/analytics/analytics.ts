@@ -148,7 +148,7 @@ export async function metrics(env: Env) {
     ),
     first<{ confirmed: number }>(
       env,
-      "SELECT COUNT(*) AS confirmed FROM payments WHERE state='confirmed'",
+      "SELECT COUNT(*) AS confirmed FROM payments WHERE state='confirmed' AND channel NOT IN ('kmong','soomgo','frip','smartstore')",
     ),
   ]);
   return { visits, sections, orders, postOrder, confirmedPayments: payments?.confirmed ?? 0 };

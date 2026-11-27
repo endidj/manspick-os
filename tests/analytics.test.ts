@@ -54,7 +54,11 @@ test('metrics deduplicate visits and confirmed transactions, exclude external ch
   );
   assert.equal(
     result.confirmedPayments,
-    db.prepare("SELECT COUNT(*) AS n FROM payments WHERE state='confirmed'").get()?.n,
+    db
+      .prepare(
+        "SELECT COUNT(*) AS n FROM payments WHERE state='confirmed' AND channel IN ('bank','pg','unpaid')",
+      )
+      .get()?.n,
   );
   assert.equal(
     (await handleRequest(new Request('http://localhost/api/analytics/metrics'), env)).status,

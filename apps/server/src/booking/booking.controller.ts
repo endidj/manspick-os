@@ -5,6 +5,7 @@ import { ApiContext } from '../http/context.ts';
 import type { RequestContext } from '../http/context.ts';
 import { jsonBody } from '../http/input.ts';
 import { success } from '../http/responses.ts';
+import { testCheckoutEnabled } from '../runtime/env.ts';
 import { calendar } from './calendar.ts';
 import { catalog } from './catalog.ts';
 import { start } from './start.ts';
@@ -14,7 +15,10 @@ export class BookingController {
   @Public()
   @Get('catalog')
   async catalog(@ApiContext() context: RequestContext) {
-    return success(await catalog(context.env));
+    return success({
+      ...(await catalog(context.env)),
+      testCheckoutEnabled: testCheckoutEnabled(context.request, context.env),
+    });
   }
 
   @Public()

@@ -95,15 +95,17 @@ export function PaymentView({
     return (
       <>
         <header className={layout.stack}>
-          <p className={layout.overline}>STEP 2 · 결제 완료</p>
-          <h1>결제가 확인됐어요</h1>
+          <p className={layout.overline}>STEP 2 · 결제</p>
+          <h1>{platform ? `${platform}에서 결제한 예약이에요` : '결제가 확인됐어요'}</h1>
           <p>
             {needsSurvey
-              ? '결제 확인이 끝났어요. 이제 설문을 작성하고 촬영을 준비해주세요.'
-              : '결제 확인이 끝났어요. 나의 촬영 홈에서 다음 진행상태를 확인해주세요.'}
+              ? '설문을 작성하면 담당 디렉터가 희망 일정 중 하나를 확정해요.'
+              : '나의 촬영 홈에서 다음 진행상태를 확인해주세요.'}
           </p>
         </header>
-        <Notice tone="success">결제 확인 완료</Notice>
+        <Notice tone="success">
+          {platform ? '외부 플랫폼 결제 · 예약 완료' : '결제 확인 완료'}
+        </Notice>
         <SummaryCard
           label="예약한 촬영"
           value={
@@ -114,7 +116,10 @@ export function PaymentView({
             </>
           }
         />
-        <InfoRow label="확인된 결제 금액" value={money(shoot.totalAmount)} />
+        <InfoRow
+          label={platform ? '예약한 촬영 금액' : '확인된 결제 금액'}
+          value={money(shoot.totalAmount)}
+        />
         <SceneFooter>
           {needsSurvey && (
             <Button fullWidth onClick={() => onNavigate('survey')}>
@@ -148,7 +153,7 @@ export function PaymentView({
           {platform ? (
             `${platform}에서 결제하신 내역을 직원이 확인하고 있어요.`
           ) : channel === 'pg' ? (
-            '테스트 주문을 접수했어요. 실제 결제 없이 직원의 수납 확인을 기다리고 있어요.'
+            '이전에 접수한 주문이에요. 직원이 기존 결제 내역을 확인하고 있어요.'
           ) : requested ? (
             '직원이 입금자명과 금액을 확인하고 있어요. 확인이 끝나면 설문을 작성할 수 있어요.'
           ) : (

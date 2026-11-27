@@ -60,3 +60,7 @@ export function isCustomerTestRequest(request: Request, env: Env) {
     new URL(request.url).protocol === 'https:'
   );
 }
+
+export function testCheckoutEnabled(request: Request, env: Env) {
+  return localDemo(request, env) || isCustomerTestRequest(request, env);
+}

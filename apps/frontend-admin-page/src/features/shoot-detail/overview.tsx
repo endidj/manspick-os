@@ -53,6 +53,18 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
   const can = (capability: string) => shoot.capabilities.includes(capability);
   const answers = shoot.survey?.answers ?? {};
   const guides = shoot.preparation?.guides ?? [];
+  const basePayment = shoot.payments.find((payment) => payment.kind === 'base');
+  const externalPayment = ['kmong', 'frip', 'soomgo', 'smartstore'].includes(
+    basePayment?.channel ?? '',
+  );
+  const paymentLabel =
+    shoot.paymentState === 'confirmed'
+      ? externalPayment
+        ? '외부 플랫폼 결제'
+        : '결제 완료'
+      : basePayment?.channel === 'bank'
+        ? '입금 확인 대기'
+        : '결제 확인 대기';
   return (
     <div className={styles.columns}>
       <div className={styles.stack}>
@@ -93,14 +105,14 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
             value={
               <span className={shoot.paymentState === 'confirmed' ? styles.green : styles.accent}>
                 {shoot.paymentState === 'confirmed'
-                  ? `${money(shoot.totalAmount)} · 확인 완료 ✓`
-                  : '입금 확인 대기'}
+                  ? `${money(shoot.totalAmount)} · ${paymentLabel}`
+                  : paymentLabel}
               </span>
             }
           />
           {can('confirm_payment') &&
             shoot.payments
-              .filter((payment) => payment.state === 'pending')
+              .filter((payment) => payment.kind === 'base' && payment.state === 'pending')
               .map((payment) => (
                 <div className={styles.paymentRow} key={payment.id}>
                   <span>
@@ -173,10 +185,7 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
             title="고객 요청 · 처리할 일"
             extra={<span className={styles.accent}>{shoot.pendingRequests}건</span>}
           />
-          <InfoRow
-            label="입금 확인"
-            value={shoot.paymentState === 'confirmed' ? '완료' : '입금 확인 대기'}
-          />
+          <InfoRow label="결제 상태" value={paymentLabel} />
           <InfoRow
             label="안내 확인"
             value={`${guides.length}종 중 ${guides.filter((guide) => guide.readAt).length}종 확인`}

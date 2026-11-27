@@ -95,6 +95,9 @@ async function mockApi(page) {
     bookings: [],
     events: [],
     bookingResult: { accepted: true, message: '예약 확인을 기다려주세요.' },
+    testCheckoutEnabled: true,
+    catalogPrice: packageFixture.price,
+    checkoutError: null,
     actions: [],
     shootReads: 0,
     shoot,
@@ -108,7 +111,12 @@ async function mockApi(page) {
       requests.events.push(route.request().postDataJSON());
       data = { accepted: true };
     } else if (path === '/api/catalog') {
-      data = { packages: [packageFixture], addons: [], retouchUnitPrice: 10000 };
+      data = {
+        packages: [{ ...packageFixture, price: requests.catalogPrice }],
+        addons: [],
+        retouchUnitPrice: 10000,
+        testCheckoutEnabled: requests.testCheckoutEnabled,
+      };
     } else if (path === '/api/calendar') {
       data = {
         days: [
@@ -124,6 +132,9 @@ async function mockApi(page) {
       };
     } else if (path === '/api/start') {
       requests.bookings.push(route.request().postDataJSON());
+      if (requests.checkoutError) {
+        return route.fulfill({ status: 409, json: { error: requests.checkoutError } });
+      }
       data = requests.bookingResult;
     } else if (path === '/api/auth/customer') {
       requests.authentication.push(route.request().postDataJSON());
@@ -276,17 +287,15 @@ test(
           await page.goto(`${appUrl}/start`);
           await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
           await expectPath(page, '/start/details');
-          const bankChoice = page.getByRole('radio', { name: '계좌이체', exact: true });
-          assert.equal(
-            await page.getByRole('radio', { name: '자사몰 결제 (테스트)' }).isChecked(),
-            true,
-          );
-          await page.getByText('계좌이체', { exact: true }).click();
-          assert.equal(await bankChoice.isChecked(), true);
+          const direct = page.getByRole('radio', { name: '맨즈픽 직접결제', exact: true });
+          assert.equal(await direct.isChecked(), true);
+          await page.getByText('숨고', { exact: true }).click();
+          assert.equal(await page.getByRole('radio', { name: '숨고' }).isChecked(), true);
           const selectedTextColor = await page
-            .getByText('계좌이체', { exact: true })
+            .getByText('숨고', { exact: true })
             .evaluate((text) => getComputedStyle(text).color);
           assert.equal(selectedTextColor, 'rgb(87, 195, 250)');
+          await page.getByText('맨즈픽 직접결제', { exact: true }).click();
           for (const [label, required] of [
             [/개인정보 수집·이용 동의.*필수/, true],
             [/촬영 안내 알림 수신 동의 \(카카오톡\).*필수/, true],
@@ -357,7 +366,12 @@ test(
           await page.getByRole('button', { name: '2099-12-20 15:00 삭제' }).click();
           await page.getByRole('button', { name: /2099년 12월 21일 예약 가능/ }).click();
           await page.getByRole('button', { name: '11:00', exact: true }).click();
-          await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
+          await page.getByRole('button', { name: '결제창 열기' }).click();
+          const checkout = page.getByRole('dialog', { name: '테스트 결제' });
+          await checkout.getByRole('button', { name: '결제 취소' }).click();
+          assert.equal(requests.bookings.length, 0);
+          await page.getByRole('button', { name: '결제창 열기' }).click();
+          await checkout.getByRole('button', { name: '190,000원 테스트 결제 승인' }).click();
           await expectPath(page, '/start/complete');
           assert.deepEqual(requests.bookings[0].timeOptions, [
             { date: '2099-12-20', time: '13:00' },
@@ -365,7 +379,8 @@ test(
           ]);
           assert.ok(requests.bookings[0].visitorId);
           assert.equal(requests.bookings[0].paymentChannel, 'pg');
-          await page.getByText(/실제 결제는 진행되지 않으며/).waitFor();
+          assert.equal(requests.bookings[0].testCheckoutApproved, true);
+          assert.equal(requests.bookings[0].testCheckoutAmountKrw, packageFixture.price);
           assert.deepEqual(
             [...new Set(requests.events.map((entry) => entry.event))],
             ['order_options', 'order_details', 'order_schedule'],
@@ -379,7 +394,7 @@ test(
           assert.equal(requests.bookings.length, 1);
           await page.goBack();
           await expectPath(page, '/start/complete');
-          assert.equal(await page.getByRole('button', { name: '희망 일정 제출하기' }).count(), 0);
+          assert.equal(await page.getByRole('button', { name: '결제창 열기' }).count(), 0);
           assert.equal(requests.bookings.length, 1);
         },
         { width: 1280, height: 900 },
@@ -391,6 +406,7 @@ test(
           requests.bookingResult = {
             accepted: true,
             message: '접수',
+            bookingStatus: 'complete',
             bookingAccess: { token: 'external' },
           };
           await page.goto(`${appUrl}/start`);
@@ -405,22 +421,28 @@ test(
           await expectPath(page, '/start/schedule');
           await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
           await page.getByRole('button', { name: '13:00', exact: true }).click();
-          await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
+          await page.getByRole('button', { name: '예약 신청 완료하기' }).click();
           await expectPath(page, '/start/complete');
           assert.equal(requests.bookings[0].platformNickname, '플랫폼고객');
           assert.equal(requests.bookings[0].paymentChannel, 'kmong');
-          await page.getByRole('link', { name: '결제 확인 상태 보기' }).waitFor();
+          assert.equal(requests.bookings[0].testCheckoutApproved, undefined);
+          await page.getByRole('heading', { name: '예약이 완료됐어요' }).waitFor();
+          assert.equal(
+            await page.getByRole('link', { name: '촬영 설문 작성하기' }).getAttribute('href'),
+            '/s/external/survey/1',
+          );
           assert.equal(await page.getByText('입금 안내 확인하고 계속하기').count(), 0);
         },
       );
 
       for (const access of ['public-test', 'local']) {
         await scenario(
-          `${access} booking completion connects to payment authentication and survey`,
+          `${access} direct checkout approval connects immediately to the authenticated survey`,
           async (page, requests) => {
             requests.bookingResult = {
               accepted: true,
-              message: '예약 확인을 기다려주세요.',
+              message: '예약 완료',
+              bookingStatus: 'complete',
               ...(access === 'local'
                 ? {
                     localAccess: {
@@ -432,58 +454,121 @@ test(
                 : { bookingAccess: { token: 'new-booking-token' } }),
             };
             Object.assign(requests.shoot, {
-              status: 'payment_pending',
-              stage: 2,
-              paymentState: 'pending',
+              status: 'survey_pending',
+              stage: 3,
+              paymentState: 'confirmed',
             });
             await page.goto(`${appUrl}/start`);
             await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
-            await page.getByText('계좌이체', { exact: true }).click();
             await fillBookingDetails(page);
             await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
             await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
             await page.getByRole('button', { name: '13:00', exact: true }).click();
-            await page.getByRole('button', { name: '희망 일정 제출하기' }).click();
+            await page.getByRole('button', { name: '결제창 열기' }).click();
+            await page.getByRole('button', { name: '190,000원 테스트 결제 승인' }).click();
             await expectPath(page, '/start/complete');
-            await page.getByText('입금 확인이 끝나면 설문을 작성할 수 있어요.').waitFor();
+            await page.getByRole('heading', { name: '예약이 완료됐어요' }).waitFor();
             assert.equal(await page.getByText(/확인 번호:/).count(), access === 'local' ? 1 : 0);
-            const continueLink = page.getByRole('link', { name: '입금 안내 확인하고 계속하기' });
-            assert.equal(await continueLink.getAttribute('href'), '/s/new-booking-token/payment');
+            const continueLink = page.getByRole('link', { name: '촬영 설문 작성하기' });
+            assert.equal(await continueLink.getAttribute('href'), '/s/new-booking-token/survey/1');
             await page.screenshot({
               path: `${screenshots}/booking-complete-${access}.png`,
               fullPage: true,
             });
             await continueLink.click();
-            await expectPath(page, '/s/new-booking-token/payment');
+            await expectPath(page, '/s/new-booking-token/survey/1');
             await page.getByRole('heading', { name: '고객님이 맞으신가요?' }).waitFor();
             assert.equal(await page.getByRole('button', { name: '입금했어요' }).count(), 0);
             await signIn(page);
             assert.equal(requests.authentication.at(-1).token, 'new-booking-token');
-            await page.getByRole('button', { name: '입금했어요', exact: true }).click();
-            await page.getByRole('heading', { name: '입금 확인을 기다리고 있어요' }).waitFor();
-            assert.equal(requests.shoot.paymentState, 'pending');
-            assert.equal(
-              await page.getByRole('button', { name: '설문 작성하기', exact: true }).count(),
-              0,
-            );
-            assert.equal(
-              requests.actions.some((action) => action.type === 'save_survey'),
-              false,
-            );
-            Object.assign(requests.shoot, {
-              status: 'survey_pending',
-              stage: 3,
-              paymentState: 'confirmed',
-            });
-            await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
-            await page.getByRole('heading', { name: '결제가 확인됐어요' }).waitFor();
-            await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
-            await expectPath(page, '/s/new-booking-token/survey/1');
             await page.getByRole('heading', { name: '먼저 고객님을 알려주세요' }).waitFor();
             assert.equal(requests.bookings.length, 1);
           },
         );
       }
+
+      await scenario(
+        'an existing bank transfer still requires staff confirmation',
+        async (page, requests) => {
+          Object.assign(requests.shoot, {
+            status: 'payment_pending',
+            stage: 2,
+            paymentState: 'pending',
+            payments: [{ kind: 'base', channel: 'bank' }],
+          });
+          await page.goto(`${appUrl}/s/existing-bank/payment`);
+          await signIn(page);
+          await page.getByRole('button', { name: '입금했어요', exact: true }).click();
+          await page.getByRole('heading', { name: '입금 확인을 기다리고 있어요' }).waitFor();
+          assert.equal(requests.shoot.paymentState, 'pending');
+          assert.equal(
+            await page.getByRole('button', { name: '설문 작성하기', exact: true }).count(),
+            0,
+          );
+          Object.assign(requests.shoot, {
+            status: 'survey_pending',
+            stage: 3,
+            paymentState: 'confirmed',
+          });
+          await page.getByRole('button', { name: '입금 확인 상태 새로고침' }).click();
+          await page.getByRole('heading', { name: '결제가 확인됐어요' }).waitFor();
+          await page.getByRole('button', { name: '설문 작성하기', exact: true }).click();
+          await expectPath(page, '/s/existing-bank/survey/1');
+        },
+      );
+
+      await scenario(
+        'direct checkout is unavailable outside payment test environments',
+        async (page, requests) => {
+          requests.testCheckoutEnabled = false;
+          await page.goto(`${appUrl}/start`);
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
+          await fillBookingDetails(page);
+          await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
+          await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
+          await page.getByRole('button', { name: '13:00', exact: true }).click();
+          assert.equal(
+            await page.getByRole('button', { name: '직접결제 준비 중' }).isDisabled(),
+            true,
+          );
+          assert.equal(requests.bookings.length, 0);
+        },
+      );
+
+      await scenario(
+        'a changed price requires a fresh checkout approval',
+        async (page, requests) => {
+          await page.goto(`${appUrl}/start`);
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
+          await fillBookingDetails(page);
+          await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
+          await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
+          await page.getByRole('button', { name: '13:00', exact: true }).click();
+          await page.getByRole('button', { name: '결제창 열기' }).click();
+          requests.checkoutError = {
+            code: 'CHECKOUT_AMOUNT_CHANGED',
+            message: '상품 가격이 변경됐습니다. 금액을 다시 확인해주세요.',
+          };
+          requests.catalogPrice = 200000;
+          await page.getByRole('button', { name: '190,000원 테스트 결제 승인' }).click();
+          await expectPath(page, '/start');
+          await page.getByText(requests.checkoutError.message).waitFor();
+          assert.equal(requests.bookings.length, 1);
+          await page.getByRole('button', { name: '다음: 기본정보 입력' }).click();
+          await page.getByRole('button', { name: '다음: 촬영 날짜 고르기' }).click();
+          await page.getByRole('button', { name: /2099년 12월 20일 예약 가능/ }).click();
+          await page.getByRole('button', { name: '13:00', exact: true }).click();
+          await page.getByRole('button', { name: '결제창 열기' }).click();
+          assert.equal(requests.bookings.length, 1);
+          requests.checkoutError = null;
+          await page.getByRole('button', { name: '200,000원 테스트 결제 승인' }).click();
+          await expectPath(page, '/start/complete');
+          assert.deepEqual(
+            requests.bookings.map((item) => item.testCheckoutAmountKrw),
+            [190000, 200000],
+          );
+        },
+      );
 
       await scenario(
         'fresh booking deep links require details and a real completion result',

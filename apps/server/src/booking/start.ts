@@ -10,7 +10,7 @@ import {
 import type { AddonDTO, BookingResultDTO } from '@manspick/contracts';
 import { batch, first, statement } from '../database/statements.ts';
 import { requiredText } from '../http/input.ts';
-import { isCustomerTestRequest, localDemo } from '../runtime/env.ts';
+import { isCustomerTestRequest, localDemo, testCheckoutEnabled } from '../runtime/env.ts';
 import type { Env } from '../runtime/env.ts';
 import { hash, id } from '../security/crypto.ts';
 import { newCustomerToken } from '../security/customer-token.ts';
@@ -51,6 +51,20 @@ export async function start(
     throw new DomainError('INVALID_CHANNEL', '결제 경로를 확인해주세요.');
   const external = ['kmong', 'frip', 'soomgo', 'smartstore'].includes(channel);
   const platformNickname = proposed && external ? requiredText(body, 'platformNickname', 80) : null;
+  const testPg = channel === 'pg';
+  if (testPg && !testCheckoutEnabled(request, env))
+    throw new DomainError(
+      'PAYMENT_PROVIDER_UNAVAILABLE',
+      '직접결제 서비스가 아직 연결되지 않았습니다.',
+      503,
+    );
+  if (
+    testPg &&
+    (body.testCheckoutApproved !== true || !Number.isSafeInteger(body.testCheckoutAmountKrw))
+  )
+    throw new DomainError('CHECKOUT_REQUIRED', '주문 금액을 확인하고 테스트 결제를 완료해주세요.');
+  const complete = testPg || (external && proposed);
+  const status = complete ? 'survey_pending' : 'payment_pending';
   if (body.privacyConsent !== true || body.serviceNotificationConsent !== true)
     throw new DomainError(
       'CONSENT_REQUIRED',
@@ -133,6 +147,12 @@ export async function start(
   const shootId = id();
   const amount =
     pack.price + selected.reduce((sum, item) => sum + item.addon.price * item.quantity, 0);
+  if (testPg && body.testCheckoutAmountKrw !== amount)
+    throw new DomainError(
+      'CHECKOUT_AMOUNT_CHANGED',
+      '주문 금액이 변경됐습니다. 금액을 다시 확인해주세요.',
+      409,
+    );
   const reportedAmount = body.paymentAmount;
   if (
     reportedAmount !== undefined &&
@@ -205,12 +225,13 @@ export async function start(
         statement(
           env,
           `INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,retoucher_id,starts_at,ends_at,survey_due_at,outfit_due_at)
-          VALUES(?,(SELECT id FROM customers WHERE phone=?),?,'payment_pending',?,?,?,?,
+          VALUES(?,(SELECT id FROM customers WHERE phone=?),?,?,?,?,?,?,
             (SELECT r.retoucher_id FROM retoucher_rules r JOIN staff s ON s.id=r.retoucher_id
               WHERE r.weekday=? AND s.active=1 AND s.role='retoucher'),?,?,?,?)`,
           shootId,
           phone,
           tokenHash,
+          status,
           pack.id,
           JSON.stringify({
             ...pack,
@@ -280,12 +301,17 @@ export async function start(
         ),
         statement(
           env,
-          "INSERT INTO payments(id,shoot_id,kind,channel,amount,state,held_until) VALUES(?,?,'base',?,?,'pending',?)",
+          `INSERT INTO payments(id,shoot_id,kind,channel,amount,state,held_until,provider,provider_transaction_id,confirmed_at)
+           VALUES(?,?,'base',?,?,?,?,?,?,?)`,
           id(),
           shootId,
           channel,
-          amount,
-          heldUntil,
+          external && complete && typeof reportedAmount === 'number' ? reportedAmount : amount,
+          complete ? 'confirmed' : 'pending',
+          complete ? null : heldUntil,
+          testPg ? 'test_checkout' : null,
+          testPg ? id() : null,
+          complete ? now.toISOString() : null,
         ),
         statement(env, 'INSERT INTO surveys(shoot_id) VALUES(?)', shootId),
         statement(
@@ -296,9 +322,15 @@ export async function start(
         ),
         statement(
           env,
-          "INSERT INTO timeline(id,shoot_id,to_status,actor_id,actor_name,reason) VALUES(?,?,'payment_pending','customer','고객','옵션·일정 접수 및 디렉터 자동 배정')",
+          "INSERT INTO timeline(id,shoot_id,to_status,actor_id,actor_name,reason) VALUES(?,?,?,'customer','고객',?)",
           id(),
           shootId,
+          status,
+          testPg
+            ? '테스트 결제 승인 및 예약 접수 완료'
+            : complete
+              ? '외부 플랫폼 선결제 예약 접수 완료'
+              : '옵션·일정 접수 및 디렉터 자동 배정',
         ),
         statement(
           env,
@@ -308,7 +340,9 @@ export async function start(
           demo
             ? '로컬 접수 안내: 외부 발송 없음'
             : customerTest
-              ? '테스트 신규 접수: 고객이 완료 화면의 개인 링크로 입금 안내를 확인합니다. 입금 확인 후 설문을 작성할 수 있습니다.'
+              ? complete
+                ? '테스트 예약이 완료되어 촬영 설문을 작성할 수 있습니다.'
+                : '테스트 신규 접수: 입금 확인 후 설문을 작성할 수 있습니다.'
               : '신규 접수: 고객용 접속 링크를 발급해 등록한 번호로 직접 안내해주세요.',
           now.toISOString(),
         ),
@@ -318,10 +352,14 @@ export async function start(
         await batch(env, statements);
         return {
           ...accepted,
+          ...(demo || customerTest
+            ? { bookingStatus: complete ? ('complete' as const) : ('pending_payment' as const) }
+            : {}),
           ...(customerTest
             ? {
-                message:
-                  '아래 버튼에서 입금 안내와 진행상태를 확인해주세요. 입금 확인이 끝나면 설문을 작성할 수 있어요.',
+                message: complete
+                  ? '예약 접수가 완료됐어요. 촬영 설문을 작성해주세요.'
+                  : '입금 확인이 끝나면 촬영 설문을 작성할 수 있어요.',
                 bookingAccess: { token },
               }
             : {}),

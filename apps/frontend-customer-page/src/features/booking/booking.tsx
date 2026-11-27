@@ -2,11 +2,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Notice, Loading, TimeSlot } from '@manspick/design-system/components';
-import { ChoiceCard, TextField, RadioPills } from '@manspick/design-system/patterns';
+import {
+  ChoiceCard,
+  Dialog,
+  InfoRow,
+  TextField,
+  RadioPills,
+} from '@manspick/design-system/patterns';
 import { Icon, type IconName } from '@manspick/design-system/icons';
-import { api, trackEvent, visitId } from '@manspick/web/client';
+import { api, ApiError, trackEvent, visitId } from '@manspick/web/client';
 import { money } from '@manspick/web/format';
 import type {
   AddonDTO,
@@ -46,6 +52,7 @@ export function Booking() {
     packages: PackageDTO[];
     addons: AddonDTO[];
     packageItems?: OperationsSettingsDTO['packageItems'];
+    testCheckoutEnabled: boolean;
   }>();
   const [policy, setPolicy] = useState<OperationsPolicy>();
   const { pathname, navigate, back } = useFlowNavigation('/start');
@@ -66,9 +73,11 @@ export function Booking() {
   const [timeOptions, setTimeOptions] = useState<{ date: string; time: string }[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<BookingResultDTO & { platform?: string; channel: string }>();
+  const submitting = useRef(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [result, setResult] = useState<BookingResultDTO>();
   const bookingToken = result?.bookingAccess?.token ?? result?.localAccess?.token;
-  const platform = result?.platform;
+  const completed = result?.bookingStatus === 'complete';
   const detailsReady = Boolean(
     name.trim() &&
     phone.replace(/\D/g, '').length >= 10 &&
@@ -89,6 +98,7 @@ export function Booking() {
   }, [channel, step]);
 
   function setStep(next: number) {
+    setCheckoutOpen(false);
     navigate(bookingPaths[next - 1]!);
   }
 
@@ -98,18 +108,20 @@ export function Booking() {
     .sort()
     .join(',');
 
+  const applyCatalog = useCallback((updated: NonNullable<typeof catalog>) => {
+    setCatalog(updated);
+    setPackage((current) =>
+      updated.packages.some((pack) => pack.id === current)
+        ? current
+        : (updated.packages[0]?.id ?? ''),
+    );
+  }, []);
+
   useEffect(() => {
     api<NonNullable<typeof catalog>>('/catalog')
-      .then((catalog) => {
-        setCatalog(catalog);
-        setPackage((current) =>
-          catalog.packages.some((pack) => pack.id === current)
-            ? current
-            : (catalog.packages[0]?.id ?? ''),
-        );
-      })
+      .then(applyCatalog)
       .catch((failure: Error) => setError(failure.message));
-  }, []);
+  }, [applyCatalog]);
 
   useEffect(() => {
     let active = true;
@@ -225,7 +237,10 @@ export function Booking() {
   }
 
   async function submit() {
-    if (busy || result || !detailsReady || !timeOptions.length) return;
+    if (submitting.current || result || !detailsReady || !timeOptions.length) return;
+    if (channel === 'pg' && (!checkoutOpen || !catalog?.testCheckoutEnabled)) return;
+    submitting.current = true;
+    setCheckoutOpen(false);
     setBusy(true);
     setError('');
     try {
@@ -242,6 +257,7 @@ export function Booking() {
           visitorId: visitId(),
           platformNickname: prepaidPlatform(channel) ? platformNickname.trim() : undefined,
           paymentChannel: channel,
+          ...(channel === 'pg' && { testCheckoutApproved: true, testCheckoutAmountKrw: total }),
           paymentAmount: channel === 'pg' ? total : Number(reportedAmount || total),
           kakaoNickname: nickname,
           privacyConsent: privacy,
@@ -249,11 +265,23 @@ export function Booking() {
           marketingConsent: marketing,
         }),
       });
-      setResult({ ...booking, platform: prepaidPlatform(channel), channel });
+      setResult(booking);
       window.scrollTo({ top: 0 });
     } catch (failure) {
       setError((failure as Error).message);
+      if (failure instanceof ApiError && failure.code === 'CHECKOUT_AMOUNT_CHANGED') {
+        setExtras({});
+        setTimeOptions([]);
+        setStep(1);
+        try {
+          applyCatalog(await api<NonNullable<typeof catalog>>('/catalog'));
+        } catch (refreshError) {
+          setError((refreshError as Error).message);
+        }
+      }
+      window.scrollTo({ top: 0 });
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -273,14 +301,11 @@ export function Booking() {
       {result ? (
         <section className={layout.stack}>
           <p className={layout.overline}>RESERVATION</p>
-          <h1>{platform && bookingToken ? '결제 확인을 요청했어요' : '예약 요청을 접수했어요'}</h1>
-          {!(platform && result.bookingAccess) && <p>{result.message}</p>}
+          <h1>{completed ? '예약이 완료됐어요' : '예약 요청을 접수했어요'}</h1>
           <p>
-            {platform
-              ? `${platform} 결제 내역을 직원이 확인하면 설문을 작성할 수 있어요.`
-              : result.channel === 'pg'
-                ? '테스트 주문을 접수했어요. 실제 결제는 진행되지 않으며 직원이 수납 확인 후 설문을 안내해요.'
-                : '입금 확인이 끝나면 설문을 작성할 수 있어요.'}
+            {completed
+              ? '촬영 설문을 작성해주세요. 담당 디렉터가 희망 일정 중 하나를 확정해요.'
+              : result.message}
           </p>
           {result.localAccess && (
             <Notice>
@@ -288,16 +313,17 @@ export function Booking() {
             </Notice>
           )}
           {bookingToken ? (
-            <Link href={customerPath(bookingToken, 'payment')} className={styles.primaryLink}>
-              {platform || result.channel === 'pg'
-                ? '결제 확인 상태 보기'
-                : '입금 안내 확인하고 계속하기'}{' '}
-              <Icon name="arrow" size={18} />
+            <Link
+              href={customerPath(bookingToken, completed ? 'survey' : 'home')}
+              className={styles.primaryLink}
+            >
+              {completed ? '촬영 설문 작성하기' : '나의 촬영 보기'} <Icon name="arrow" size={18} />
             </Link>
           ) : (
             <Notice>
-              이미 안내받은 개인 촬영 링크가 있다면 그 링크에서 이어서 진행해주세요. 링크를 찾을 수
-              없다면 예약 상담을 진행한 채널로 문의해주세요.
+              {completed
+                ? '설문은 안내받은 개인 촬영 링크에서 작성해주세요.'
+                : '이미 안내받은 개인 촬영 링크가 있다면 그 링크에서 이어서 진행해주세요. 링크를 찾을 수 없다면 예약 상담을 진행한 채널로 문의해주세요.'}
             </Notice>
           )}
           <Link className={layout.textLink} href="/">
@@ -338,9 +364,7 @@ export function Booking() {
                 <>
                   <Notice className={styles.notice}>
                     <strong>크몽 · 프립 · 숨고 · 스마트스토어에서 이미 결제하셨나요?</strong>
-                    <p>
-                      구매하신 패키지를 그대로 골라주세요. 부가서비스는 여기서 추가할 수 있어요.
-                    </p>
+                    <p>외부 플랫폼에서 구매한 패키지와 부가서비스를 골라주세요.</p>
                   </Notice>
                   <fieldset className={`${layout.fieldSet} ${styles.packageList}`}>
                     <legend className={styles.visuallyHidden}>패키지</legend>
@@ -517,8 +541,7 @@ export function Booking() {
                     value={channel}
                     onValueChange={setChannel}
                     options={[
-                      { value: 'pg', label: '자사몰 결제 (테스트)' },
-                      { value: 'bank', label: '계좌이체' },
+                      { value: 'pg', label: '맨즈픽 직접결제' },
                       { value: 'kmong', label: '크몽' },
                       { value: 'frip', label: '프립' },
                       { value: 'soomgo', label: '숨고' },
@@ -526,7 +549,11 @@ export function Booking() {
                     ]}
                   />
                   {channel === 'pg' && (
-                    <p>실제 결제 없이 주문을 접수하고 직원이 수납을 확인하는 테스트 경로예요.</p>
+                    <p>
+                      {catalog.testCheckoutEnabled
+                        ? '희망 일정을 고른 뒤 테스트 결제창에서 승인하면 예약이 완료돼요.'
+                        : '직접결제는 결제사 연동을 준비하고 있어요.'}
+                    </p>
                   )}
                   {prepaidPlatform(channel) && (
                     <TextField
@@ -547,7 +574,7 @@ export function Booking() {
                         type="number"
                         min={0}
                         max={100000000}
-                        hint="선택하신 구성과 결제 금액이 다르면 직원이 확인 후 연락드려요. 계좌이체는 날짜를 고른 뒤 입금 안내를 드려요."
+                        hint="외부 플랫폼에서 이미 결제한 금액을 입력해주세요. 맨즈픽에서 추가 결제 없이 예약을 신청해요."
                       />
                       <span className={styles.formattedAmount} aria-hidden="true">
                         {Number(reportedAmount || total).toLocaleString('ko-KR')}
@@ -719,11 +746,20 @@ export function Booking() {
                     </div>
                     <Button
                       fullWidth
-                      disabled={!timeOptions.length || !privacy || !notifications}
+                      disabled={
+                        !timeOptions.length ||
+                        !privacy ||
+                        !notifications ||
+                        (channel === 'pg' && !catalog.testCheckoutEnabled)
+                      }
                       loading={busy}
-                      onClick={submit}
+                      onClick={() => (channel === 'pg' ? setCheckoutOpen(true) : void submit())}
                     >
-                      희망 일정 제출하기
+                      {channel === 'pg'
+                        ? catalog.testCheckoutEnabled
+                          ? '결제창 열기'
+                          : '직접결제 준비 중'
+                        : '예약 신청 완료하기'}
                     </Button>
                     <p>
                       <a href={kakaoChannelUrl} target="_blank" rel="noopener noreferrer">
@@ -731,6 +767,23 @@ export function Booking() {
                       </a>
                     </p>
                   </SceneFooter>
+                  {checkoutOpen && channel === 'pg' && catalog.testCheckoutEnabled && (
+                    <Dialog
+                      open
+                      onOpenChange={setCheckoutOpen}
+                      title="테스트 결제"
+                      description="가상 결제로 예약을 진행해요. 실제 청구 금액은 0원이에요."
+                      closeLabel="결제 취소"
+                      actions={
+                        <Button fullWidth onClick={() => void submit()}>
+                          {money(total)} 테스트 결제 승인
+                        </Button>
+                      }
+                    >
+                      <InfoRow label="주문 내용" value={summary} />
+                      <InfoRow label="테스트 결제 금액" value={money(total)} />
+                    </Dialog>
+                  )}
                 </div>
               )}
             </>

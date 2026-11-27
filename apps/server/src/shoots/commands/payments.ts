@@ -25,15 +25,19 @@ export async function preparePayment(
         id: string;
         state: string;
         kind: string;
+        channel: string;
+        provider: string | null;
         held_until: string | null;
       }>(
         env,
-        'SELECT id,state,kind,held_until FROM payments WHERE id=? AND shoot_id=?',
+        'SELECT id,state,kind,channel,provider,held_until FROM payments WHERE id=? AND shoot_id=?',
         paymentId,
         shootId,
       );
       if (!payment) throw new DomainError('NOT_FOUND', '결제 기록을 찾을 수 없습니다.', 404);
       if (payment.state === 'confirmed') return null;
+      if (payment.channel === 'pg' && payment.provider !== null)
+        throw new DomainError('PAYMENT_STATE', '연동 결제는 결제사 승인으로 처리합니다.', 409);
       if (payment.state !== 'pending' || (payment.held_until && payment.held_until <= now))
         throw new DomainError('PAYMENT_EXPIRED', '결제 대기 시간이 만료됐습니다.', 409);
       statements.push(
@@ -77,7 +81,7 @@ export async function preparePayment(
       const paymentId = typeof body.paymentId === 'string' ? body.paymentId : null;
       const payment = await first<{ id: string }>(
         env,
-        `SELECT id FROM payments WHERE shoot_id=? AND state='pending' AND ${paymentId ? 'id=?' : "kind='base'"}`,
+        `SELECT id FROM payments WHERE shoot_id=? AND channel='bank' AND state='pending' AND ${paymentId ? 'id=?' : "kind='base'"}`,
         shootId,
         ...(paymentId ? [paymentId] : []),
       );

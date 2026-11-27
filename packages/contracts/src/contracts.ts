@@ -23,6 +23,7 @@ export interface SessionDTO {
 export interface BookingResultDTO {
   accepted: boolean;
   message: string;
+  bookingStatus?: 'complete' | 'pending_payment';
   // 가상 데이터만 사용하는 공개 테스트의 신규 예약에 한정됩니다.
   bookingAccess?: { token: string };
   localAccess?: { token: string; last4: string; shootId: string };

@@ -98,7 +98,7 @@ export function CustomerHome({
             {platform
               ? `${platform}에서 결제하신 내역을 확인하고 있어요.`
               : testOrder
-                ? '테스트 주문의 수납 확인을 기다리고 있어요.'
+                ? '이전에 접수한 주문의 결제 내역을 확인하고 있어요.'
                 : shoot.paymentInstructions
                   ? `${shoot.paymentInstructions.bankName} ${shoot.paymentInstructions.accountNumber} · ${shoot.totalAmount.toLocaleString('ko-KR')}원`
                   : '결제 확인 내역을 확인해주세요.'}
