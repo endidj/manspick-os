@@ -166,37 +166,6 @@ test('revoking an administrator session also blocks its pending account mutation
   await expectError(await pending, 409, 'CONFLICT');
 });
 
-test('a new booking skips a default retoucher whose staff role has changed', async () => {
-  const { api, db } = setup();
-  const admin = await login(api, 'admin');
-  const date = futureBookingDate();
-  db.database
-    .prepare('INSERT OR REPLACE INTO retoucher_rules(weekday,retoucher_id) VALUES(?,?)')
-    .run(new Date(`${date}T12:00:00Z`).getUTCDay(), 'demo-retoucher');
-  assert.equal(
-    (
-      await api('/api/staff/demo-retoucher', {
-        method: 'POST',
-        cookie: admin,
-        body: { role: 'staff', active: true, version: 0 },
-      })
-    ).status,
-    200,
-  );
-  const booking = await api('/api/start', {
-    method: 'POST',
-    body: bookingInput(date, '11:00', '01000002420'),
-  });
-  assert.equal(booking.status, 201);
-  const { localAccess } = await bookingResponse(booking);
-  assert.ok(localAccess);
-  assert.equal(
-    db.database.prepare('SELECT retoucher_id FROM shoots WHERE id=?').get(localAccess.shootId)
-      ?.retoucher_id,
-    null,
-  );
-});
-
 test('staff email links require an active allowlisted employee and can only be used once', async () => {
   const { env: local, db } = setup('false');
   const sent: { to: string; text: string }[] = [];
@@ -311,6 +280,7 @@ test('operator reissues a customer link and revokes both the old token and activ
   const url = new URL(data.url);
   assert.equal(url.origin, 'http://localhost:3001');
   const token = url.pathname.split('/').at(-1)!;
+  assert.equal(url.pathname, '/s/' + token);
   assert.match(token, /^[A-Za-z0-9]{10}$/);
   await expectError(await api('/api/session', { cookie: customer }), 401, 'UNAUTHENTICATED');
   await expectError(
@@ -650,17 +620,16 @@ test('concurrent operations policy updates cannot silently overwrite each other'
   db.database.close();
 });
 
-test('retired selection and retouch commands cannot charge, create jobs or modify history', async () => {
+test('retired workflow commands cannot charge customers or modify booking history', async () => {
   const { api, db } = setup();
   const customer = await customerLogin(api, 'demo-result-access', '1004');
   const staff = await login(api, 'staff');
-  const retoucher = await login(api, 'retoucher');
   const snapshot = () =>
-    ['payments', 'selections', 'retouch_jobs', 'retouch_orders', 'requests', 'timeline'].map(
+    ['payments', 'requests', 'timeline'].map(
       (table) => db.database.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get()?.n,
     );
   const before = snapshot();
-  for (const cookie of [customer, staff, retoucher]) {
+  for (const cookie of [customer, staff]) {
     for (const type of [
       'start_selection',
       'submit_selection',
@@ -688,10 +657,10 @@ test('retired selection and retouch commands cannot charge, create jobs or modif
   assert.deepEqual(snapshot(), before);
   const detail = await api('/api/shoots/demo-result', { cookie: customer });
   const { data } = (await detail.json()) as {
-    data: { extraRetouchAvailable: boolean; retouchUnitPrice: number };
+    data: Record<string, unknown>;
   };
-  assert.equal(data.extraRetouchAvailable, false);
-  assert.equal(data.retouchUnitPrice, 0);
+  assert.equal('extraRetouchAvailable' in data, false);
+  assert.equal('retouchUnitPrice' in data, false);
 });
 
 test('preparation confirmations persist per customer and require every configured guide', async () => {
@@ -737,7 +706,7 @@ test('preparation confirmations persist per customer and require every configure
   );
 });
 
-test('field completion and director selection require persisted checks and an audit reason', async () => {
+test('field completion requires persisted checks by the assigned director', async () => {
   const { api, db } = setup();
   const director = await login(api, 'director');
   const customer = await customerLogin(api, 'demo-preparation-access', '1002');
@@ -746,17 +715,6 @@ test('field completion and director selection require persisted checks and an au
     api('/api/shoots/demo-preparation/actions', { method: 'POST', cookie, body });
   await expectError(await action({ type: 'complete_field' }, customer), 403, 'FORBIDDEN');
   await expectError(await action({ type: 'complete_field' }), 409, 'FIELD_INCOMPLETE');
-  await expectError(
-    await action({
-      type: 'save_field_checklist',
-      checks: [],
-      selector: 'director',
-      reason: '',
-      note: '',
-    }),
-    400,
-    'INVALID_INPUT',
-  );
   const checks = [
     'arrival',
     'addons',
@@ -772,8 +730,6 @@ test('field completion and director selection require persisted checks and an au
       await action({
         type: 'save_field_checklist',
         checks,
-        selector: 'director',
-        reason: '고객 현장 요청',
         note: '로컬 확인',
       })
     ).status,
@@ -783,11 +739,6 @@ test('field completion and director selection require persisted checks and an au
   assert.equal(
     db.database.prepare("SELECT status FROM shoots WHERE id='demo-preparation'").get()?.status,
     'shoot_complete',
-  );
-  assert.equal(
-    db.database.prepare("SELECT select_by FROM shoots WHERE id='demo-preparation'").get()
-      ?.select_by,
-    'director',
   );
 });
 
@@ -800,6 +751,7 @@ test('manual assignment checks role, reason, eligibility and occupied slots atom
       "INSERT INTO staff(id,name,email,role) VALUES('director-2','로컬 디렉터 2','local2@example.invalid','director')",
     )
     .run();
+  db.database.exec("INSERT INTO director_package_skills VALUES('director-2','one')");
   const action = (body: unknown, cookie = staff) =>
     api('/api/shoots/demo-payment/actions', { method: 'POST', cookie, body });
   await expectError(
@@ -887,9 +839,9 @@ test('operators retain role-scoped settings and notifications while external del
     );
   }
   const detail = (await (await api('/api/shoots/demo-result', { cookie: customer })).json()) as {
-    data: { fileLinks: unknown[] };
+    data: Record<string, unknown>;
   };
-  assert.equal(detail.data.fileLinks.length, 0);
+  assert.equal('fileLinks' in detail.data, false);
   assert.equal(
     (
       await api('/api/notifications/demo-outbox/complete', {
@@ -906,10 +858,36 @@ test('operators retain role-scoped settings and notifications while external del
   );
 });
 
-test('assignment rules validate complete weekdays and eligible staff before replacing existing rules', async () => {
+test('assignment rules validate package and service skills before saving', async () => {
   const { api, db } = setup();
   const admin = await login(api, 'admin');
   const update = (body: unknown) => api('/api/settings', { method: 'POST', cookie: admin, body });
+  const skillsFor = () =>
+    db.database
+      .prepare(
+        "SELECT package_id FROM director_package_skills WHERE director_id='demo-director' ORDER BY package_id",
+      )
+      .all()
+      .map((row) => row.package_id);
+  const skills = {
+    type: 'director_skills',
+    directorId: 'demo-director',
+    addonIds: ['hair'],
+    packageIds: ['hybrid'],
+  };
+  assert.equal((await update(skills)).status, 200);
+  assert.deepEqual(skillsFor(), ['hybrid']);
+  await expectError(
+    await update({ ...skills, packageIds: ['missing'], addonIds: [] }),
+    400,
+    'INVALID_PACKAGE',
+  );
+  assert.equal(
+    db.database
+      .prepare("SELECT COUNT(*) AS n FROM director_skills WHERE director_id='demo-director'")
+      .get()?.n,
+    1,
+  );
   await expectError(
     await update({ type: 'director_skills', directorId: 'demo-staff', addonIds: ['hair'] }),
     400,
@@ -936,28 +914,7 @@ test('assignment rules validate complete weekdays and eligible staff before repl
       .get()?.n,
     2,
   );
-  await expectError(
-    await update({
-      type: 'retoucher_rules',
-      rules: [{ weekday: 0, retoucherId: 'demo-retoucher' }],
-    }),
-    400,
-    'INVALID_RULES',
-  );
-  const rules = Array.from({ length: 7 }, (_, weekday) => ({
-    weekday,
-    retoucherId: 'demo-retoucher',
-  }));
-  await expectError(
-    await update({
-      type: 'retoucher_rules',
-      rules: rules.map((rule) => ({ ...rule, retoucherId: 'demo-director' })),
-    }),
-    400,
-    'INVALID_ASSIGNEE',
-  );
-  assert.equal((await update({ type: 'retoucher_rules', rules })).status, 200);
-  assert.equal(db.database.prepare('SELECT COUNT(*) AS n FROM retoucher_rules').get()?.n, 7);
+  assert.deepEqual(skillsFor(), ['hybrid']);
 });
 
 test('historical reviews and visible original links remain private for every customer read', async () => {
@@ -966,17 +923,13 @@ test('historical reviews and visible original links remain private for every cus
   const staff = await login(api, 'staff');
   db.database.exec(`
     INSERT INTO requests(id,shoot_id,type,state,message) VALUES('archived-review','demo-result','review','new','historical proof');
-    UPDATE file_links SET visible=1 WHERE id='demo-original-link-1';
-    UPDATE uploads SET visible=1 WHERE id='demo-original-upload-1';
-    INSERT INTO external_file_links(id,shoot_id,kind,label,url,visible,published_at)
-    VALUES('archived-link','demo-result','original','원본','https://example.invalid/legacy-private',1,CURRENT_TIMESTAMP);
   `);
   for (const cookie of [customer, staff]) {
     const res = await api('/api/shoots/demo-result', { cookie });
     assert.equal(res.status, 200);
     const { data } = (await res.json()) as { data: Record<string, unknown> };
     for (const field of ['fileLinks', 'originals', 'photos', 'selections', 'retouchJobs'])
-      assert.deepEqual(data[field], [], field);
+      assert.equal(field in data, false, field);
     assert.doesNotMatch(JSON.stringify(data), /legacy-private|archived-review/);
   }
   await expectError(
@@ -1002,12 +955,6 @@ test('historical reviews and visible original links remain private for every cus
   assert.equal(
     db.database.prepare("SELECT state FROM requests WHERE id='archived-review'").get()?.state,
     'new',
-  );
-  assert.equal(
-    db.database
-      .prepare("SELECT COUNT(*) AS n FROM campaign_claims WHERE request_id='archived-review'")
-      .get()?.n,
-    0,
   );
 });
 
@@ -1080,11 +1027,6 @@ test('historical extra payments cannot restart a retired workflow', async () => 
   assert.equal(
     db.database.prepare("SELECT state FROM payments WHERE id='obsolete-charge'").get()?.state,
     'pending',
-  );
-  assert.equal(
-    db.database.prepare("SELECT COUNT(*) AS n FROM retouch_jobs WHERE shoot_id='demo-result'").get()
-      ?.n,
-    1,
   );
 });
 
@@ -1165,7 +1107,7 @@ test('public reads preserve catalog, status, calendar and one trailing slash con
   const statuses = await api('/api/statuses');
   const statusData = (await statuses.json()) as { data: { statuses: unknown[]; stages: unknown } };
   assert.equal(statuses.status, 200);
-  assert.equal(statusData.data.statuses.length, 30);
+  assert.equal(statusData.data.statuses.length, STATUS_DEFINITIONS.length);
   assert.ok(statusData.data.stages);
   const calendar = await api('/api/calendar?packageId=one&shopping=true');
   const calendarData = (await calendar.json()) as {
@@ -1390,7 +1332,7 @@ test('concurrent Nest requests keep storage, authenticated actors and request qu
 test('notification and settings routes enforce their distinct staff role gates', async () => {
   const { api } = setup();
   const customer = await customerLogin(api, 'demo-selection-access', '1003');
-  for (const role of ['admin', 'staff', 'director', 'retoucher', 'customer']) {
+  for (const role of ['admin', 'staff', 'director', 'customer']) {
     const cookie = role === 'customer' ? customer : await login(api, role);
     const notifications = await api('/api/notifications', { cookie });
     if (role === 'admin' || role === 'staff') {
@@ -1422,7 +1364,6 @@ test('notification and settings routes enforce their distinct staff role gates',
 test('customer upload listings require the correct shoot and expose only customer-owned categories and shared references', async () => {
   const { api, db } = setup();
   const customer = await customerLogin(api, 'demo-result-access', '1004');
-  const retoucher = await login(api, 'retoucher');
   const insert = db.database.prepare(
     "INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,visible) VALUES(?,'demo-result',?,?,'개인 파일','image/jpeg',1,'demo-director',?)",
   );
@@ -1467,40 +1408,10 @@ test('customer upload listings require the correct shoot and expose only custome
   ]) {
     await expectError(await api(`/api/uploads/${id}/blob`, { cookie: customer }), 404, 'NOT_FOUND');
   }
-  const masked = await api('/api/uploads?shootId=demo-result', { cookie: retoucher });
-  assert.equal(masked.status, 200);
-  assert.deepEqual(((await masked.json()) as { data: { items: unknown[] } }).data.items, []);
-  await expectError(
-    await api('/api/uploads/read-survey-0/blob', { cookie: retoucher }),
-    404,
-    'NOT_FOUND',
-  );
-});
-
-test('retoucher file authorization does not query the database once per asset', async (context) => {
-  const { api, db } = setup();
-  const cookie = await login(api, 'retoucher');
-  const prepare = db.prepare.bind(db);
-  const queries = context.mock.method(db, 'prepare', prepare);
-  const detail = () => api('/api/shoots/demo-result', { cookie });
-  const before = await detail();
-  assert.equal(before.status, 200);
-  const original = ((await before.json()) as { data: { photos: unknown[] } }).data.photos;
-  const queryCount = queries.mock.callCount();
-  db.database.exec(`
-    WITH RECURSIVE assets(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM assets WHERE n<100)
-    INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by)
-    SELECT 'private-probe-'||n,'demo-result','survey','probe/'||n,'private','image/jpeg',1,'demo-result'
-    FROM assets;
-  `);
-  const after = await detail();
-  assert.equal(after.status, 200);
-  assert.deepEqual(((await after.json()) as { data: { photos: unknown[] } }).data.photos, original);
-  assert.equal(queries.mock.callCount() - queryCount, queryCount);
 });
 
 test('canonical state count, skip reasons and shopping/all-day slot policy', () => {
-  assert.equal(STATUS_DEFINITIONS.length, 30);
+  assert.equal(new Set(STATUS_DEFINITIONS.map(([id]) => id)).size, STATUS_DEFINITIONS.length);
   assert.deepEqual(requiredSlots('one', '11:00', true), ['11:00']);
   assert.deepEqual(requiredSlots('hybrid', '13:00', true), ['13:00', '11:00']);
   assert.deepEqual(requiredSlots('allday', '11:00', false), ['11:00', '13:00', '15:00', '17:00']);
@@ -1553,7 +1464,7 @@ test('admin test requests can only open active synthetic staff sessions', async 
 
   const local = await api('/api/demo/session', { method: 'POST', body: { role: 'admin' } });
   assert.equal(local.status, 200);
-  assert.equal(((await local.json()) as { data: SessionDTO }).data.actor.id, 'aaa-admin');
+  assert.equal(((await local.json()) as { data: SessionDTO }).data.actor.id, 'demo-admin');
   await expectError(await remoteLogin('admin', false), 404, 'NOT_FOUND');
   await expectError(await remoteLogin('user'), 404, 'NOT_FOUND');
   await expectError(
@@ -1577,7 +1488,11 @@ test('admin test requests can only open active synthetic staff sessions', async 
   );
   assert.equal(session.status, 200);
   assert.equal(((await session.json()) as { data: SessionDTO }).data.actor.id, 'demo-admin');
-  db.database.exec("UPDATE staff SET active=0 WHERE id='demo-admin'");
+  db.database.exec("UPDATE staff SET is_ceo=1 WHERE id='demo-admin'");
+  await expectError(await remoteLogin('admin'), 403, 'FORBIDDEN');
+  db.database.exec("UPDATE staff SET is_ceo=0,username='registered' WHERE id='demo-admin'");
+  await expectError(await remoteLogin('admin'), 403, 'FORBIDDEN');
+  db.database.exec("UPDATE staff SET username=NULL,active=0 WHERE id='demo-admin'");
   await expectError(await remoteLogin('admin'), 403, 'FORBIDDEN');
 });
 
@@ -1826,25 +1741,6 @@ test('customer verification scope, hashed browser sessions, five-failure lock an
   assert.equal(denied.status, 403);
 });
 
-test('retoucher DTO excludes identity, phone, internal notes and unrelated photographs', async () => {
-  const { api } = setup();
-  const cookie = await login(api, 'retoucher');
-  const response = await api('/api/shoots/demo-result', { cookie, surface: 'admin' });
-  assert.equal(response.status, 200);
-  const body = await response.text();
-  assert.ok(!body.includes('01000001004'));
-  assert.ok(!body.includes('최test'));
-  const data = JSON.parse(body).data;
-  assert.deepEqual(data.notes, []);
-  assert.deepEqual(data.payments, []);
-  assert.deepEqual(data.survey.answers, { retouchStrength: 50 });
-  assert.equal(
-    (await api('/api/shoots/demo-preparation', { cookie, surface: 'admin' })).status,
-    404,
-  );
-  assert.equal((await api('/api/settings', { cookie, surface: 'admin' })).status, 403);
-});
-
 test('concurrent booking uses unique slots and atomic rollback (one winner)', async () => {
   const { api, db } = setup();
   const date = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
@@ -1934,7 +1830,9 @@ test('booking uses saved intervals and allows an adjacent appointment at the exa
   const schedule = await api(`/api/schedule?week=${date}`, { cookie: staff });
   const { data: scheduleData } = (await schedule.json()) as { data: ScheduleDTO };
   assert.deepEqual(
-    scheduleData.slots.filter((slot) => slot.date === date).map((slot) => slot.state),
+    scheduleData.slots
+      .filter((slot) => slot.date === date && slot.directorId === 'demo-director')
+      .map((slot) => slot.state),
     ['held', 'held', 'available', 'available'],
   );
   assert.equal(
@@ -2009,6 +1907,7 @@ test('reassignment checks saved intervals and uses the same add-on eligibility a
       "INSERT INTO staff(id,name,email,role) VALUES('director-two','디렉터 2','two@example.test','director')",
     )
     .run();
+  db.database.exec("INSERT INTO director_package_skills VALUES('director-two','one')");
   db.database.prepare("UPDATE packages SET shoot_duration_minutes=90 WHERE id='one'").run();
   const secondBooking = await create('13:00', '01000002431');
   assert.equal(secondBooking.status, 201, await secondBooking.clone().text());
@@ -2154,53 +2053,20 @@ test('production booking does not reveal active numbers through capacity checks 
   );
 });
 
-test('all stages after shooting are blocked through the status action even with a staff override reason', async () => {
+test('operations staff can record external delivery once shooting is complete', async () => {
   const { api, db } = setup();
-  const cookie = await login(api, 'admin');
   db.database.prepare("UPDATE shoots SET status='shoot_complete' WHERE id='demo-result'").run();
-  for (const [status, , stage] of STATUS_DEFINITIONS) {
-    if (stage <= 5) continue;
-    await expectError(
-      await api('/api/shoots/demo-result/actions', {
-        cookie,
-        method: 'POST',
-        body: { type: 'change_status', status, reason: '이력 정정' },
-      }),
-      400,
-      'UNKNOWN_STATUS',
-    );
-  }
+  const change = (cookie: string) =>
+    api('/api/shoots/demo-result/actions', {
+      cookie,
+      method: 'POST',
+      body: { type: 'change_status', status: 'delivered' },
+    });
+  assert.equal((await change(await login(api, 'director'))).status, 403);
+  assert.equal((await change(await login(api, 'staff'))).status, 200);
   assert.equal(
     db.database.prepare("SELECT status FROM shoots WHERE id='demo-result'").get()?.status,
-    'shoot_complete',
-  );
-});
-
-test('revision cap is a DB invariant and request/photo ownership is enforced', () => {
-  const { db } = setup();
-  for (let i = 1; i <= 3; i++)
-    db.database
-      .prepare(
-        "INSERT INTO requests(id,shoot_id,type,state) VALUES(?,'demo-result','revision','complete')",
-      )
-      .run(`revision-${i}`);
-  assert.throws(
-    () =>
-      db.database
-        .prepare(
-          "INSERT INTO requests(id,shoot_id,type,state) VALUES('revision-4','demo-result','revision','new')",
-        )
-        .run(),
-    /REVISION_LIMIT/,
-  );
-  assert.throws(
-    () =>
-      db.database
-        .prepare(
-          "INSERT INTO request_items(id,request_id,photo_id,comment) VALUES('bad-item','revision-1','demo-selection-photo-1','test')",
-        )
-        .run(),
-    /PHOTO_SCOPE/,
+    'delivered',
   );
 });
 
@@ -2318,8 +2184,8 @@ test('private original gate, authorized upload persists R2, and hostile upload i
   assert.equal((await api(data.url, { cookie, surface: 'user' })).status, 404);
   assert.equal((await api(data.url, { cookie: staff, surface: 'admin' })).status, 200);
   assert.equal(
-    db.database.prepare('SELECT COUNT(*) AS n FROM file_links WHERE upload_id=?').get(data.id)?.n,
-    0,
+    db.database.prepare('SELECT COUNT(*) AS n FROM booking_photos WHERE id=?').get(data.id)?.n,
+    1,
   );
 });
 
@@ -2362,7 +2228,6 @@ test('payment, survey and plan preserve independent customer progress', async ()
     style: '캐주얼',
     motivation: '새 프로필',
     purposes: ['비즈니스'],
-    retouchStrength: 0,
     selector: 'customer',
     referral: '네이버 검색',
     reviewParticipation: false,
@@ -2469,9 +2334,7 @@ test('only operations staff and the assigned director can create and read an int
   const admin = await login(api, 'admin');
   const staff = await login(api, 'staff');
   const director = await login(api, 'director');
-  const retoucher = await login(api, 'retoucher');
   await expectError(await sendPhoto(env, customer, 'internal_photo'), 403, 'FORBIDDEN');
-  await expectError(await sendPhoto(env, retoucher, 'internal_photo'), 403, 'FORBIDDEN');
   for (const kind of ['candidate', 'original', 'retouched', 'revision', 'review']) {
     await expectError(await sendPhoto(env, director, kind), 403, 'FORBIDDEN');
     await expectError(await sendPhoto(env, customer, kind), 403, 'FORBIDDEN');
@@ -2487,8 +2350,7 @@ test('only operations staff and the assigned director can create and read an int
   for (const url of urls) {
     for (const cookie of [admin, staff, director])
       assert.equal((await api(url, { cookie })).status, 200);
-    for (const cookie of [customer, retoucher])
-      await expectError(await api(url, { cookie }), 404, 'NOT_FOUND');
+    await expectError(await api(url, { cookie: customer }), 404, 'NOT_FOUND');
   }
   db.database.prepare("UPDATE shoots SET director_id=NULL WHERE id='demo-result'").run();
   await expectError(await api(urls[0]!, { cookie: director }), 404, 'NOT_FOUND');
@@ -2534,7 +2396,11 @@ test('retries keep exactly one internal photo and conflicting or failed requests
   assert.equal(failed.ok, false);
   assert.equal(objects.size, 1);
   assert.equal(
-    db.database.prepare("SELECT COUNT(*) AS n FROM uploads WHERE kind='internal_photo'").get()?.n,
+    db.database
+      .prepare(
+        "SELECT COUNT(*) AS n FROM uploads WHERE kind='internal_photo' AND shoot_id='demo-result'",
+      )
+      .get()?.n,
     1,
   );
 });

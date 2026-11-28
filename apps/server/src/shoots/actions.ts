@@ -3,7 +3,7 @@ import { DomainError } from '@manspick/domain';
 import type { Actor } from '@manspick/contracts';
 import { timelineStatement } from '../activity/records.ts';
 import { mutate } from '../database/mutations.ts';
-import { statement } from '../database/statements.ts';
+import { first, statement } from '../database/statements.ts';
 import { requiredText } from '../http/input.ts';
 import type { Env } from '../runtime/env.ts';
 import { accessibleShoot } from './access.ts';
@@ -17,6 +17,7 @@ import { prepareWorkspace } from './commands/workspace.ts';
 import { prepareAssignment } from './assignment.ts';
 import { prepareScheduleConfirmation } from './commands/schedule-confirmation.ts';
 import { prepareOperations } from './commands/operations.ts';
+import { scheduledWork } from './scheduled-work.ts';
 
 export async function act(env: Env, actor: Actor, shootId: string, body: Record<string, unknown>) {
   const shoot = await accessibleShoot(env, actor, shootId);
@@ -66,6 +67,16 @@ export async function act(env: Env, actor: Actor, shootId: string, body: Record<
       throw new DomainError('UNKNOWN_ACTION', '지원하지 않는 동작입니다.');
   }
   if (!prepared) return shootDetail(env, actor, shootId);
+  if (
+    !shoot.starts_at &&
+    scheduledWork.includes(type) &&
+    (await first(env, 'SELECT 1 FROM booking_time_options WHERE booking_id=? LIMIT 1', shootId))
+  )
+    throw new DomainError(
+      'CONFIRM_SCHEDULE_FIRST',
+      '담당 디렉터가 촬영 일정을 확정한 후 진행해주세요.',
+      409,
+    );
   const { statements, to, reason, condition } = prepared;
   statements.push(statement(env, 'UPDATE shoots SET status=? WHERE id=?', to, shootId));
   statements.push(timelineStatement(env, shootId, actor, shoot.status, to, reason));

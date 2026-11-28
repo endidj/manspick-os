@@ -1,4 +1,4 @@
-// 촬영 준비·현장 진행·공유 링크를 모으고 고객과 보정가에게 필요한 정보만 보여줍니다.
+// 촬영 준비와 현장 진행 정보를 역할에 맞게 조회합니다.
 import type { Actor, CustomerProfileDTO, PreparationDTO } from '@manspick/contracts';
 import { first, rows } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
@@ -9,8 +9,6 @@ import type { ShootRow } from './access.ts';
 export interface WorkspaceRow {
   preparation_json: string | null;
   preparation_confirmed_at: string | null;
-  selection_confirmed_at: string | null;
-  selection_reason: string;
   field_memo: string;
   profile_json: string | null;
 }
@@ -34,34 +32,28 @@ export async function workspaceDetail(env: Env, actor: Actor, shoot: ShootRow) {
       null,
     ),
   ]);
-  const hidden = actor.role === 'retoucher';
   const preparation = parseJSON<PreparationDTO | null>(workspace?.preparation_json, null);
   return {
-    directorId: hidden ? null : shoot.director_id,
-    retoucherId: shoot.retoucher_id,
-    preparation:
-      hidden || !preparation
-        ? null
-        : {
-            ...preparation,
-            guides: preparation.guides.map((guide) => ({
-              ...guide,
-              readAt: checks.find((check) => check.guide_key === guide.id)?.checked_at ?? null,
-            })),
-            confirmedAt: workspace?.preparation_confirmed_at ?? null,
-          },
-    selectionMode: workspace?.selection_confirmed_at ? shoot.select_by : null,
-    selectorReason: hidden || actor.kind === 'customer' ? '' : (workspace?.selection_reason ?? ''),
-    fieldMemo: hidden || actor.kind === 'customer' ? '' : (workspace?.field_memo ?? ''),
+    directorId: shoot.director_id,
+    preparation: !preparation
+      ? null
+      : {
+          ...preparation,
+          guides: preparation.guides.map((guide) => ({
+            ...guide,
+            readAt: checks.find((check) => check.guide_key === guide.id)?.checked_at ?? null,
+          })),
+          confirmedAt: workspace?.preparation_confirmed_at ?? null,
+        },
+    fieldMemo: actor.kind === 'customer' ? '' : (workspace?.field_memo ?? ''),
     fieldChecklist:
-      hidden || actor.kind === 'customer'
+      actor.kind === 'customer'
         ? { checks: [], completedAt: null }
         : {
             checks: parseJSON<string[]>(session?.steps_json, []),
             completedAt: session?.done_at ?? null,
           },
-    fileLinks: [],
-    paymentInstructions: hidden ? null : paymentInstructions,
-    profile: hidden ? null : parseJSON<CustomerProfileDTO | null>(workspace?.profile_json, null),
+    paymentInstructions,
+    profile: parseJSON<CustomerProfileDTO | null>(workspace?.profile_json, null),
   };
 }

@@ -1,4 +1,4 @@
-// 준비 안내 확인과 현장 체크·셀렉 주체 확정·공유 링크를 권한 검사 후 저장합니다.
+// 준비 안내 확인과 현장 체크를 권한 검사 후 저장합니다.
 import { DomainError, statusInfo } from '@manspick/domain';
 import type { PreparationDTO } from '@manspick/contracts';
 import { first, rows, statement } from '../../database/statements.ts';
@@ -151,43 +151,6 @@ export async function prepareWorkspace(
         new Set(checks).size !== checks.length
       )
         throw new DomainError('INVALID_INPUT', '현장 확인 항목을 확인해주세요.');
-      if (body.selector === undefined) {
-        statements.push(
-          statement(
-            env,
-            'INSERT INTO shoot_sessions(shoot_id,steps_json) VALUES(?,?) ON CONFLICT(shoot_id) DO UPDATE SET steps_json=excluded.steps_json',
-            shootId,
-            JSON.stringify(checks),
-          ),
-          statement(
-            env,
-            'INSERT INTO shoot_workspace(shoot_id,field_memo) VALUES(?,?) ON CONFLICT(shoot_id) DO UPDATE SET field_memo=excluded.field_memo',
-            shootId,
-            optionalText(body.note),
-          ),
-        );
-        reason = '현장 체크 저장';
-        break;
-      }
-      if (!['customer', 'director'].includes(String(body.selector)))
-        throw new DomainError('INVALID_INPUT', '최종 셀렉 주체를 선택해주세요.');
-      const previous = await first<WorkspaceRow>(
-        env,
-        'SELECT * FROM shoot_workspace WHERE shoot_id=?',
-        shootId,
-      );
-      const survey = await first<{ answers_json: string }>(
-        env,
-        'SELECT answers_json FROM surveys WHERE shoot_id=?',
-        shootId,
-      );
-      const requested = previous?.selection_confirmed_at
-        ? shoot.select_by
-        : (parseJSON<Record<string, unknown>>(survey?.answers_json, {}).selector ?? 'customer');
-      const changeReason =
-        body.selector !== requested
-          ? requiredText(body, 'reason', 1000)
-          : optionalText(body.reason, 1000);
       statements.push(
         statement(
           env,
@@ -195,21 +158,14 @@ export async function prepareWorkspace(
           shootId,
           JSON.stringify(checks),
         ),
-      );
-      statements.push(
         statement(
           env,
-          'INSERT INTO shoot_workspace(shoot_id,selection_confirmed_at,selection_reason,field_memo) VALUES(?,?,?,?) ON CONFLICT(shoot_id) DO UPDATE SET selection_confirmed_at=excluded.selection_confirmed_at,selection_reason=excluded.selection_reason,field_memo=excluded.field_memo',
+          'INSERT INTO shoot_workspace(shoot_id,field_memo) VALUES(?,?) ON CONFLICT(shoot_id) DO UPDATE SET field_memo=excluded.field_memo',
           shootId,
-          now,
-          changeReason,
           optionalText(body.note),
         ),
       );
-      statements.push(
-        statement(env, 'UPDATE shoots SET select_by=? WHERE id=?', String(body.selector), shootId),
-      );
-      reason = `현장 체크 저장 · ${body.selector === 'director' ? '디렉터' : '고객'} 셀렉 확정${changeReason ? ` · ${changeReason}` : ''}`;
+      reason = '현장 체크 저장';
       break;
     }
     case 'complete_field': {

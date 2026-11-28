@@ -67,12 +67,9 @@ test('shoot-day home begins at Seoul midnight and does not replace completed sho
   assert.equal(resolveJourney({ ...shoot, status: 'shoot_complete' }, now).state, 'complete');
 });
 
-test('historical photo workflow states display the completed shooting without post-delivery actions', () => {
+test('delivery and review states display the completed shooting without post-delivery actions', () => {
   for (const status of [
-    'selection_pending',
-    'selection_complete',
-    'retouch_assigned',
-    'retouching',
+    'shoot_complete',
     'delivered',
     'review_pending',
     'originals_delivered',

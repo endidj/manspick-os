@@ -39,7 +39,7 @@ export async function calendar(
   );
   if (selected.some((addon) => !addon || addon.hiddenPackageIds.includes(packageId)))
     throw new DomainError('INVALID_ADDONS', '선택한 옵션을 확인해주세요.');
-  const eligible = await directors(env, selectedIds);
+  const eligible = await directors(env, packageId, selectedIds);
   shopping = selectedIds.includes('shopping');
   const policy = await operationsPolicy(env);
   const now = new Date();

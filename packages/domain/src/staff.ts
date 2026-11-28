@@ -1,6 +1,6 @@
 // 직원 역할 목록과 입력값 확인을 한곳에서 관리합니다.
 
-const STAFF_ROLES = ['admin', 'staff', 'director', 'retoucher'] as const;
+const STAFF_ROLES = ['admin', 'staff', 'director'] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
 

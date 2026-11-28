@@ -1,8 +1,12 @@
 // 배정된 디렉터가 제출된 후보 하나의 시간·장소를 확정합니다.
 import { deadline, DomainError, statusInfo } from '@manspick/domain';
 import { releaseExpiredHolds } from '../../booking/holds.ts';
-import { directorAvailability, scheduleOption } from '../../booking/schedule-options.ts';
-import { first, rows, statement } from '../../database/statements.ts';
+import {
+  bookingItemIds,
+  directorAvailability,
+  scheduleOption,
+} from '../../booking/schedule-options.ts';
+import { first, statement } from '../../database/statements.ts';
 import { requiredText } from '../../http/input.ts';
 import { id } from '../../security/crypto.ts';
 import { operationsPolicy } from '../../settings/operations-policy.ts';
@@ -35,12 +39,7 @@ export async function prepareScheduleConfirmation(
       '이 예약에서 제출한 미래의 희망 일시를 선택해주세요.',
       409,
     );
-  const items = await rows<{ item_id: string }>(
-    env,
-    'SELECT DISTINCT item_id FROM order_items WHERE order_id=(SELECT order_id FROM bookings WHERE id=?)',
-    shootId,
-  );
-  const ids = items.map((item) => item.item_id);
+  const ids = await bookingItemIds(env, shootId);
   const policy = await operationsPolicy(env);
   const chosen = scheduleOption(
     option.date,
@@ -64,7 +63,6 @@ export async function prepareScheduleConfirmation(
       '설문 제출, 기존 확정 여부와 담당자의 가능 시간을 확인해주세요.',
       409,
     );
-  const weekday = new Date(`${option.date}T12:00:00Z`).getUTCDay();
   return {
     condition,
     to: previous ? shoot.status : 'preparing',
@@ -85,13 +83,11 @@ export async function prepareScheduleConfirmation(
       ),
       statement(
         env,
-        `UPDATE shoots SET starts_at=?,ends_at=?,survey_due_at=?,outfit_due_at=?,
-       retoucher_id=COALESCE(retoucher_id,(SELECT r.retoucher_id FROM retoucher_rules r JOIN staff s ON s.id=r.retoucher_id WHERE r.weekday=? AND s.active=1 AND s.role='retoucher')) WHERE id=?`,
+        `UPDATE shoots SET starts_at=?,ends_at=?,survey_due_at=?,outfit_due_at=? WHERE id=?`,
         chosen.startsAt,
         chosen.endsAt,
         deadline(chosen.startsAt, policy.surveyLeadDays, new Date(now)),
         deadline(chosen.startsAt, policy.outfitLeadDays, new Date(now)),
-        weekday,
         shootId,
       ),
       ...chosen.slots.map((time) =>

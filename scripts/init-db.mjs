@@ -1,3 +1,4 @@
+// 빈 로컬 DB에 마이그레이션과 어드민·고객 화면의 시연 예약을 넣습니다.
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -8,6 +9,7 @@ const wrangler = fileURLToPath(
 for (const args of [
   ['d1', 'migrations', 'apply', 'manspick-local', '--local'],
   ['d1', 'execute', 'manspick-local', '--local', '--file', 'infra/seed.sql'],
+  ['d1', 'execute', 'manspick-local', '--local', '--file', 'infra/seed-customer-pages.sql'],
 ]) {
   const result = spawnSync(
     process.execPath,

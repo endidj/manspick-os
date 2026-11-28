@@ -1,4 +1,4 @@
-// 실제 상품·부가서비스와 담당 가능 직원, 보정가 요일 기준을 보여주고 편집합니다.
+// 패키지 구성·부가서비스와 디렉터별 담당 자격을 조회하고 편집합니다.
 import { useEffect, useState } from 'react';
 import type { StaffRole } from '@manspick/domain';
 import {
@@ -124,7 +124,7 @@ function ManagedPackages() {
             ['packages', '패키지'],
             ['addons', '부가서비스'],
             ['items', '패키지 구성'],
-            ['rules', '난이도 규칙'],
+            ['rules', '디렉터 배정 기준'],
             ['normalization', '표기 정규화'],
           ] as const
         ).map(([value, label]) => ({
@@ -191,8 +191,9 @@ function ManagedPackages() {
                         />
                       ))}
                       <p className={styles.muted}>
-                        기본 난이도와 옵션 가중 합을 신규 예약에 기록합니다. 선택한 옵션을 수행할 수
-                        있고 희망 일정이 가능한 디렉터 중 입사일이 가장 빠른 직원을 배정합니다.
+                        기본 난이도와 옵션 가중 합을 신규 예약에 기록합니다. 선택한 패키지와
+                        부가서비스를 담당할 수 있고 희망 일정 중 하나 이상 가능한 디렉터 중 입사일이
+                        가장 빠른 직원을 배정합니다.
                       </p>
                     </Panel>
                     <AssignmentRules
@@ -272,18 +273,16 @@ function ManagedPackages() {
               onValueChange={(value) => setDraft({ ...draft, price: Number(value) })}
             />
             {kind === 'package' ? (
-              (['originalPrice', 'duration', 'outfits', 'retouchCount'] as const).map(
-                (key, index) => (
-                  <TextField
-                    key={key}
-                    label={['정가 (원)', '촬영 시간 (분)', '의상 수 (벌)', '보정 장수'][index]!}
-                    type="number"
-                    min={0}
-                    value={String((draft as PackageDTO)[key])}
-                    onValueChange={(value) => setDraft({ ...draft, [key]: Number(value) })}
-                  />
-                ),
-              )
+              (['originalPrice', 'duration', 'outfits'] as const).map((key, index) => (
+                <TextField
+                  key={key}
+                  label={['정가 (원)', '촬영 시간 (분)', '의상 수 (벌)'][index]!}
+                  type="number"
+                  min={0}
+                  value={String((draft as PackageDTO)[key])}
+                  onValueChange={(value) => setDraft({ ...draft, [key]: Number(value) })}
+                />
+              ))
             ) : (
               <TextField
                 label="최대 신청 수량"
@@ -363,7 +362,6 @@ function PackageContent({
               <div className={styles.facts}>
                 <InfoRow label="의상" value={`${pack.outfits}벌`} />
                 <InfoRow label="촬영 시간" value={`${pack.duration}분`} />
-                <InfoRow label="보정본" value={`${pack.retouchCount}장`} />
                 <InfoRow label="스팟" value={pack.spotDescription || '미설정'} />
                 <InfoRow
                   label="기본 난이도"
@@ -403,18 +401,16 @@ function PackageContent({
                     <th>{addon.name}</th>
                     <td>{money(addon.price)}</td>
                     <td>
-                      {addon.quantityMode === 'photo'
-                        ? '셀렉 · 후속에서 신청'
-                        : addon.quantityMode === 'outfit'
-                          ? '대여 + 코디 ≤ 패키지 벌수'
-                          : addon.quantityMode === 'shopping'
-                            ? data.packages
-                                .map(
-                                  (pack) =>
-                                    `${pack.name} ${addon.packageQuantityLimits?.[pack.id] ?? addon.maxQuantity}회`,
-                                )
-                                .join(' · ')
-                            : `최대 ${addon.maxQuantity}`}
+                      {addon.quantityMode === 'outfit'
+                        ? '대여 + 코디 ≤ 패키지 벌수'
+                        : addon.quantityMode === 'shopping'
+                          ? data.packages
+                              .map(
+                                (pack) =>
+                                  `${pack.name} ${addon.packageQuantityLimits?.[pack.id] ?? addon.maxQuantity}회`,
+                              )
+                              .join(' · ')
+                          : `최대 ${addon.maxQuantity}`}
                       {addon.hiddenPackageIds?.length
                         ? ` · ${addon.hiddenPackageIds.map((id) => data.packages.find((pack) => pack.id === id)?.name ?? id).join(' · ')} 숨김`
                         : ''}
@@ -473,63 +469,81 @@ function AssignmentRules({
 }) {
   const directors = data.staff.filter((person) => person.role === 'director' && person.active);
   const [directorId, setDirectorId] = useState(directors[0]?.id ?? '');
-  const [skills, setSkills] = useState(
-    data.directorSkills
-      .filter(
-        (skill) =>
-          skill.directorId === directorId &&
-          data.addons.some((addon) => addon.id === skill.addonId && addon.active),
+  const [draftPackages, setDraftPackages] = useState<string[]>();
+  const [draftAddons, setDraftAddons] = useState<string[]>();
+  const packages = data.packages.filter((pack) => pack.active);
+  const addons = data.addons.filter((addon) => addon.active);
+  const packageIds =
+    draftPackages ??
+    packages
+      .filter((pack) =>
+        data.directorPackageSkills?.some(
+          (s) => s.directorId === directorId && s.packageId === pack.id,
+        ),
       )
-      .map((skill) => skill.addonId),
-  );
-  function chooseDirector(id: string) {
-    setDirectorId(id);
-    setSkills(
-      data.directorSkills
-        .filter(
-          (skill) =>
-            skill.directorId === id &&
-            data.addons.some((addon) => addon.id === skill.addonId && addon.active),
-        )
-        .map((skill) => skill.addonId),
-    );
+      .map((pack) => pack.id);
+  const skills =
+    draftAddons ??
+    addons
+      .filter((addon) =>
+        data.directorSkills.some((s) => s.directorId === directorId && s.addonId === addon.id),
+      )
+      .map((addon) => addon.id);
+
+  function toggle(ids: string[], id: string) {
+    return ids.includes(id) ? ids.filter((entry) => entry !== id) : [...ids, id];
   }
 
   return (
     <div className={styles.settingsGrid}>
       <Panel className={styles.productCard}>
-        <h2>디렉터별 수행 가능 옵션</h2>
+        <h2>디렉터별 담당 자격</h2>
         <SelectField
           label="디렉터"
           value={directorId}
           disabled={busy}
-          onValueChange={chooseDirector}
+          onValueChange={(id) => {
+            setDirectorId(id);
+            setDraftPackages(undefined);
+            setDraftAddons(undefined);
+          }}
           options={directors.map((person) => ({ value: person.id, label: person.name }))}
         />
-        {data.addons
-          .filter((addon) => addon.active)
-          .map((addon) => (
-            <CheckItem
-              key={addon.id}
-              label={addon.name}
-              completed={skills.includes(addon.id)}
-              disabled={busy || !directorId}
-              onClick={() =>
-                setSkills((current) =>
-                  current.includes(addon.id)
-                    ? current.filter((id) => id !== addon.id)
-                    : [...current, addon.id],
-                )
-              }
-            />
-          ))}
+        <h3>담당 가능한 촬영 패키지</h3>
+        {packages.map((pack) => (
+          <CheckItem
+            key={pack.id}
+            label={pack.name}
+            completed={packageIds.includes(pack.id)}
+            disabled={busy || !directorId}
+            onClick={() => setDraftPackages(toggle(packageIds, pack.id))}
+          />
+        ))}
+        <h3>담당 가능한 부가서비스</h3>
+        <p className={styles.muted}>
+          기본 포함·추가 선택 서비스 중 디렉터 자격이 필요한 서비스만 자동 배정에 반영합니다.
+        </p>
+        {addons.map((addon) => (
+          <CheckItem
+            key={addon.id}
+            label={addon.name}
+            completed={skills.includes(addon.id)}
+            disabled={busy || !directorId}
+            onClick={() => setDraftAddons(toggle(skills, addon.id))}
+          />
+        ))}
         <Button
           variant="secondary"
           disabled={!directorId}
           loading={busy}
-          onClick={() => save({ type: 'director_skills', directorId, addonIds: skills })}
+          onClick={async () => {
+            if (await save({ type: 'director_skills', directorId, packageIds, addonIds: skills })) {
+              setDraftPackages(undefined);
+              setDraftAddons(undefined);
+            }
+          }}
         >
-          가능 옵션 저장
+          담당 자격 저장
         </Button>
         <p className={styles.muted}>
           저장 이후 자동 배정에 적용됩니다. 이미 배정된 촬영의 담당자는 유지됩니다.

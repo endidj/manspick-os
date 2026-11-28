@@ -71,7 +71,6 @@ export function CatalogRuleFields({
       <SelectField
         label="수량 단위"
         value={addon.quantityMode ?? 'count'}
-        disabled={addon.id === 'extra_retouch'}
         onValueChange={(quantityMode) =>
           onChange({ ...addon, quantityMode: quantityMode as AddonDTO['quantityMode'] })
         }
@@ -81,7 +80,6 @@ export function CatalogRuleFields({
             ['outfit', '의상 (대여·코디 합산)'],
             ['shopping', '쇼핑 횟수'],
             ['count', '개수'],
-            ['photo', '사진 (셀렉·후속 전용)'],
           ] as const
         ).map(([value, label]) => ({ value, label }))}
       />
@@ -125,7 +123,6 @@ export function CatalogRuleFields({
         <input
           type="checkbox"
           checked={addon.requiresDirector}
-          disabled={addon.quantityMode === 'photo'}
           onChange={(event) => onChange({ ...addon, requiresDirector: event.target.checked })}
         />{' '}
         수행 가능한 디렉터만 자동 배정

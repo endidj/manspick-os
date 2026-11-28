@@ -18,6 +18,7 @@ import { first, rows } from '../database/statements.ts';
 import type { SqlValue } from '../database/statements.ts';
 import { assetDTO, visibleAssets } from '../files/access.ts';
 import { bookingSchedule } from '../booking/schedule-options.ts';
+import { scheduledWork } from './scheduled-work.ts';
 import type { UploadRow } from '../files/access.ts';
 import type { Env } from '../runtime/env.ts';
 import { maskPhone } from '../security/phone.ts';
@@ -30,28 +31,25 @@ import { assignmentCandidates } from './assignment.ts';
 
 export function summary(shoot: ShootRow, actor: Actor): ShootSummary {
   const pack = parseJSON<PackageDTO>(shoot.package_snapshot, {} as PackageDTO);
-  const hidden = actor.role === 'retoucher';
   return {
     id: shoot.id,
-    customerName: hidden ? `고객 ${shoot.id.slice(-4)}` : shoot.customer_name,
-    phoneMasked: hidden ? '' : maskPhone(shoot.phone),
+    customerName: shoot.customer_name,
+    phoneMasked: maskPhone(shoot.phone),
     status: shoot.status,
     statusLabel: statusInfo(shoot.status).label,
     stage: statusInfo(shoot.status).stage,
     packageId: shoot.package_id,
     packageName: pack.name,
-    addons: hidden ? [] : parseJSON<ShootSummary['addons']>(shoot.addons_json, []),
-    totalAmount: hidden ? 0 : shoot.total_amount,
+    addons: parseJSON<ShootSummary['addons']>(shoot.addons_json, []),
+    totalAmount: shoot.total_amount,
     startsAt: shoot.starts_at,
     directorName: shoot.director_name,
-    retoucherName: shoot.retoucher_name,
-    paymentState: hidden ? 'hidden' : shoot.payment_state,
+    paymentState: shoot.payment_state,
     pendingRequests: shoot.pending_requests,
-    pendingNotifications: hidden || actor.kind === 'customer' ? 0 : shoot.pending_notifications,
-    retouchDueAt: shoot.retouch_due_at,
+    pendingNotifications: actor.kind === 'customer' ? 0 : shoot.pending_notifications,
     nextAction: shoot.pending_requests
       ? '요청 확인'
-      : shoot.pending_notifications && !hidden && actor.kind !== 'customer'
+      : shoot.pending_notifications && actor.kind !== 'customer'
         ? '안내 발송 확인'
         : statusInfo(shoot.status).label,
   };
@@ -96,7 +94,6 @@ export async function listShoots(
       paymentPending: list.filter((s) => s.paymentState === 'pending').length,
       preparation: list.filter((s) => s.stage === 3 || s.stage === 4).length,
       requests: list.reduce((sum, s) => sum + s.pendingRequests, 0),
-      retouching: list.filter((s) => s.stage === 6).length,
       pendingTemplates: list.reduce((sum, s) => sum + s.pendingNotifications, 0),
       depositRequests:
         (
@@ -106,9 +103,6 @@ export async function listShoots(
             ...access.values,
           )
         )?.n ?? 0,
-      retouchDueTomorrow: list.filter(
-        (s) => s.retouchDueAt && s.retouchDueAt <= new Date(Date.now() + 86400000).toISOString(),
-      ).length,
     },
   };
 }
@@ -136,7 +130,7 @@ export async function listBoardShoots(
       WHEN status='cancelled' THEN NULL
       WHEN status IN ('review_confirmed','originals_pending','originals_delivered','follow_up') THEN 6
       WHEN status IN ('delivered','review_requested','review_pending') THEN 5
-      WHEN status IN ('shoot_complete','selection_pending','selection_complete','retouch_assigned','retouching') THEN 4
+      WHEN status='shoot_complete' THEN 4
       WHEN status IN ('shoot_day','arrived','addons_in_progress','outfit_checked','shooting','mid_check') THEN 3
       WHEN payment_state!='confirmed' THEN NULL
       WHEN scheduled_at IS NULL THEN 1
@@ -156,7 +150,6 @@ export async function listBoardShoots(
   for (const [field, column] of [
     ['packageId', 'package_id'],
     ['director', 'director_name'],
-    ['retoucher', 'retoucher_name'],
   ] as const) {
     const value = filters.get(field);
     if (value && value !== 'all') {
@@ -210,7 +203,6 @@ export async function listBoardShoots(
       COUNT(*) FILTER(WHERE ${dateFilter}) AS today,
       COALESCE(SUM(pending_requests),0) AS requests,
       COALESCE(SUM(pending_notifications),0) AS pendingTemplates,
-      COUNT(*) FILTER(WHERE julianday(retouch_due_at)<=julianday(?)) AS retouchDueTomorrow,
       (SELECT COUNT(*) FROM requests q JOIN accessible a ON a.id=q.shoot_id
         WHERE q.type='deposit' AND q.state IN ('new','processing')) AS depositRequests
       FROM matches`,
@@ -219,7 +211,6 @@ export async function listBoardShoots(
       ...values,
       todayStart,
       tomorrowStart,
-      new Date(now.getTime() + 86400000).toISOString(),
     ),
     rows<{ kind: keyof ShootBoardDTO['facets']; id: string; name: string }>(
       env,
@@ -227,7 +218,6 @@ export async function listBoardShoots(
       SELECT 'packages' AS kind,package_id AS id,COALESCE(MAX(${packageName}),package_id) AS name FROM accessible GROUP BY package_id
       UNION ALL SELECT 'addons',a.addon_id,MAX(a.name) FROM accessible s JOIN shoot_addons a ON a.shoot_id=s.id GROUP BY a.addon_id
       UNION ALL SELECT DISTINCT 'directors',director_name,director_name FROM accessible WHERE director_name IS NOT NULL
-      UNION ALL SELECT DISTINCT 'retouchers',retoucher_name,retoucher_name FROM accessible WHERE retoucher_name IS NOT NULL
       ORDER BY name,id`,
       ...access.values,
     ),
@@ -242,7 +232,6 @@ export async function listBoardShoots(
     requests: 0,
     pendingTemplates: 0,
     depositRequests: 0,
-    retouchDueTomorrow: 0,
   };
   const pageSize = 50;
   const requestedPage = Number(filters.get('page'));
@@ -272,7 +261,6 @@ export async function listBoardShoots(
     packages: [],
     addons: [],
     directors: [],
-    retouchers: [],
   };
   for (const { kind, id, name } of facetRows) {
     if (kind === 'packages' || kind === 'addons') facets[kind].push({ id, name });
@@ -296,7 +284,6 @@ export async function listBoardShoots(
 export async function shootDetail(env: Env, actor: Actor, shootId: string): Promise<ShootDetail> {
   const shoot = await accessibleShoot(env, actor, shootId);
   const customer = actor.kind === 'customer';
-  const retoucher = actor.role === 'retoucher';
   const [
     addons,
     survey,
@@ -332,65 +319,58 @@ export async function shootDetail(env: Env, actor: Actor, shootId: string): Prom
     ),
     rows<{ id: string; type: string; state: string; message: string | null; createdAt: string }>(
       env,
-      "SELECT id,type,state,message,created_at AS createdAt FROM requests WHERE shoot_id=? AND type='deposit' AND ?=0 ORDER BY created_at DESC",
+      "SELECT id,type,state,message,created_at AS createdAt FROM requests WHERE shoot_id=? AND type='deposit' ORDER BY created_at DESC",
       shootId,
-      Number(retoucher),
     ),
-    retoucher
-      ? Promise.resolve([])
-      : rows<{
-          id: string;
-          kind: string;
-          channel: string;
-          amount: number;
-          state: string;
-          heldUntil: string | null;
-          confirmedAt: string | null;
-          depositor: string | null;
-        }>(
-          env,
-          `SELECT p.id,p.kind,p.channel,p.amount,p.state,p.held_until AS heldUntil,p.confirmed_at AS confirmedAt,
+    rows<{
+      id: string;
+      kind: string;
+      channel: string;
+      amount: number;
+      state: string;
+      heldUntil: string | null;
+      confirmedAt: string | null;
+      depositor: string | null;
+    }>(
+      env,
+      `SELECT p.id,p.kind,p.channel,p.amount,p.state,p.held_until AS heldUntil,p.confirmed_at AS confirmedAt,
            COALESCE((SELECT d.reported_depositor FROM deposit_reports d JOIN requests r ON r.id=d.request_id
              WHERE d.payment_id=p.id ORDER BY r.created_at DESC,r.rowid DESC LIMIT 1),p.depositor) AS depositor
            FROM payments p WHERE p.shoot_id=?`,
-          shootId,
-        ),
-    retoucher
-      ? Promise.resolve([])
-      : rows<{
-          id: string;
-          from: string | null;
-          to: string | null;
-          actorName: string;
-          reason: string;
-          createdAt: string;
-        }>(
-          env,
-          'SELECT id,from_status AS "from",to_status AS "to",actor_name AS actorName,reason,created_at AS createdAt FROM timeline WHERE shoot_id=? ORDER BY created_at DESC LIMIT 100',
-          shootId,
-        ),
-    customer || retoucher
+      shootId,
+    ),
+    rows<{
+      id: string;
+      from: string | null;
+      to: string | null;
+      actorName: string;
+      reason: string;
+      createdAt: string;
+    }>(
+      env,
+      'SELECT id,from_status AS "from",to_status AS "to",actor_name AS actorName,reason,created_at AS createdAt FROM timeline WHERE shoot_id=? ORDER BY created_at DESC LIMIT 100',
+      shootId,
+    ),
+    customer
       ? Promise.resolve([])
       : rows<{ id: string; text: string; createdAt: string; authorName: string }>(
           env,
           'SELECT n.id,n.text,n.created_at AS createdAt,s.name AS authorName FROM notes n JOIN staff s ON s.id=n.author_id WHERE n.shoot_id=? ORDER BY n.created_at DESC',
           shootId,
         ),
-    customer || retoucher
+    customer
       ? []
       : rows<NonNullable<ShootDetail['tasks']>[number]>(
           env,
           'SELECT t.id,t.title,s.name AS assignee,t.completed_at AS completedAt FROM booking_tasks t LEFT JOIN staff s ON s.id=t.assigned_to_staff_id WHERE t.booking_id=? ORDER BY t.created_at,t.id',
           shootId,
         ),
-    retoucher
-      ? []
-      : rows<NonNullable<ShootDetail['notices']>[number]>(
-          env,
-          'SELECT id,body,created_at AS createdAt FROM booking_notices WHERE booking_id=? ORDER BY created_at DESC,id DESC',
-          shootId,
-        ),
-    customer || retoucher
+    rows<NonNullable<ShootDetail['notices']>[number]>(
+      env,
+      'SELECT id,body,created_at AS createdAt FROM booking_notices WHERE booking_id=? ORDER BY created_at DESC,id DESC',
+      shootId,
+    ),
+    customer
       ? []
       : rows<NonNullable<ShootDetail['campaigns']>[number]>(
           env,
@@ -398,74 +378,65 @@ export async function shootDetail(env: Env, actor: Actor, shootId: string): Prom
           shootId,
         ),
   ]);
-  const allowedUploads = await visibleAssets(env, actor, shootId, uploads);
+  const allowedUploads = visibleAssets(actor, shootId, uploads);
   const allAnswers = parseJSON<Record<string, unknown>>(survey?.answers_json, {});
   const pack = parseJSON<PackageDTO>(shoot.package_snapshot, {} as PackageDTO);
-  const visiblePack = retoucher ? { ...pack, price: 0, originalPrice: 0 } : pack;
-  const schedule = await bookingSchedule(env, shootId);
+  const schedule = await bookingSchedule(
+    env,
+    shootId,
+    actor.kind === 'staff' && actor.role === 'director' && actor.id === shoot.director_id
+      ? actor.id
+      : undefined,
+  );
   const capabilities = customer
     ? ['save_survey', 'request_deposit', 'mark_preparation_read', 'confirm_preparation']
-    : retoucher
-      ? []
-      : [
-          'share_plan',
-          'change_status',
-          'note',
-          'save_preparation',
-          'save_field_checklist',
-          'complete_field',
-          'add_task',
-          'complete_task',
-          ...(actor.role === 'director'
-            ? []
-            : [
-                'confirm_payment',
-                'resolve_request',
-                'cancel',
-                'release_hold',
-                'assign_staff',
-                'enter_campaign',
-              ]),
-        ];
+    : [
+        ...(!schedule.timeOptions.length || schedule.confirmation ? scheduledWork : []),
+        'change_status',
+        'note',
+        'add_task',
+        'complete_task',
+        ...(actor.role === 'director'
+          ? []
+          : [
+              'confirm_payment',
+              'resolve_request',
+              'cancel',
+              'release_hold',
+              'assign_staff',
+              'enter_campaign',
+            ]),
+      ];
   return {
     ...summary(shoot, actor),
     tasks,
     notices,
     campaigns,
-    timeOptions: retoucher ? [] : schedule.timeOptions,
-    confirmedSchedule: retoucher ? null : schedule.confirmation,
+    timeOptions: schedule.timeOptions,
+    confirmedSchedule: schedule.confirmation,
     ...(await workspaceDetail(env, actor, shoot)),
     assignmentCandidates:
-      !customer && !retoucher && actor.role !== 'director'
-        ? await assignmentCandidates(env, shoot)
-        : [],
-    package: visiblePack,
-    retouchUnitPrice: 0,
-    extraRetouchAvailable: false,
-    addons: retoucher ? [] : addons,
+      !customer && actor.role !== 'director' ? await assignmentCandidates(env, shoot) : [],
+    package: pack,
+    addons,
     survey: survey
       ? {
-          answers: retoucher ? { retouchStrength: allAnswers.retouchStrength ?? 50 } : allAnswers,
-          pageDone: retoucher ? [] : parseJSON<number[]>(survey.page_done_json, []),
+          answers: allAnswers,
+          pageDone: parseJSON<number[]>(survey.page_done_json, []),
           submittedAt: survey.submitted_at,
           dueAt: shoot.survey_due_at,
         }
       : null,
-    plan:
-      retoucher || !plan
-        ? null
-        : {
-            ...plan,
-            referenceImages: allowedUploads
-              .filter((upload) => upload.kind === 'plan_ref')
-              .map((upload) => assetDTO(upload)),
-          },
-    photos: [],
-    uploads: allowedUploads
-      .filter((item) => !['candidate', 'retouched', 'revision', 'original'].includes(item.kind))
-      .map((item) => assetDTO(item, retoucher)),
-    selections: [],
-    requests: requests.map((r) => ({ ...r, items: [] })),
+    plan: !plan
+      ? null
+      : {
+          ...plan,
+          referenceImages: allowedUploads
+            .filter((upload) => upload.kind === 'plan_ref')
+            .map((upload) => assetDTO(upload)),
+        },
+    uploads: allowedUploads.map(assetDTO),
+    requests,
     payments,
     timeline: customer
       ? timeline.map((item) => ({
@@ -475,8 +446,6 @@ export async function shootDetail(env: Env, actor: Actor, shootId: string): Prom
         }))
       : timeline,
     notes,
-    originals: [],
-    retouchJobs: [],
     capabilities:
       shoot.status === 'cancelled'
         ? []
@@ -492,8 +461,7 @@ export async function shootDetail(env: Env, actor: Actor, shootId: string): Prom
               : []),
           ],
     outfitPhotosRequired: 0,
-    outfitDueAt: retoucher ? null : shoot.outfit_due_at,
-    revisionCount: requests.filter((request) => request.type === 'revision').length,
+    outfitDueAt: shoot.outfit_due_at,
     holdExpiresAt:
       payments.find((payment) => payment.kind === 'base' && payment.state === 'pending')
         ?.heldUntil ?? null,

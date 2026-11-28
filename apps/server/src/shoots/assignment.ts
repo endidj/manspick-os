@@ -2,12 +2,17 @@
 import { datePlusDays, DomainError, koreaDate } from '@manspick/domain';
 import type { AssignmentCandidateDTO } from '@manspick/contracts';
 import { directorSkillsCondition } from '../booking/directors.ts';
-import { reclaimableHold, releaseExpiredHolds } from '../booking/holds.ts';
+import { releaseExpiredHolds } from '../booking/holds.ts';
+import { occupiedInterval } from '../booking/reservations.ts';
 import {
-  conflictingReservations,
-  lastOccupiedDate,
-  occupiedInterval,
-} from '../booking/reservations.ts';
+  availableSlots,
+  bookingItemIds,
+  directorAvailability,
+  savedOptions,
+  schedulableOptions,
+} from '../booking/schedule-options.ts';
+import type { AssignmentSlot } from '../booking/schedule-options.ts';
+import { operationsPolicy } from '../settings/operations-policy.ts';
 import { first, rows, statement } from '../database/statements.ts';
 import { requiredText } from '../http/input.ts';
 import type { Env } from '../runtime/env.ts';
@@ -15,28 +20,33 @@ import { operator } from '../security/permissions.ts';
 import type { ShootRow } from './access.ts';
 import type { CommandContext, PreparedCommand } from './commands/types.ts';
 
-async function assignmentRequirements(env: Env, shoot: ShootRow) {
+async function assignmentRequirements(env: Env, shoot: ShootRow, now: string) {
   const date = shoot.starts_at ? koreaDate(new Date(shoot.starts_at)) : koreaDate();
-  const [locks, addons] = await Promise.all([
-    rows<{ time: string }>(env, 'SELECT time FROM slots WHERE shoot_id=?', shoot.id),
-    rows<{ addon_id: string }>(
-      env,
-      'SELECT DISTINCT item_id AS addon_id FROM order_items WHERE order_id=(SELECT order_id FROM bookings WHERE id=?)',
-      shoot.id,
-    ),
-  ]);
-  const times = locks.map((lock) => lock.time);
-  const interval =
-    shoot.starts_at && shoot.ends_at
-      ? occupiedInterval({ startsAt: shoot.starts_at, endsAt: shoot.ends_at }, date, times)
-      : null;
-  return {
-    date,
-    times,
-    interval,
-    lastDate: lastOccupiedDate(date, interval),
-    skills: directorSkillsCondition(addons.map(({ addon_id }) => addon_id)),
-  };
+  const items = await bookingItemIds(env, shoot.id);
+  const skills = directorSkillsCondition(shoot.package_id, items);
+  let slots: AssignmentSlot[] = [];
+  if (shoot.starts_at && shoot.ends_at) {
+    const [locks, confirmed] = await Promise.all([
+      rows<{ time: string }>(env, 'SELECT time FROM slots WHERE shoot_id=?', shoot.id),
+      first<{ startsAt: string; endsAt: string }>(
+        env,
+        'SELECT occupancy_starts_at AS startsAt,occupancy_ends_at AS endsAt FROM booking_confirmations WHERE booking_id=?',
+        shoot.id,
+      ),
+    ]);
+    const times = locks.map((lock) => lock.time);
+    const interval =
+      confirmed ??
+      occupiedInterval({ startsAt: shoot.starts_at, endsAt: shoot.ends_at }, date, times);
+    slots = [{ packageId: shoot.package_id, date, slots: times, interval }];
+  } else {
+    const saved = await savedOptions(env, shoot.id);
+    if (!saved.length) return { date, items, skills, slots, noSchedule: true };
+    slots = schedulableOptions(saved, items, await operationsPolicy(env), now).map(
+      (option) => option.slot,
+    );
+  }
+  return { date, items, skills, slots, noSchedule: false };
 }
 
 export async function assignmentCandidates(
@@ -44,29 +54,26 @@ export async function assignmentCandidates(
   shoot: ShootRow,
 ): Promise<AssignmentCandidateDTO[]> {
   const now = new Date().toISOString();
-  const { date, times, interval, lastDate, skills } = await assignmentRequirements(env, shoot);
-  const candidates = await rows<{ id: string; name: string; skill_eligible: number }>(
+  const { date, items, skills, slots, noSchedule } = await assignmentRequirements(env, shoot, now);
+  const candidates = await rows<{
+    id: string;
+    name: string;
+    hiredOn: string | null;
+    skill_eligible: number;
+  }>(
     env,
-    `SELECT id,name,${skills.sql} AS skill_eligible FROM staff WHERE active=1 AND role='director' ORDER BY id`,
-    skills.value,
+    `SELECT id,name,hired_on AS hiredOn,(${skills.sql}) AS skill_eligible FROM staff WHERE active=1 AND role='director' ORDER BY hired_on IS NULL,hired_on,id`,
+    ...skills.values,
   );
   return Promise.all(
     candidates.map(async (person) => {
-      const conflicts = conflictingReservations(person.id, date, times, interval, shoot.id);
-      const [off, occupied, load] = await Promise.all([
-        first(
-          env,
-          'SELECT date FROM director_days_off WHERE director_id=? AND date BETWEEN ? AND ?',
-          person.id,
-          date,
-          lastDate,
-        ),
-        first(
-          env,
-          `SELECT s.id FROM shoots s WHERE ${conflicts.sql} AND NOT ${reclaimableHold} LIMIT 1`,
-          ...conflicts.values,
-          now,
-        ),
+      const skillEligible = person.skill_eligible === 1;
+      const [available, load] = await Promise.all([
+        skillEligible &&
+          (noSchedule ||
+            availableSlots(env, person.id, slots, items, shoot.id, now).then((open) =>
+              open.some(Boolean),
+            )),
         first<{ n: number }>(
           env,
           'SELECT COUNT(DISTINCT shoot_id) AS n FROM slots WHERE director_id=? AND date>=? AND date<=?',
@@ -75,31 +82,21 @@ export async function assignmentCandidates(
           date,
         ),
       ]);
-      const skillEligible = person.skill_eligible === 1;
-      const available = !off && !occupied;
       return {
         directorId: person.id,
         name: person.name,
+        hiredOn: person.hiredOn,
         skillEligible,
         available,
         weeklyLoad: load?.n ?? 0,
         reason: !skillEligible
-          ? '추가서비스 불가'
-          : off
-            ? '휴무'
-            : !available
-              ? '다른 예약과 시간 중복'
-              : '배정 가능',
+          ? '패키지 또는 부가서비스 자격 없음'
+          : available
+            ? '배정 가능'
+            : '배정 가능한 일정 없음',
       };
     }),
   );
-}
-
-export async function activeRetoucherCondition(env: Env, retoucherId: string | null) {
-  if (!retoucherId) return;
-  const sql = "EXISTS(SELECT 1 FROM staff WHERE id=? AND role='retoucher' AND active=1)";
-  const values = [retoucherId];
-  if (await first(env, `SELECT 1 WHERE ${sql}`, ...values)) return { sql, values };
 }
 
 export async function prepareAssignment(context: CommandContext): Promise<PreparedCommand> {
@@ -111,50 +108,38 @@ export async function prepareAssignment(context: CommandContext): Promise<Prepar
   const values: (string | number | null)[] = [];
   if (body.directorId !== undefined) {
     const person = requiredText(body, 'directorId', 100);
-    const { date, times, interval, lastDate, skills } = await assignmentRequirements(env, shoot);
-    const conflicts = conflictingReservations(person, date, times, interval, shootId);
-    await releaseExpiredHolds(env, context.now, conflicts);
-    const checks = [
-      `EXISTS(SELECT 1 FROM staff WHERE id=? AND role='director' AND active=1 AND ${skills.sql})`,
-      'NOT EXISTS(SELECT 1 FROM director_days_off WHERE director_id=? AND date BETWEEN ? AND ?)',
-      `NOT EXISTS(SELECT 1 FROM shoots s WHERE ${conflicts.sql})`,
-    ];
-    const bindings = [person, skills.value, person, date, lastDate, ...conflicts.values];
-    if (interval) {
-      checks.push(
-        '(NOT EXISTS(SELECT 1 FROM director_availability WHERE director_id=?) OR EXISTS(SELECT 1 FROM director_availability WHERE director_id=? AND starts_at<=? AND ends_at>=?))',
-      );
-      bindings.push(person, person, interval.startsAt, interval.endsAt);
+    const { skills, slots, items, noSchedule } = await assignmentRequirements(
+      env,
+      shoot,
+      context.now,
+    );
+    let rule: { sql: string; values: (string | number | null)[] } | undefined;
+    if (noSchedule) {
+      rule = {
+        sql: `EXISTS(SELECT 1 FROM staff WHERE id=? AND role='director' AND active=1 AND ${skills.sql})`,
+        values: [person, ...skills.values],
+      };
+    } else {
+      const available = await availableSlots(env, person, slots, items, shootId, context.now);
+      const selected = slots.find((_, index) => available[index]);
+      if (selected) {
+        const check = directorAvailability(person, selected, items, shootId);
+        await releaseExpiredHolds(env, context.now, check.conflicts);
+        rule = check;
+      }
     }
-    const candidate = await first(env, `SELECT 1 WHERE ${checks.join(' AND ')}`, ...bindings);
-    if (!candidate)
+    if (!rule || !(await first(env, `SELECT 1 WHERE ${rule.sql}`, ...rule.values)))
       throw new DomainError(
         'ASSIGNMENT_UNAVAILABLE',
-        '추가서비스·휴무·예약 조건에 맞는 디렉터를 선택해주세요.',
+        '패키지·부가서비스·일정 조건에 맞는 디렉터를 선택해주세요.',
         409,
       );
-    clauses.push(...checks);
-    values.push(...bindings);
+    clauses.push(rule.sql);
+    values.push(...rule.values);
     statements.push(
       statement(env, 'UPDATE slots SET director_id=? WHERE shoot_id=?', person, shootId),
     );
     statements.push(statement(env, 'UPDATE shoots SET director_id=? WHERE id=?', person, shootId));
-  }
-  if (body.retoucherId !== undefined) {
-    const person = requiredText(body, 'retoucherId', 100);
-    const retoucher = await activeRetoucherCondition(env, person);
-    if (!retoucher) throw new DomainError('INVALID_ASSIGNEE', '활성 보정가를 선택해주세요.');
-    clauses.push(retoucher.sql);
-    values.push(...retoucher.values);
-    statements.push(statement(env, 'UPDATE shoots SET retoucher_id=? WHERE id=?', person, shootId));
-    statements.push(
-      statement(
-        env,
-        "UPDATE retouch_jobs SET retoucher_id=? WHERE shoot_id=? AND state!='complete'",
-        person,
-        shootId,
-      ),
-    );
   }
   if (body.csId !== undefined) {
     const cs = requiredText(body, 'csId', 100);

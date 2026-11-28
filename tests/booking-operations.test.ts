@@ -96,6 +96,6 @@ test('tasks and campaign participation stay staff-only and booking tables are ph
   const detail = await shootDetail(env, customer, booking);
   assert.deepEqual(detail.tasks, []);
   assert.deepEqual(detail.campaigns, []);
-  assert.deepEqual(detail.fileLinks, []);
+  assert.equal('fileLinks' in detail, false);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
 });

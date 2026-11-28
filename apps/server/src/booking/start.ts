@@ -18,7 +18,12 @@ import { normalizePhone } from '../security/phone.ts';
 import { catalog } from './catalog.ts';
 import { directors } from './directors.ts';
 import { rebookableShoot, releaseExpiredHolds } from './holds.ts';
-import { directorAvailability, requestedTimes, scheduleOption } from './schedule-options.ts';
+import {
+  availableSlots,
+  directorAvailability,
+  requestedTimes,
+  scheduleOption,
+} from './schedule-options.ts';
 import { operationsPolicy } from '../settings/operations-policy.ts';
 import { validVisit } from '../analytics/analytics.ts';
 
@@ -28,7 +33,8 @@ async function activeBooking(env: Env, phone: string) {
   return first<{ id: string; version: number; rebookable: number }>(
     env,
     `SELECT s.id,s.version,${rebookableShoot} AS rebookable FROM shoots s
-     JOIN customers c ON c.id=s.customer_id WHERE c.phone=? AND s.status NOT IN ('cancelled','follow_up','shoot_complete')`,
+     JOIN customers c ON c.id=s.customer_id WHERE c.phone=? AND s.status NOT IN
+     ('cancelled','shoot_complete','delivered','review_requested','review_pending','review_confirmed','originals_pending','originals_delivered','follow_up')`,
     phone,
   );
 }
@@ -139,10 +145,19 @@ export async function start(
   const addonIds = [
     ...new Set([...selected.map((item) => item.addon.id), ...included.map((item) => item.itemId)]),
   ];
-  const options = times.map(({ date, time }) =>
-    scheduleOption(date, time, packageId, pack.duration, addonIds.includes('shopping'), policy),
-  );
-  const eligible = await directors(env, addonIds, proposed);
+  const options = times.map(({ date, time }) => {
+    const option = scheduleOption(
+      date,
+      time,
+      packageId,
+      pack.duration,
+      addonIds.includes('shopping'),
+      policy,
+    );
+    holdExpiry(now, new Date(option.startsAt), policy);
+    return option;
+  });
+  const eligible = await directors(env, packageId, addonIds);
   const { token, tokenHash } = await newCustomerToken(env);
   const shootId = id();
   const amount =
@@ -169,6 +184,7 @@ export async function start(
   )
     throw new DomainError('INVALID_INPUT', '카카오 닉네임을 확인해주세요.');
   const profile = {
+    bookingName: name,
     paymentAmount: reportedAmount ?? null,
     kakaoNickname: typeof body.kakaoNickname === 'string' ? body.kakaoNickname.trim() : '',
     marketingConsent: body.marketingConsent === true,
@@ -176,14 +192,22 @@ export async function start(
     serviceNotificationConsent: body.serviceNotificationConsent === true,
   };
   for (const director of eligible) {
-    for (const option of options) {
+    const possible = await availableSlots(
+      env,
+      director.id,
+      options,
+      addonIds,
+      '',
+      now.toISOString(),
+    );
+    for (const [index, option] of options.entries()) {
+      if (!possible[index]) continue;
       const rule = directorAvailability(director.id, option, addonIds);
       await releaseExpiredHolds(env, now.toISOString(), rule.conflicts);
       const { sql: availability, values: availabilityValues } = rule;
       if (!(await first(env, `SELECT 1 WHERE ${availability}`, ...availabilityValues))) continue;
       if (duplicate) return accepted;
       const { date, slots: needed, startsAt, endsAt } = option;
-      const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
       const heldUntil = proposed ? null : holdExpiry(now, new Date(startsAt), policy);
       const guard = id();
       const customerId = id();
@@ -224,10 +248,8 @@ export async function start(
         ),
         statement(
           env,
-          `INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,retoucher_id,starts_at,ends_at,survey_due_at,outfit_due_at)
-          VALUES(?,(SELECT id FROM customers WHERE phone=?),?,?,?,?,?,?,
-            (SELECT r.retoucher_id FROM retoucher_rules r JOIN staff s ON s.id=r.retoucher_id
-              WHERE r.weekday=? AND s.active=1 AND s.role='retoucher'),?,?,?,?)`,
+          `INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,starts_at,ends_at,survey_due_at,outfit_due_at)
+          VALUES(?,(SELECT id FROM customers WHERE phone=?),?,?,?,?,?,?,?,?,?,?)`,
           shootId,
           phone,
           tokenHash,
@@ -239,7 +261,6 @@ export async function start(
           }),
           amount,
           director.id,
-          proposed ? null : weekday,
           proposed ? null : startsAt,
           proposed ? null : endsAt,
           proposed ? null : deadline(startsAt, policy.surveyLeadDays, now),

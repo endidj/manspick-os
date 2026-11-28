@@ -103,7 +103,7 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
         if (
           !quantity ||
           seen.has(itemId) ||
-          !current.addons.some((item) => item.id === itemId && item.quantityMode !== 'photo') ||
+          !current.addons.some((item) => item.id === itemId) ||
           (inclusionType !== 'included' && inclusionType !== 'optional')
         )
           throw new DomainError(
@@ -256,22 +256,20 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
         originalPrice: integerValue(data.originalPrice),
         duration: integerValue(data.duration, 1440),
         outfits: integerValue(data.outfits, 20),
-        retouchCount: integerValue(data.retouchCount, 100),
         description: requiredText(data, 'description', 2000),
         active: data.active ?? existing.active,
       };
-      if (!value.duration || !value.outfits || !value.retouchCount)
-        throw new DomainError('INVALID_INPUT', '시간·의상·보정 수는 1 이상이어야 합니다.');
+      if (!value.duration || !value.outfits)
+        throw new DomainError('INVALID_INPUT', '시간·의상 수는 1 이상이어야 합니다.');
       statements.push(
         statement(
           env,
-          'UPDATE packages SET name=?,price_krw=?,original_price_krw=?,shoot_duration_minutes=?,outfits=?,retouch_count=?,description=?,is_active=? WHERE id=?',
+          'UPDATE packages SET name=?,price_krw=?,original_price_krw=?,shoot_duration_minutes=?,outfits=?,description=?,is_active=? WHERE id=?',
           value.name,
           value.price,
           value.originalPrice,
           value.duration,
           value.outfits,
-          value.retouchCount,
           value.description,
           value.active ? 1 : 0,
           value.id,
@@ -285,11 +283,17 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
     case 'addon': {
       const data = objectValue(body.value);
       const addonId = requiredText(data, 'id', 80);
-      if (addonId === 'extra_retouch' || data.quantityMode === 'photo')
-        throw new DomainError('INVALID_INPUT', '촬영 아이템만 판매할 수 있습니다.');
       if (data.active !== undefined && typeof data.active !== 'boolean')
         throw new DomainError('INVALID_INPUT', '옵션 노출 여부를 확인해주세요.');
       const oldAddon = current.addons.find((addon) => addon.id === addonId);
+      if (
+        !oldAddon &&
+        (await first(env, 'SELECT id FROM items WHERE id=? AND is_archived=1', addonId))
+      )
+        throw new DomainError(
+          'INVALID_INPUT',
+          '보관된 옵션의 아이디입니다. 다른 아이디를 선택해주세요.',
+        );
       const rules = addonRules(
         data,
         oldAddon ?? { id: addonId, maxQuantity: integerValue(data.maxQuantity, 20) },
@@ -381,7 +385,11 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
         throw new DomainError('INVALID_ADDONS', '수행할 수 있는 옵션을 중복 없이 선택해주세요.');
       const addonIds = body.addonIds as string[];
       statements.push(
-        statement(env, 'DELETE FROM director_skills WHERE director_id=?', directorId),
+        statement(
+          env,
+          'DELETE FROM director_item_skills WHERE director_id=? AND item_id IN (SELECT id FROM items WHERE active=1)',
+          directorId,
+        ),
       );
       for (const addonId of addonIds)
         statements.push(
@@ -392,40 +400,37 @@ export async function updateSettings(env: Env, actor: Actor, body: Record<string
             addonId,
           ),
         );
-      previous = current.directorSkills.filter((skill) => skill.directorId === directorId);
-      next = { directorId, addonIds };
-      break;
-    }
-    case 'retoucher_rules': {
-      if (!Array.isArray(body.rules) || body.rules.length !== 7)
-        throw new DomainError('INVALID_RULES', '일요일부터 토요일까지 담당자를 모두 지정해주세요.');
-      const rules = body.rules.map((item) => {
-        const rule = objectValue(item);
-        const weekday = integerValue(rule.weekday, 6);
-        const retoucherId = requiredText(rule, 'retoucherId', 100);
+      const packageIds = body.packageIds;
+      if (packageIds !== undefined) {
         if (
-          !current.staff.some(
-            (person) =>
-              person.id === retoucherId && person.role === 'retoucher' && person.active === 1,
-          )
+          !Array.isArray(packageIds) ||
+          new Set(packageIds).size !== packageIds.length ||
+          packageIds.some((id) => !current.packages.some((pack) => pack.id === id && pack.active))
         )
-          throw new DomainError('INVALID_ASSIGNEE', '활성 보정가를 선택해주세요.');
-        return { weekday, retoucherId };
-      });
-      if (new Set(rules.map((rule) => rule.weekday)).size !== 7)
-        throw new DomainError('INVALID_RULES', '요일별 담당자는 하나씩 지정해주세요.');
-      // 배정 중인 작업은 유지하고 이후 생성하는 보정 작업의 기준만 바꿉니다.
-      for (const rule of rules)
+          throw new DomainError('INVALID_PACKAGE', '담당 가능한 패키지를 중복 없이 선택해주세요.');
         statements.push(
           statement(
             env,
-            'INSERT INTO retoucher_rules(weekday,retoucher_id) VALUES(?,?) ON CONFLICT(weekday) DO UPDATE SET retoucher_id=excluded.retoucher_id',
-            rule.weekday,
-            rule.retoucherId,
+            'DELETE FROM director_package_skills WHERE director_id=? AND package_id IN (SELECT id FROM packages WHERE is_active=1)',
+            directorId,
+          ),
+          statement(
+            env,
+            'INSERT INTO director_package_skills(director_id,package_id) SELECT ?,value FROM json_each(?)',
+            directorId,
+            JSON.stringify(packageIds),
           ),
         );
-      previous = current.retoucherRules;
-      next = rules;
+      }
+      previous = {
+        addonIds: current.directorSkills
+          .filter((skill) => skill.directorId === directorId)
+          .map((skill) => skill.addonId),
+        packageIds: current.directorPackageSkills
+          .filter((skill) => skill.directorId === directorId)
+          .map((skill) => skill.packageId),
+      };
+      next = { directorId, addonIds, ...(packageIds !== undefined && { packageIds }) };
       break;
     }
     default:

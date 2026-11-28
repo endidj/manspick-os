@@ -19,8 +19,6 @@ const labels: Record<string, string> = {
   budget: '예산',
   motivation: '신청 계기',
   purposes: '사진 사용 목적',
-  retouchStrength: '보정 강도',
-  selector: '셀렉 주체',
   concerns: '촬영 고민',
   referral: '유입 경로',
   reviewParticipation: '후기 혜택 참여',

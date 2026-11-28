@@ -13,7 +13,6 @@ const packageFixture = {
   originalPrice: 220000,
   outfits: 2,
   duration: 120,
-  retouchCount: 5,
   description: '두 가지 스타일 촬영',
   active: true,
 };
@@ -24,8 +23,6 @@ function shootFixture() {
     customerName: '테스트 고객',
     packageId: 'hybrid',
     package: packageFixture,
-    retouchUnitPrice: 10000,
-    extraRetouchAvailable: true,
     status: 'preparing',
     stage: 4,
     paymentState: 'confirmed',
@@ -40,8 +37,6 @@ function shootFixture() {
         style: '캐주얼',
         motivation: '프로필 사진을 바꾸고 싶어요',
         purposes: ['비즈니스'],
-        retouchStrength: 50,
-        selector: 'customer',
         referral: '네이버 검색',
         reviewParticipation: false,
         safetyRead: true,
@@ -74,13 +69,8 @@ function shootFixture() {
         url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==',
       },
     ],
-    photos: [],
-    originals: [],
     requests: [],
-    fileLinks: [],
-    selections: [],
     payments: [],
-    retouchJobs: [],
     outfitPhotosRequired: 2,
     outfitDueAt: null,
     holdExpiresAt: null,
@@ -114,7 +104,6 @@ async function mockApi(page) {
       data = {
         packages: [{ ...packageFixture, price: requests.catalogPrice }],
         addons: [],
-        retouchUnitPrice: 10000,
         testCheckoutEnabled: requests.testCheckoutEnabled,
       };
     } else if (path === '/api/calendar') {
@@ -890,7 +879,7 @@ test(
       await scenario(
         'survey completion after shooting offers home instead of unavailable editing',
         async (page, requests) => {
-          Object.assign(requests.shoot, { status: 'retouching', stage: 6 });
+          Object.assign(requests.shoot, { status: 'delivered', stage: 6 });
           requests.shoot.survey.submittedAt = '2026-11-16T03:00:00Z';
           await page.goto(`${appUrl}/s/demo-token/survey-complete`);
           await signIn(page);

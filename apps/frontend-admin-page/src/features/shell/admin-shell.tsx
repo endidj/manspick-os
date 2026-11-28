@@ -32,11 +32,7 @@ export function AdminShell({ actor, view, detail, busy, onNavigate, onLogout, ch
           }
         />
         <div className={styles.roleCaption}>
-          {actor.role === 'retoucher'
-            ? '보정가 · 권한 제한'
-            : actor.role === 'director'
-              ? '디렉터 · 내 고객'
-              : '직원 · 관리자'}
+          {actor.role === 'director' ? '디렉터 · 내 고객' : '직원 · 관리자'}
         </div>
         <nav className={styles.navigation} aria-label="운영 메뉴">
           {visibleMenu(actor.role).map((item) => (

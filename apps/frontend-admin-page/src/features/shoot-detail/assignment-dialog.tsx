@@ -18,19 +18,14 @@ export function AssignmentDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [director, setDirector] = useState(shoot.directorId ?? '');
-  const [retoucher, setRetoucher] = useState(shoot.retoucherId ?? '');
   const [reason, setReason] = useState('');
   const [cs, setCs] = useState('');
   const [operators, setOperators] = useState<{ id: string; name: string }[]>([]);
-  const [staff, setStaff] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState('');
   useEffect(() => {
     if (open)
-      api<ScheduleDTO & { retouchers?: { id: string; name: string }[] }>('/schedule')
-        .then((data) => {
-          setStaff(data.retouchers ?? []);
-          setOperators(data.operators ?? []);
-        })
+      api<ScheduleDTO>('/schedule')
+        .then((data) => setOperators(data.operators ?? []))
         .catch((cause) => setError(cause.message));
   }, [open]);
 
@@ -39,7 +34,6 @@ export function AssignmentDialog({
       await perform({
         type: 'assign_staff',
         ...(director && director !== shoot.directorId ? { directorId: director } : {}),
-        ...(retoucher && retoucher !== shoot.retoucherId ? { retoucherId: retoucher } : {}),
         ...(cs ? { csId: cs } : {}),
         reason,
       })
@@ -64,11 +58,7 @@ export function AssignmentDialog({
         actions={
           <Button
             disabled={
-              !reason.trim() ||
-              busy ||
-              (!cs &&
-                director === (shoot.directorId ?? '') &&
-                retoucher === (shoot.retoucherId ?? ''))
+              !reason.trim() || busy || (!cs && (!director || director === shoot.directorId))
             }
             loading={busy}
             onClick={save}
@@ -89,7 +79,8 @@ export function AssignmentDialog({
                   value={candidate.directorId}
                   disabled={!candidate.skillEligible || !candidate.available}
                 >
-                  {candidate.name} · 주 {candidate.weeklyLoad}건
+                  {candidate.name} ·{' '}
+                  {candidate.hiredOn ? `입사 ${candidate.hiredOn}` : '입사일 미등록'}
                   {!candidate.skillEligible
                     ? ' · 스킬 불가'
                     : !candidate.available
@@ -97,20 +88,6 @@ export function AssignmentDialog({
                       : ''}
                 </option>
               ))}
-            </select>
-          </label>
-          <label className={styles.selectField}>
-            보정가
-            <select value={retoucher} onChange={(e) => setRetoucher(e.target.value)}>
-              <option value="">변경하지 않음</option>
-              {staff.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name}
-                </option>
-              ))}
-              {shoot.retoucherId && !staff.some((s) => s.id === shoot.retoucherId) && (
-                <option value={shoot.retoucherId}>{shoot.retoucherName}</option>
-              )}
             </select>
           </label>
           <TextArea label="변경 사유" value={reason} onValueChange={setReason} required />

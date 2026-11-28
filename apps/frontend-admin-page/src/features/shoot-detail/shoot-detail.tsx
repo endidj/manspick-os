@@ -1,4 +1,4 @@
-// 역할에 맞는 고객 상세·디렉터 현장 업무·보정가 화면을 주소에 연결합니다.
+// 고객 상세와 디렉터 현장 업무를 역할별로 연결합니다.
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
 import { type StaffRole, STAGE_LABELS } from '@manspick/domain';
@@ -58,8 +58,6 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
         ) : (
           <CustomerManage shoot={shoot} busy={locked} perform={perform} />
         )
-      ) : role === 'retoucher' ? (
-        <Notice>담당 예약의 알림을 확인해주세요.</Notice>
       ) : (
         <>
           <Link href="/?view=board" className={styles.back}>
@@ -71,19 +69,18 @@ export function ShootDetailScreen({ shootId, role }: { shootId: string; role: St
                 <h1>{shoot.customerName}</h1>
                 {shoot.stage > 0 ? (
                   <StageBadge
-                    stage={Math.min(5, shoot.stage) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
-                    label={shoot.stage > 5 ? '촬영 완료' : STAGE_LABELS[shoot.stage - 1]!}
+                    stage={shoot.stage as 1 | 2 | 3 | 4 | 5 | 6 | 7}
+                    label={STAGE_LABELS[shoot.stage - 1]!}
                   />
                 ) : (
                   <Badge>취소</Badge>
                 )}
-                <Badge tone="blue">{shoot.stage > 5 ? '촬영 완료' : shoot.statusLabel}</Badge>
+                <Badge tone="blue">{shoot.statusLabel}</Badge>
               </div>
               <p className={styles.detailSubtitle}>
                 {shoot.packageName}
                 {shoot.addons.map((addon) => ` + ${addon.name}`).join('')} ·{' '}
-                {dateTime(shoot.startsAt)} · 디렉터 {shoot.directorName ?? '미배정'} · 보정가{' '}
-                {shoot.retoucherName ?? '미배정'}
+                {dateTime(shoot.startsAt)} · 디렉터 {shoot.directorName ?? '미배정'}
               </p>
             </div>
             <div className={styles.headerActions}>

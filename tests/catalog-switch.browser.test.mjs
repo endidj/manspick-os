@@ -72,7 +72,6 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
           originalPrice: 120000,
           outfits: 1,
           duration: 60,
-          retouchCount: 3,
           description: '촬영',
           active: true,
         },
@@ -83,11 +82,10 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
       staff: [
         { id: 'd1', name: '디렉터 A', role: 'director', active: true },
         { id: 'd2', name: '디렉터 B', role: 'director', active: true },
-        { id: 'r1', name: '보정가 A', role: 'retoucher', active: true },
-        { id: 'r2', name: '보정가 B', role: 'retoucher', active: true },
+        { id: 'r1', name: '운영 직원 A', role: 'staff', active: true },
       ],
       directorSkills: [],
-      retoucherRules: Array.from({ length: 7 }, (_, weekday) => ({ weekday, retoucherId: 'r1' })),
+      directorPackageSkills: [],
       policy: {
         holdHours: 24,
         holdCutoffHours: 2,
@@ -154,7 +152,16 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
         }
         if (body.type === 'package_items')
           data.packageItems = body.items.map((item) => ({ ...item, packageId: body.packageId }));
-        else if (body.type === 'payment_instructions') data.paymentInstructions = body.value;
+        else if (body.type === 'director_skills') {
+          data.directorPackageSkills = body.packageIds.map((packageId) => ({
+            directorId: body.directorId,
+            packageId,
+          }));
+          data.directorSkills = body.addonIds.map((addonId) => ({
+            directorId: body.directorId,
+            addonId,
+          }));
+        } else if (body.type === 'payment_instructions') data.paymentInstructions = body.value;
         else data[body.type === 'package' ? 'packages' : 'addons'][0] = body.value;
       }
       await route.fulfill({ json: { data } });
@@ -202,7 +209,7 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     assert.equal(await draftSwitch.isChecked(), true);
     assert.equal(submissions.length, 3);
     await page.getByRole('button', { name: '닫기', exact: true }).click();
-    await page.getByText('난이도 규칙', { exact: true }).click();
+    await page.getByText('디렉터 배정 기준', { exact: true }).click();
     const director = page.getByRole('combobox', { name: '디렉터', exact: true });
     await director.selectOption('d2');
     assert.equal(await director.inputValue(), 'd2');
@@ -222,8 +229,8 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     releaseSave();
     await page.getByText('변경 내용을 저장했습니다.', { exact: true }).waitFor();
     assert.equal(await quantity.inputValue(), '2');
-    await page.getByRole('tab', { name: '난이도 규칙', exact: true }).click();
-    const rulesTab = page.getByRole('tab', { name: '난이도 규칙', exact: true });
+    await page.getByRole('tab', { name: '디렉터 배정 기준', exact: true }).click();
+    const rulesTab = page.getByRole('tab', { name: '디렉터 배정 기준', exact: true });
     const normalizationTab = page.getByRole('tab', { name: '표기 정규화', exact: true });
     assert.equal(await page.getByRole('tabpanel').count(), 1);
     assert.equal(
@@ -279,7 +286,7 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     });
 
     const edit = page.getByRole('dialog', { name: '직원 계정 편집', exact: true });
-    const editAccount = page.getByRole('button', { name: '보정가 A 편집', exact: true });
+    const editAccount = page.getByRole('button', { name: '운영 직원 A 편집', exact: true });
     await editAccount.click();
     staff.find(({ id }) => id === 'r1').version++;
     await edit.getByRole('switch', { name: '계정 활성', exact: true }).click();
@@ -294,11 +301,11 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
     await edit.getByRole('combobox', { name: '역할', exact: true }).selectOption('director');
     await edit.getByRole('switch', { name: '계정 활성', exact: true }).click();
     await edit.getByRole('button', { name: '계정 저장', exact: true }).click();
-    const staffRow = page.getByRole('listitem').filter({ hasText: '보정가 A' });
+    const staffRow = page.getByRole('listitem').filter({ hasText: '운영 직원 A' });
     await staffRow.getByText('디렉터 · 비활성', { exact: true }).waitFor();
     assert.deepEqual(staffSubmissions[3], { role: 'director', active: false, version: 1 });
 
-    await staffRow.getByRole('button', { name: '보정가 A 모든 세션 종료', exact: true }).click();
+    await staffRow.getByRole('button', { name: '운영 직원 A 모든 세션 종료', exact: true }).click();
     assert.equal(staffSubmissions.length, 4);
     await page
       .getByRole('dialog', { name: '모든 세션 종료', exact: true })
@@ -326,6 +333,30 @@ test('catalog and settings patterns preserve save, busy, selection and keyboard 
       0,
     );
     assert.match(await paymentCard.innerText(), /변경은행/);
+    data.packages[0].active = true;
+    data.addons[0].active = true;
+    await page.goto(`${server.resolvedUrls.local[0]}switch-test`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.getByRole('tab', { name: '디렉터 배정 기준' }).click();
+    await director.selectOption('d2');
+    const packageSkill = page.getByRole('button', { name: '원', exact: true });
+    await packageSkill.click();
+    await page.getByRole('button', { name: '헤어', exact: true }).click();
+    await page.getByRole('button', { name: '담당 자격 저장' }).click();
+    await page.waitForFunction(() => document.querySelector('button[aria-busy="true"]'));
+    assert.deepEqual(submissions.at(-1), {
+      type: 'director_skills',
+      directorId: 'd2',
+      packageIds: ['one'],
+      addonIds: ['hair'],
+    });
+    releaseSave();
+    await page.getByText('변경 내용을 저장했습니다.', { exact: true }).waitFor();
+    await director.selectOption('d1');
+    assert.equal(await packageSkill.getAttribute('aria-pressed'), 'false');
+    await director.selectOption('d2');
+    assert.equal(await packageSkill.getAttribute('aria-pressed'), 'true');
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       true,

@@ -81,12 +81,7 @@ export async function upload(request: Request, env: Env, actor: Actor) {
   const shoot = await accessibleShoot(env, actor, shootId);
   if (shoot.status === 'cancelled')
     throw new DomainError('CANCELLED', '취소된 촬영에는 올릴 수 없습니다.', 409);
-  const allowed =
-    actor.kind === 'customer'
-      ? ['survey', 'outfit']
-      : actor.role === 'retoucher'
-        ? []
-        : ['plan_ref', 'internal_photo'];
+  const allowed = actor.kind === 'customer' ? ['survey', 'outfit'] : ['plan_ref', 'internal_photo'];
   if (!allowed.includes(kind))
     throw new DomainError('FORBIDDEN', '이 종류의 파일을 올릴 권한이 없습니다.', 403);
   const retryKey = request.headers.get('Idempotency-Key');
@@ -107,18 +102,15 @@ export async function upload(request: Request, env: Env, actor: Actor) {
   const previous = retryKey
     ? await first<UploadRow>(env, 'SELECT * FROM uploads WHERE id=?', uploadId)
     : null;
-  if (previous) return retryResult(previous, fingerprint, actor);
+  if (previous) return retryResult(previous, fingerprint);
   // Concurrent retries must never overwrite or delete each other's object.
   const key = `${shootId}/${kind}/${id()}`;
-  const name =
-    actor.role === 'retoucher'
-      ? `result-${uploadId.slice(0, 8)}`
-      : file.name.replace(/[\/\\\x00-\x1f]/g, '_').slice(0, 120);
+  const name = file.name.replace(/[\/\\\x00-\x1f]/g, '_').slice(0, 120);
   await env.BUCKET.put(key, bytes.buffer, { httpMetadata: { contentType } });
   const statements = [
     statement(
       env,
-      'INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,retouch_job_id,retry_fingerprint) VALUES(?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO uploads(id,shoot_id,kind,object_key,name,content_type,size,uploaded_by,retry_fingerprint) VALUES(?,?,?,?,?,?,?,?,?)',
       uploadId,
       shootId,
       kind,
@@ -127,7 +119,6 @@ export async function upload(request: Request, env: Env, actor: Actor) {
       contentType,
       file.size,
       actor.id,
-      null,
       fingerprint,
     ),
   ];
@@ -139,18 +130,18 @@ export async function upload(request: Request, env: Env, actor: Actor) {
   } catch (error) {
     const existing = await first<UploadRow>(env, 'SELECT * FROM uploads WHERE id=?', uploadId);
     if (existing?.object_key !== key) await env.BUCKET.delete(key);
-    if (existing && retryKey) return retryResult(existing, fingerprint, actor);
+    if (existing && retryKey) return retryResult(existing, fingerprint);
     throw error;
   }
   const result = await first<UploadRow>(env, 'SELECT * FROM uploads WHERE id=?', uploadId);
   if (!result) throw new DomainError('UPLOAD_FAILED', '업로드 기록을 확인할 수 없습니다.', 500);
-  return assetDTO(result, actor.role === 'retoucher');
+  return assetDTO(result);
 }
 
-function retryResult(existing: UploadRow, fingerprint: string | null, actor: Actor) {
+function retryResult(existing: UploadRow, fingerprint: string | null) {
   if (!fingerprint || existing.retry_fingerprint !== fingerprint)
-    throw new DomainError('UPLOAD_KEY_REUSED', '다른 파일이나 작업 컷은 새로 업로드해주세요.', 409);
-  return assetDTO(existing, actor.role === 'retoucher');
+    throw new DomainError('UPLOAD_KEY_REUSED', '다른 파일은 새로 업로드해주세요.', 409);
+  return assetDTO(existing);
 }
 
 function demoSvg(index: number) {

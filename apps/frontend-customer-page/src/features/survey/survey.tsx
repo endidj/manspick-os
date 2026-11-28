@@ -116,14 +116,13 @@ export function Survey({
         const options = catalog.addons
           .filter(
             (addon) =>
-              addon.id !== 'extra_retouch' &&
-              (!catalog.packageItems ||
-                catalog.packageItems.some(
-                  (item) =>
-                    item.packageId === shoot.packageId &&
-                    item.itemId === addon.id &&
-                    item.inclusionType === 'optional',
-                )),
+              !catalog.packageItems ||
+              catalog.packageItems.some(
+                (item) =>
+                  item.packageId === shoot.packageId &&
+                  item.itemId === addon.id &&
+                  item.inclusionType === 'optional',
+              ),
           )
           .sort(compareAddonDisplayOrder);
         setAddons(options);
@@ -474,7 +473,7 @@ export function Survey({
                     className={styles.purposeChoice}
                     key={addon.id}
                     type="checkbox"
-                    title={`${addon.name} +${addon.price.toLocaleString('ko-KR')}${addon.quantityMode === 'outfit' ? '/벌' : addon.quantityMode === 'photo' ? '/장' : ''}`}
+                    title={`${addon.name} +${addon.price.toLocaleString('ko-KR')}${addon.quantityMode === 'outfit' ? '/벌' : ''}`}
                     checked={interests?.includes(addon.id) ?? false}
                     leadingIcon={
                       interests?.includes(addon.id) ? (

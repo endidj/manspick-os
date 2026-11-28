@@ -31,7 +31,6 @@ test(
                 { id: 'd', name: '디렉터' },
                 { id: 'other', name: '휴무자' },
               ],
-              retouchers: [],
               recentAssignments: [],
               slots: [
                 { ...slot, state: 'reserved', shootId: 'a/b' },

@@ -33,7 +33,7 @@ export async function settings(env: Env, actor: Actor): Promise<OperationsSettin
     ),
     daysOff: await rows(
       env,
-      'SELECT director_id AS directorId,date FROM director_days_off ORDER BY date',
+      "SELECT d.director_id AS directorId,d.date FROM director_days_off d JOIN staff s ON s.id=d.director_id WHERE s.role='director' ORDER BY d.date",
     ),
     directorAvailability: await rows(
       env,
@@ -44,9 +44,9 @@ export async function settings(env: Env, actor: Actor): Promise<OperationsSettin
       env,
       'SELECT director_id AS directorId,addon_id AS addonId FROM director_skills ORDER BY director_id,addon_id',
     ),
-    retoucherRules: await rows(
+    directorPackageSkills: await rows(
       env,
-      'SELECT weekday,retoucher_id AS retoucherId FROM retoucher_rules ORDER BY weekday',
+      'SELECT director_id AS directorId,package_id AS packageId FROM director_package_skills ORDER BY director_id,package_id',
     ),
     mode: 'local',
     externalMessages: false,

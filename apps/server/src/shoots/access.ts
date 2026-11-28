@@ -17,9 +17,7 @@ export interface ShootRow {
   addons_json: string;
   total_amount: number;
   director_id: string | null;
-  retoucher_id: string | null;
   director_name: string | null;
-  retoucher_name: string | null;
   starts_at: string | null;
   ends_at: string | null;
   survey_due_at: string | null;
@@ -28,29 +26,27 @@ export interface ShootRow {
   token_version: number;
   payment_state: string;
   pending_requests: number;
-  select_by: 'customer' | 'director';
   pending_notifications: number;
-  retouch_due_at: string | null;
   created_at: string;
 }
 
-export const SHOOT_SELECT = `SELECT s.*,c.name AS customer_name,c.phone,d.name AS director_name,r.name AS retoucher_name,
+// 같은 번호로 다시 접수해도 이번 예약에서 작성한 이름만 표시합니다.
+export const bookingCustomerName = `COALESCE((SELECT json_extract(w.profile_json,'$.bookingName')
+  FROM shoot_workspace w WHERE w.shoot_id=s.id AND json_valid(w.profile_json)),c.name)`;
+
+export const SHOOT_SELECT = `SELECT s.*,${bookingCustomerName} AS customer_name,c.phone,d.name AS director_name,
 COALESCE((SELECT state FROM payments WHERE shoot_id=s.id AND kind='base' LIMIT 1),'pending') AS payment_state,
 (SELECT COUNT(*) FROM requests WHERE shoot_id=s.id AND state IN ('new','processing')) AS pending_requests,
 (SELECT COUNT(*) FROM notifications WHERE shoot_id=s.id AND state='local_pending') AS pending_notifications,
-(SELECT MIN(due_at) FROM retouch_jobs WHERE shoot_id=s.id AND state!='complete') AS retouch_due_at,
 (SELECT json_group_array(json_object('id',addon_id,'name',name)) FROM
   (SELECT addon_id,name FROM shoot_addons WHERE shoot_id=s.id ORDER BY addon_id)) AS addons_json
-FROM shoots s JOIN customers c ON c.id=s.customer_id LEFT JOIN staff d ON d.id=s.director_id LEFT JOIN staff r ON r.id=s.retoucher_id`;
+FROM shoots s JOIN customers c ON c.id=s.customer_id LEFT JOIN staff d ON d.id=s.director_id`;
 
 export function scope(actor: Actor) {
   if (actor.kind === 'customer') return { sql: 's.id=?', values: [actor.shootId ?? actor.id] };
   if (operationAllowed(actor)) return { sql: '1=1', values: [] };
   if (actor.role === 'director') return { sql: 's.director_id=?', values: [actor.id] };
-  return {
-    sql: 'EXISTS(SELECT 1 FROM retouch_jobs j WHERE j.shoot_id=s.id AND j.retoucher_id=?)',
-    values: [actor.id],
-  };
+  return { sql: '0=1', values: [] };
 }
 
 export async function accessibleShoot(env: Env, actor: Actor, shootId: string) {

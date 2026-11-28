@@ -25,7 +25,6 @@ export const roles: {
   { id: 'admin', label: '대표' },
   { id: 'staff', label: '운영 직원' },
   { id: 'director', label: '디렉터' },
-  { id: 'retoucher', label: '보정가' },
 ];
 
 export const menu: { id: View; label: string; icon: string }[] = [
@@ -46,8 +45,6 @@ const directorMenu: typeof menu = [
 
 export function visibleMenu(role: StaffRole) {
   if (role === 'director') return directorMenu;
-  if (role === 'retoucher')
-    return [{ id: 'profile' as const, label: '내 정보', icon: 'solar/user-bold' }];
   return menu.filter((item) => item.id !== 'settings' || role === 'admin');
 }
 
@@ -70,7 +67,6 @@ export function requestedView(role: StaffRole = 'staff'): View {
 }
 
 export function detailScreen(requested: string | null, role: StaffRole): DetailScreen {
-  if (role === 'retoucher') return 'overview';
   if (role === 'director') return requested === 'field' ? 'field' : 'manage';
   return 'overview';
 }

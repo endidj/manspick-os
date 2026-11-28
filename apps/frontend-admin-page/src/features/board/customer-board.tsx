@@ -1,6 +1,5 @@
 // 고객 보드의 실제 운영 집계와 저장 가능한 검색 조건을 원본 순서로 보여줍니다.
 import { useEffect, useState } from 'react';
-import type { StaffRole } from '@manspick/domain';
 import type { ShootBoardDTO } from '@manspick/contracts';
 import { Button, Loading, Notice } from '@manspick/design-system/components';
 import { Icon } from '@manspick/design-system/icons';
@@ -16,12 +15,11 @@ import styles from './customer-board.module.css';
 
 type Props = {
   view: View;
-  role: StaffRole;
   actorId?: string;
   onViewChange: (view: View) => void;
 };
 
-export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: Props) {
+export function CustomerBoard({ view, actorId = 'staff', onViewChange }: Props) {
   const key = `manspick:board-filters:${actorId}`;
   const [filters, setFilters] = useState<BoardFilters>(() => {
     if (typeof window === 'undefined') return { ...defaultBoardFilters };
@@ -47,7 +45,6 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
     packageId: filters.packageId,
     addonId: filters.addonId,
     director: filters.director,
-    retoucher: filters.retoucher,
     scope: filters.scope,
     pending: String(filters.pending),
     requests: String(filters.requests || view === 'requests'),
@@ -189,27 +186,19 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
             {label}
           </button>
         ))}
-        {(
-          [
-            ['director', '디렉터', facets?.directors ?? []],
-            ['retoucher', '보정가', facets?.retouchers ?? []],
-          ] as const
-        ).map(([field, label, values]) => (
-          <select
-            className={styles.pill}
-            key={field}
-            aria-label={label}
-            value={filters[field]}
-            onChange={(event) => set(field, event.target.value)}
-          >
-            <option value="all">{label}: 전체</option>
-            {values.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        ))}
+        <select
+          className={styles.pill}
+          aria-label="디렉터"
+          value={filters.director}
+          onChange={(event) => set('director', event.target.value)}
+        >
+          <option value="all">디렉터: 전체</option>
+          {facets?.directors.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
         <select
           className={styles.pill}
           aria-label="패키지"
@@ -290,7 +279,7 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
           {view === 'board' ? (
             <KanbanBoard shoots={board.shoots} matchesByStage={board.matchesByStage} />
           ) : (
-            <ShootTable shoots={board.shoots} role={role} />
+            <ShootTable shoots={board.shoots} />
           )}
           <nav className={styles.pagination} aria-label="촬영 목록 페이지">
             <Button

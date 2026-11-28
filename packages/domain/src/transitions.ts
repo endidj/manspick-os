@@ -35,6 +35,4 @@ export function assertTransition(
     (statusInfo(to).stage < 4 || statusInfo(to).stage > 6 || to === 'delivered')
   )
     throw new DomainError('FORBIDDEN', '디렉터의 촬영 진행 범위를 벗어납니다.', 403);
-  if (role === 'retoucher' && !['retouching', 'delivered'].includes(to))
-    throw new DomainError('FORBIDDEN', '보정 업무의 상태만 변경할 수 있습니다.', 403);
 }

@@ -212,10 +212,6 @@ test('real local Workers D1/R2 and Vinext proxy: sessions, RBAC, bytes and share
     origin: 'http://localhost:3002',
     body: { role: 'retoucher' },
   });
-  const masked = await request(admin, '/shoots/demo-result', { cookie: retoucher.cookie });
-  assert.equal(masked.response.status, 200);
-  assert.equal(masked.json.data.phoneMasked, '');
-  assert.equal(masked.json.data.totalAmount, 0);
-  assert.deepEqual(masked.json.data.notes, []);
-  assert.equal('age' in (masked.json.data.survey?.answers ?? {}), false);
+  assert.equal(retoucher.response.status, 400);
+  assert.equal(retoucher.json.error.code, 'INVALID_ROLE');
 });

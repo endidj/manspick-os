@@ -45,12 +45,4 @@ test('source limits combine outfit options, hide included hair, and allow two al
     ]),
   );
   assert.equal(additionalDifficultyWeight([{ addon: rental }, { addon: shopping }]), 3);
-  assert.equal(
-    addonQuantityLimit(pack, {
-      id: 'extra_retouch',
-      maxQuantity: 100,
-      ...defaultAddonRules('extra_retouch'),
-    }),
-    0,
-  );
 });

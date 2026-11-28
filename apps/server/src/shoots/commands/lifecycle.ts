@@ -21,16 +21,6 @@ export async function prepareLifecycle(
     case 'change_status': {
       if (actor.kind !== 'staff')
         throw new DomainError('FORBIDDEN', '직원 권한이 필요합니다.', 403);
-      if (
-        actor.role === 'retoucher' &&
-        !(await first(
-          env,
-          "SELECT id FROM retouch_jobs WHERE shoot_id=? AND retoucher_id=? AND state!='complete'",
-          shootId,
-          actor.id,
-        ))
-      )
-        throw new DomainError('JOB_REQUIRED', '본인에게 배정된 진행 중 작업이 없습니다.', 409);
       to = requiredText(body, 'status', 40) as ShootStatus;
       if (
         statusInfo(to).stage >= 4 &&
@@ -42,8 +32,6 @@ export async function prepareLifecycle(
           '담당 디렉터가 희망 일정 중 하나를 먼저 확정해주세요.',
           409,
         );
-      if (to !== 'cancelled' && statusInfo(to).stage > 5)
-        throw new DomainError('UNKNOWN_STATUS', '촬영 완료까지의 진행 상태를 선택해주세요.');
       if (to === 'cancelled')
         throw new DomainError('USE_CANCEL', '취소 동작에서 사유를 입력해주세요.');
       reason = typeof body.reason === 'string' ? body.reason.slice(0, 1000) : '';

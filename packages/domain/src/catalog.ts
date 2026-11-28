@@ -9,7 +9,7 @@ export type PackageRules = {
 
 export type AddonRules = {
   difficultyWeight: number;
-  quantityMode: 'single' | 'outfit' | 'shopping' | 'photo' | 'count';
+  quantityMode: 'single' | 'outfit' | 'shopping' | 'count';
   packageQuantityLimits: Record<string, number>;
   hiddenPackageIds: string[];
   requiresDirector: boolean;
@@ -35,16 +35,13 @@ export function defaultPackageRules(id: string): PackageRules {
 export function defaultAddonRules(id: string, maxQuantity = 1): AddonRules {
   return {
     difficultyWeight: id === 'shopping' ? 2 : ['hair', 'rental', 'outfit'].includes(id) ? 1 : 0,
-    quantityMode:
-      id === 'extra_retouch'
-        ? 'photo'
-        : ['rental', 'outfit'].includes(id)
-          ? 'outfit'
-          : id === 'shopping'
-            ? 'shopping'
-            : maxQuantity > 1
-              ? 'count'
-              : 'single',
+    quantityMode: ['rental', 'outfit'].includes(id)
+      ? 'outfit'
+      : id === 'shopping'
+        ? 'shopping'
+        : maxQuantity > 1
+          ? 'count'
+          : 'single',
     packageQuantityLimits: id === 'shopping' ? { one: 1, hybrid: 1, allday: 2 } : {},
     hiddenPackageIds: id === 'hair' ? ['allday'] : [],
     requiresDirector: ['hair', 'rental', 'outfit', 'shopping'].includes(id),
@@ -75,7 +72,7 @@ export function addonQuantityLimit(
   addon: { id: string; maxQuantity: number } & Partial<AddonRules>,
 ) {
   const rule = { ...defaultAddonRules(addon.id, addon.maxQuantity), ...addon };
-  if (rule.hiddenPackageIds.includes(pack.id) || rule.quantityMode === 'photo') return 0;
+  if (rule.hiddenPackageIds.includes(pack.id)) return 0;
   const limit = rule.packageQuantityLimits[pack.id] ?? addon.maxQuantity;
   return rule.quantityMode === 'outfit'
     ? Math.min(limit, pack.outfits)

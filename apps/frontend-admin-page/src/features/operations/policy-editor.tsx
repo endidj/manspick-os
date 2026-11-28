@@ -1,4 +1,4 @@
-// 원본 운영 카드의 입금·예약·제출 마감과 추가 보정 단가를 실제 설정으로 저장합니다.
+// 입금·예약·제출 마감을 운영 설정으로 저장합니다.
 import { useState } from 'react';
 import { SLOT_TIMES, validateOperationsPolicy } from '@manspick/domain';
 import type { OperationsPolicy } from '@manspick/domain';

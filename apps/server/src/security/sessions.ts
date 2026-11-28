@@ -3,6 +3,7 @@ import { DomainError } from '@manspick/domain';
 import type { StaffRole } from '@manspick/domain';
 import type { Actor, SessionDTO } from '@manspick/contracts';
 import { first, statement } from '../database/statements.ts';
+import { bookingCustomerName } from '../shoots/access.ts';
 import type { Env } from '../runtime/env.ts';
 import { hash, randomToken } from './crypto.ts';
 
@@ -56,7 +57,7 @@ async function currentActor(request: Request, env: Env): Promise<Actor | null> {
   if (!customerToken) return null;
   const shoot = await first<{ id: string; name: string }>(
     env,
-    `SELECT s.id,c.name FROM sessions a JOIN shoots s ON s.id=a.shoot_id
+    `SELECT s.id,${bookingCustomerName} AS name FROM sessions a JOIN shoots s ON s.id=a.shoot_id
       JOIN customers c ON c.id=s.customer_id
       WHERE a.token_hash=? AND a.kind='customer' AND a.expires_at>? AND a.token_version=s.token_version`,
     await hash(customerToken),

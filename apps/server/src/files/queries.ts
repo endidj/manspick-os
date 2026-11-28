@@ -1,4 +1,4 @@
-// 볼 수 있는 촬영의 파일만 조회하고 보정가에게는 파일 이름을 가려서 전달합니다.
+// 권한이 있는 촬영의 파일만 조회합니다.
 import type { Actor } from '@manspick/contracts';
 import { rows } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
@@ -14,8 +14,6 @@ export async function listUploads(env: Env, actor: Actor, shootId: string) {
     shootId,
   );
   return {
-    items: (await visibleAssets(env, actor, shootId, uploads)).map((item) =>
-      assetDTO(item, actor.role === 'retoucher'),
-    ),
+    items: visibleAssets(actor, shootId, uploads).map(assetDTO),
   };
 }

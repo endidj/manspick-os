@@ -152,9 +152,9 @@ export async function demoLogin(request: Request, env: Env, role: string) {
   if (!isStaffRole(role)) throw new DomainError('INVALID_ROLE', '허용되지 않은 역할입니다.');
   const staff = await first<Staff>(
     env,
-    `SELECT id,name,role,auth_version AS version FROM staff WHERE active=1 AND role=?${adminTest ? ' AND id=?' : ''} ORDER BY id LIMIT 1`,
+    `SELECT id,name,role,auth_version AS version FROM staff WHERE active=1 AND role=? AND id=? AND is_ceo=0 AND username IS NULL AND password_hash IS NULL`,
     role,
-    ...(adminTest ? [`demo-${role}`] : []),
+    `demo-${role}`,
   );
   const session = staff && (await staffSession(request, env, staff));
   if (!session) throw new DomainError('FORBIDDEN', '등록된 활성 직원이 없습니다.', 403);

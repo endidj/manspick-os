@@ -22,9 +22,13 @@ const occupiedStart = `min(julianday(s.starts_at),COALESCE((
   WHERE l.director_id=s.director_id AND l.date=date(s.starts_at,'+09:00') AND l.shoot_id=s.id
 ),julianday(s.starts_at)))`;
 
+export function overlapsOccupiedShoot(end: string, start: string) {
+  return `${occupiedStart}<julianday(${end}) AND julianday(s.ends_at)>julianday(${start})`;
+}
+
 function intervalOverlap(interval: Interval) {
   return {
-    sql: `${occupiedStart}<julianday(?) AND julianday(s.ends_at)>julianday(?)`,
+    sql: overlapsOccupiedShoot('?', '?'),
     values: [interval.endsAt, interval.startsAt],
   };
 }

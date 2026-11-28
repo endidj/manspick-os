@@ -394,10 +394,6 @@ export function Booking() {
                               <strong>{money(entry.price)}</strong>
                             </span>
                             <span className={styles.packageDetails}>
-                              <span>
-                                <Icon name="solar/check-circle-bold" size={12} /> 보정본{' '}
-                                {entry.retouchCount}장
-                              </span>
                               {[
                                 entry.description,
                                 ...(catalog.packageItems ?? [])

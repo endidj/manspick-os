@@ -183,33 +183,22 @@ test('administrator can add an option and toggle it without losing historical or
   db.database.close();
 });
 
-test('retired retouch stays outside the settings, public catalog and order flow', async () => {
-  const { db, api, login, data } = setup();
-  const admin = await login();
-  const settings = await data<OperationsSettingsDTO>(await api('/settings', undefined, admin));
-  assert.equal(
-    settings.addons.some((addon) => addon.id === 'extra_retouch'),
-    false,
-  );
-  const extra = { ...settings.addons[0], id: 'extra_retouch' };
-  const catalog = await data<{ addons: AddonDTO[]; retouchUnitPrice: number }>(
-    await api('/catalog'),
-  );
-  assert.equal(
-    catalog.addons.some((addon) => addon.id === 'extra_retouch'),
-    false,
-  );
-  assert.equal(catalog.retouchUnitPrice, 0);
-  assert.equal(
-    (await api('/start', booking('01000008107', [{ id: 'extra_retouch', quantity: 1 }]))).status,
-    400,
-  );
-  assert.equal(
-    (await api('/settings', { type: 'addon', value: { ...extra, quantityMode: 'single' } }, admin))
-      .status,
-    400,
-  );
-  db.database.close();
+test('catalog excludes retired products and bookings reject unknown item IDs', async () => {
+  const { db, api, data } = setup();
+  try {
+    const catalog = await data<{ addons: AddonDTO[] }>(await api('/catalog'));
+    assert.equal(
+      catalog.addons.some(({ id }) => id === 'extra_retouch'),
+      false,
+    );
+    assert.equal('retouchUnitPrice' in catalog, false);
+    assert.equal(
+      (await api('/start', booking('01000008107', [{ id: 'extra_retouch', quantity: 1 }]))).status,
+      400,
+    );
+  } finally {
+    db.database.close();
+  }
 });
 
 test('hidden packages stay editable for administrators and cannot be newly booked', async () => {

@@ -114,7 +114,7 @@ export function AdminApp({ initialShootId }: { initialShootId?: string }) {
             </>
           ) : view === 'profile' ? (
             <>
-              <MobileHeader title="내 정보" subtitle={role === 'director' ? '디렉터' : '보정가'} />
+              <MobileHeader title="내 정보" subtitle="디렉터" />
               <Panel>
                 <h1>{session.actor.name}</h1>
                 <p>본인에게 배정된 예약의 알림을 받습니다.</p>
@@ -128,7 +128,6 @@ export function AdminApp({ initialShootId }: { initialShootId?: string }) {
             <CustomerBoard
               key={`${session.actor.id}:${view === 'requests'}`}
               view={view}
-              role={role}
               actorId={session.actor.id}
               onViewChange={navigate}
             />

@@ -7,7 +7,6 @@ const permissions = {
   operate: ['admin', 'staff'],
   administer: ['admin'],
   direct: ['admin', 'staff', 'director'],
-  retouch: ['admin', 'staff', 'retoucher'],
 } satisfies Record<string, StaffRole[]>;
 
 export function staffCan(actor: Actor, permission: keyof typeof permissions) {

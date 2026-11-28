@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   detailScreen,
   needsShootList,
+  roles,
   resolveView,
   shootHref,
   visibleMenu,
@@ -23,30 +24,28 @@ test('admin menu exposes original operating screens and staff cannot enter admin
   assert.equal(resolveView('requests', 'admin'), 'requests');
 });
 
-test('director and retoucher receive their own work routes instead of operator screens', () => {
+test('the demo login offers current roles and directors see their assigned work routes', () => {
+  assert.deepEqual(
+    roles.map((role) => role.id),
+    ['admin', 'staff', 'director'],
+  );
   assert.deepEqual(
     visibleMenu('director').map((item) => item.id),
     ['my-customers', 'today', 'profile'],
   );
-  assert.deepEqual(
-    visibleMenu('retoucher').map((item) => item.id),
-    ['profile'],
-  );
   assert.equal(resolveView(null, 'director'), 'my-customers');
   assert.equal(resolveView('templates', 'director'), 'my-customers');
-  assert.equal(resolveView('settings', 'retoucher'), 'profile');
   assert.equal(resolveView('calendar', 'director'), 'my-customers');
   assert.equal(resolveView('list', 'director'), 'my-customers');
-  assert.equal(resolveView('board', 'retoucher'), 'profile');
   assert.equal(resolveView('list', 'staff'), 'list');
 });
 
-test('shoot screen URLs escape IDs and never give a retoucher a director screen', () => {
+test('shoot screen URLs escape IDs and reserve field screens for directors', () => {
   assert.equal(shootHref('a/b', 'field'), '/shoots/a%2Fb?screen=field');
   assert.equal(detailScreen('field', 'director'), 'field');
   assert.equal(detailScreen('candidates', 'director'), 'manage');
   assert.equal(detailScreen(null, 'director'), 'manage');
-  assert.equal(detailScreen('field', 'retoucher'), 'overview');
+  assert.equal(detailScreen('field', 'staff'), 'overview');
   assert.equal(detailScreen('manage', 'admin'), 'overview');
 });
 

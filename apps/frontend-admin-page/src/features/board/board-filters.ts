@@ -5,7 +5,6 @@ export type BoardFilters = {
   packageId: string;
   addonId: string;
   director: string;
-  retoucher: string;
   scope: string;
   pending: boolean;
   requests: boolean;
@@ -16,7 +15,6 @@ export const defaultBoardFilters: BoardFilters = {
   packageId: 'all',
   addonId: '',
   director: 'all',
-  retoucher: 'all',
   scope: 'all',
   pending: false,
   requests: false,

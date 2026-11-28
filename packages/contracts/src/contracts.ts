@@ -45,7 +45,6 @@ export interface PackageDTO extends Partial<PackageRules> {
   originalPrice: number;
   duration: number;
   outfits: number;
-  retouchCount: number;
   description: string;
   active: boolean;
   additionalDifficultyWeight?: number;
@@ -71,11 +70,9 @@ export interface ShootSummary {
   totalAmount: number;
   startsAt: string | null;
   directorName: string | null;
-  retoucherName: string | null;
   paymentState: string;
   pendingRequests: number;
   pendingNotifications: number;
-  retouchDueAt: string | null;
   nextAction: string;
 }
 export interface ShootListPageDTO {
@@ -98,13 +95,11 @@ export interface ShootBoardDTO {
     requests: number;
     pendingTemplates: number;
     depositRequests: number;
-    retouchDueTomorrow: number;
   };
   facets: {
     packages: { id: string; name: string }[];
     addons: { id: string; name: string }[];
     directors: string[];
-    retouchers: string[];
   };
 }
 export interface AssetDTO {
@@ -118,13 +113,6 @@ export interface AssetDTO {
   visible: boolean;
   url: string;
   createdAt: string;
-}
-export interface PhotoDTO extends AssetDTO {
-  cutNo: number;
-  selected: boolean;
-  outfitNo: number | null;
-  outfitLabel: string | null;
-  parentPhotoId: string | null;
 }
 export interface PaymentDTO {
   id: string;
@@ -142,7 +130,6 @@ export interface RequestDTO {
   state: string;
   message: string | null;
   createdAt: string;
-  items: { photoId: string; comment: string }[];
 }
 export interface TimelineDTO {
   id: string;
@@ -176,6 +163,7 @@ export interface PreparationDTO {
 export interface AssignmentCandidateDTO {
   directorId: string;
   name: string;
+  hiredOn?: string | null;
   skillEligible: boolean;
   available: boolean;
   weeklyLoad: number;
@@ -185,7 +173,6 @@ export interface AssignmentCandidateDTO {
 export interface ScheduleDTO {
   operators?: { id: string; name: string }[];
   directors: { id: string; name: string }[];
-  retouchers: { id: string; name: string }[];
   slots: {
     directorId: string;
     date: string;
@@ -194,14 +181,6 @@ export interface ScheduleDTO {
     shootId?: string;
   }[];
   recentAssignments: ShootSummary[];
-}
-
-export interface FileLinkDTO {
-  id: string;
-  kind: 'retouched' | 'original';
-  label: string;
-  url: string;
-  publishedAt: string | null;
 }
 
 export interface CustomerProfileDTO {
@@ -278,7 +257,7 @@ export interface OperationsSettingsDTO {
   campaigns: { id: string; name: string; amount: number; active: number }[];
   preparationGuides: PreparationDTO['guides'];
   directorSkills: { directorId: string; addonId: string }[];
-  retoucherRules: { weekday: number; retoucherId: string }[];
+  directorPackageSkills: { directorId: string; packageId: string }[];
   mode: 'local';
   externalMessages: false;
 }
@@ -298,19 +277,16 @@ export type SettingsAction =
   | { type: 'package'; value: PackageDTO }
   | { type: 'addon'; value: AddonDTO }
   | { type: 'campaign'; value: OperationsSettingsDTO['campaigns'][number] }
-  | { type: 'director_skills'; directorId: string; addonIds: string[] }
-  | { type: 'retoucher_rules'; rules: OperationsSettingsDTO['retoucherRules'] }
+  | { type: 'director_skills'; directorId: string; addonIds: string[]; packageIds?: string[] }
   | { type: 'preparation_guides'; guides: PreparationDTO['guides'] };
 
 export interface ShootDetail extends ShootSummary {
   tasks?: { id: string; title: string; assignee: string | null; completedAt: string | null }[];
   notices?: { id: string; body: string; createdAt: string }[];
   campaigns?: { id: string; name: string; entered: number }[];
-  timeOptions?: { id: string; date: string; time: string }[];
+  timeOptions?: { id: string; date: string; time: string; available?: boolean }[];
   confirmedSchedule?: { optionId: string; location: string; confirmedAt: string } | null;
   package: PackageDTO;
-  retouchUnitPrice: number;
-  extraRetouchAvailable: boolean;
   addons: { id: string; name: string; quantity: number; unitPrice: number }[];
   survey: {
     answers: Record<string, unknown>;
@@ -326,35 +302,20 @@ export interface ShootDetail extends ShootSummary {
     referenceImages: AssetDTO[];
   } | null;
   directorId: string | null;
-  retoucherId: string | null;
   assignmentCandidates: AssignmentCandidateDTO[];
   preparation: PreparationDTO | null;
-  selectionMode: 'customer' | 'director' | null;
-  selectorReason: string;
   fieldMemo: string;
   fieldChecklist: { checks: string[]; completedAt: string | null };
-  fileLinks: FileLinkDTO[];
   paymentInstructions: { bankName: string; accountNumber: string; accountHolder: string } | null;
   profile: CustomerProfileDTO | null;
-  photos: PhotoDTO[];
   uploads: AssetDTO[];
-  selections: { photoIds: string[]; submittedAt: string; round: string }[];
   requests: RequestDTO[];
   payments: PaymentDTO[];
   timeline: TimelineDTO[];
   notes: { id: string; text: string; createdAt: string; authorName: string }[];
-  originals: AssetDTO[];
-  retouchJobs: {
-    id: string;
-    kind: string;
-    state: string;
-    dueAt: string | null;
-    cuts: { photoId: string; uploaded: boolean }[];
-  }[];
   capabilities: string[];
   outfitPhotosRequired: number;
   outfitDueAt: string | null;
-  revisionCount: number;
   holdExpiresAt: string | null;
 }
 
@@ -373,35 +334,19 @@ export type ShootAction =
   | {
       type: 'save_field_checklist';
       checks: string[];
-      selector?: 'customer' | 'director';
-      reason?: string;
       note: string;
     }
   | { type: 'complete_field' }
   | {
       type: 'assign_staff';
       directorId?: string;
-      retoucherId?: string;
       csId?: string;
       reason: string;
     }
-  | {
-      type: 'save_file_link';
-      kind: 'retouched' | 'original';
-      label: string;
-      url: string;
-      visible: boolean;
-    }
-  | { type: 'submit_selection'; photoIds: string[] }
-  | { type: 'request_extra_retouch'; photoIds: string[] }
-  | { type: 'request_revision'; items: { photoId: string; comment: string }[] }
-  | { type: 'review_submit'; uploadId: string; message?: string }
   | { type: 'request_deposit'; depositor: string; paymentId?: string }
   | { type: 'resolve_request'; requestId: string; decision: 'complete' | 'reject' }
   | { type: 'note'; text: string }
   | { type: 'cancel'; reason: string }
-  | { type: 'start_selection' }
-  | { type: 'finish_retouch' }
   | { type: 'release_hold' };
 
 export type ApiResponse<T> = { data: T } | { error: { code: string; message: string } };

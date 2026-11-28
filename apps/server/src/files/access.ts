@@ -15,17 +15,16 @@ export interface UploadRow {
   visible: number;
   created_at: string;
   uploaded_by: string;
-  retouch_job_id: string | null;
   retry_fingerprint: string | null;
   uploaded_by_name?: string;
 }
 
-export function assetDTO(upload: UploadRow, hideName = false): AssetDTO {
+export function assetDTO(upload: UploadRow): AssetDTO {
   return {
     id: upload.id,
     shootId: upload.shoot_id,
     kind: upload.kind,
-    name: hideName ? '보정 작업 사진' : upload.name,
+    name: upload.name,
     contentType: upload.content_type,
     size: upload.size,
     visible: Boolean(upload.visible),
@@ -39,11 +38,11 @@ export function assetDTO(upload: UploadRow, hideName = false): AssetDTO {
 
 export async function allowedAsset(env: Env, actor: Actor, upload: UploadRow) {
   await accessibleShoot(env, actor, upload.shoot_id);
-  return (await visibleAssets(env, actor, upload.shoot_id, [upload])).length > 0;
+  return visibleAssets(actor, upload.shoot_id, [upload]).length > 0;
 }
 
 // Callers must first authorize the shoot. Asset rules are identical for listings and downloads.
-export async function visibleAssets(_env: Env, actor: Actor, shootId: string, assets: UploadRow[]) {
+export function visibleAssets(actor: Actor, shootId: string, assets: UploadRow[]) {
   const uploads = assets.filter((upload) => upload.shoot_id === shootId);
   if (staffCan(actor, 'direct')) return uploads;
   if (actor.kind === 'customer')

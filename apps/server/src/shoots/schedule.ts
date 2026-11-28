@@ -6,6 +6,7 @@ import { reservedIntervals } from '../booking/reservations.ts';
 import { rows } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
 import { operator } from '../security/permissions.ts';
+import { operationsPolicy } from '../settings/operations-policy.ts';
 import { listShoots } from './queries.ts';
 
 export async function schedule(env: Env, actor: Actor, week: string): Promise<ScheduleDTO> {
@@ -18,7 +19,7 @@ export async function schedule(env: Env, actor: Actor, week: string): Promise<Sc
     throw new DomainError('INVALID_DATE', '주간 시작 날짜를 확인해주세요.');
   const end = datePlusDays(week, 6);
   const now = new Date().toISOString();
-  const [directors, locks, off, list, occupied] = await Promise.all([
+  const [directors, locks, off, list, occupied, windows, policy] = await Promise.all([
     rows<{ id: string; name: string }>(
       env,
       "SELECT id,name FROM staff WHERE role='director' AND active=1 ORDER BY id",
@@ -47,9 +48,15 @@ export async function schedule(env: Env, actor: Actor, week: string): Promise<Sc
       },
       now,
     ),
+    rows<{ directorId: string; startsAt: string; endsAt: string }>(
+      env,
+      'SELECT director_id AS directorId, starts_at AS startsAt, ends_at AS endsAt FROM director_availability',
+    ),
+    operationsPolicy(env),
   ]);
-  const slots: ScheduleDTO['slots'] = directors.flatMap((person) =>
-    Array.from({ length: 7 }, (_, i) => datePlusDays(week, i)).flatMap((date) =>
+  const slots: ScheduleDTO['slots'] = directors.flatMap((person) => {
+    const shifts = windows.filter((window) => window.directorId === person.id);
+    return Array.from({ length: 7 }, (_, i) => datePlusDays(week, i)).flatMap((date) =>
       SLOT_TIMES.map((time) => {
         const slotStart = Date.parse(`${date}T${time}:00+09:00`);
         const lock =
@@ -70,23 +77,26 @@ export async function schedule(env: Env, actor: Actor, week: string): Promise<Sc
             ? lock.pending
               ? ('held' as const)
               : ('reserved' as const)
-            : off.some((item) => item.directorId === person.id && item.date === date)
+            : !policy.slotTimes.includes(time) ||
+                off.some((item) => item.directorId === person.id && item.date === date) ||
+                (shifts.length > 0 &&
+                  !shifts.some(
+                    (shift) =>
+                      Date.parse(shift.startsAt) <= slotStart &&
+                      slotStart < Date.parse(shift.endsAt),
+                  ))
               ? ('unavailable' as const)
               : ('available' as const),
           ...(lock ? { shootId: lock.shootId } : {}),
         };
       }),
-    ),
-  );
+    );
+  });
   return {
     directors,
     operators: await rows<{ id: string; name: string }>(
       env,
       "SELECT id,name FROM staff WHERE role IN ('admin','staff') AND active=1 ORDER BY name,id",
-    ),
-    retouchers: await rows<{ id: string; name: string }>(
-      env,
-      "SELECT id,name FROM staff WHERE role='retoucher' AND active=1 ORDER BY id",
     ),
     slots,
     recentAssignments: list.shoots.slice(0, 20),

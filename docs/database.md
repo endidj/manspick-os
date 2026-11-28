@@ -31,6 +31,8 @@ erDiagram
     bookings ||--o{ booking_time_options : "희망 일정"
     bookings ||--o{ booking_staff : "담당 이력"
     staff ||--o{ booking_staff : "배정"
+    staff ||--o{ director_package_skills : "패키지 자격"
+    packages ||--o{ director_package_skills : "배정 가능한 패키지"
     staff ||--o{ director_item_skills : "아이템 자격"
     items ||--o{ director_item_skills : "수행 요건"
     staff ||--o{ director_availability : "근무 가능 구간"
@@ -39,7 +41,7 @@ erDiagram
 ```
 
 1. 희망 일정은 예약 안에서 중복될 수 없고 제출만으로 슬롯을 점유하지 않는다. 서버는 신청 아이템 자격이 있고 후보 중 한 곳에서 필요한 시간 전체를 확보할 수 있는 디렉터를 찾는다. 입사일이 빠른 순서로 배정하며 동률이면 직원 ID로 결정한다. [예약 접수](../apps/server/src/booking/start.ts) · [디렉터 조회](../apps/server/src/booking/directors.ts)
-2. `booking_staff.released_at`이 비어 있는 행이 현재 배정이다. 한 예약에서 디렉터·보정가는 역할별로 최대 한 명이다. 변경 전 담당자는 해제 시각과 함께 남는다.
+2. `booking_staff.released_at`이 비어 있는 행이 현재 배정이다. 한 예약에 담당 디렉터는 최대 한 명이다. 변경 전 담당자는 해제 시각과 함께 남는다.
 3. 설문 제출 후 담당 디렉터가 예약에 속한 미래 후보 하나와 장소를 확정한다. 같은 트랜잭션에서 현재 담당자, 이전 확정, 자격·가능 시간·점유 충돌을 다시 확인하고 확정·슬롯·안내·이력을 기록한다. 후보 시작 시각이 달라도 점유 구간이 겹치면 확정할 수 없다. [일정 확정](../apps/server/src/shoots/commands/schedule-confirmation.ts)
 
 ## 촬영 운영

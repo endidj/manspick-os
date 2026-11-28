@@ -2,6 +2,7 @@
 import { DomainError } from '@manspick/domain';
 import { first, statement } from '../database/statements.ts';
 import type { Env } from '../runtime/env.ts';
+import { bookingCustomerName } from '../shoots/access.ts';
 import { hash } from './crypto.ts';
 import { createSession } from './sessions.ts';
 
@@ -34,7 +35,7 @@ export async function customerLogin(request: Request, env: Env, token: string, l
     throw new DomainError('LOCKED', '확인 시도가 많아 10분 동안 잠겼습니다.', 429);
   const shoot = await first<{ id: string; name: string; phone: string; token_version: number }>(
     env,
-    'SELECT s.id,c.name,c.phone,s.token_version FROM shoots s JOIN customers c ON c.id=s.customer_id WHERE s.access_token_hash=?',
+    `SELECT s.id,${bookingCustomerName} AS name,c.phone,s.token_version FROM shoots s JOIN customers c ON c.id=s.customer_id WHERE s.access_token_hash=?`,
     tokenHash,
   );
   if (!shoot || !/^\d{4}$/.test(last4) || shoot.phone.slice(-4) !== last4) {

@@ -96,10 +96,7 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
                 .join(' · ') || '없음'
             }
           />
-          <InfoRow
-            label="의상 · 보정"
-            value={`${shoot.package.outfits}벌 · ${shoot.package.retouchCount}장`}
-          />
+          <InfoRow label="의상" value={`${shoot.package.outfits}벌`} />
           <InfoRow
             label="결제 확인"
             value={
@@ -160,7 +157,6 @@ export function ShootOverview({ shoot, role, busy, perform, onTabChange }: Props
         <Panel className={styles.summaryPanel}>
           <Heading icon="calendar" title="담당 · 일정" />
           <InfoRow label="디렉터" value={shoot.directorName ?? '배정 대기'} />
-          <InfoRow label="보정가" value={shoot.retoucherName ?? '배정 대기'} />
           {role === 'admin' && (
             <Button size="sm" variant="secondary" onClick={() => onTabChange('photos')}>
               예약 내부 사진

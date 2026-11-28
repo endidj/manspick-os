@@ -112,7 +112,6 @@ test('operator board paginates all shootings with independent counts and search 
         search: '촬영 준비중 010-****-1002',
         packageId: 'hybrid',
         director: '디렉터1',
-        retoucher: '데모 보정가',
       }),
       now,
     );
@@ -201,10 +200,6 @@ test('kanban stages follow payment, confirmed Seoul schedule, shoot, delivery an
   for (const [status, stage] of [
     ['shooting', 3],
     ['shoot_complete', 4],
-    ['selection_pending', 4],
-    ['selection_complete', 4],
-    ['retouch_assigned', 4],
-    ['retouching', 4],
     ['delivered', 5],
     ['review_requested', 5],
     ['review_pending', 5],
@@ -264,8 +259,6 @@ test('HTTP board requires an operator while the legacy list remains assigned to 
     const director = await session('demo-director');
     assert.equal((await request('/shoots/board', director)).status, 403);
     assert.equal((await request('/shoots', director)).status, 200);
-    const retoucher = await session('demo-retoucher');
-    assert.equal((await request('/shoots/board', retoucher)).status, 403);
     const staff = await session('demo-staff');
     assert.equal((await request('/shoots/board', staff)).status, 200);
   } finally {
@@ -303,14 +296,14 @@ test('board summaries use ordered addon snapshots without per-shoot queries or c
   }
 });
 
-test('addon summaries retain customer/director scope and retoucher masking', async () => {
+test('addon summaries retain customer/director scope', async () => {
   const { database, env } = setup();
   try {
     database.exec(`
       DELETE FROM shoot_addons;
       INSERT INTO shoot_addons(shoot_id,addon_id,name,quantity,unit_price) VALUES
         ('demo-preparation','hair','준비 촬영 전용 옵션',1,70000),
-        ('demo-result','rental','보정 촬영 전용 옵션',1,25000);
+        ('demo-result','rental','별도 촬영 옵션',1,25000);
       UPDATE shoots SET director_id=NULL WHERE id='demo-result';
     `);
     const customer = await listShoots(env, {
@@ -332,18 +325,6 @@ test('addon summaries retain customer/director scope and retoucher masking', asy
       name: '담당자',
     });
     assert.ok(!director.shoots.some((shoot) => shoot.id === 'demo-result'));
-    const retoucher = await listShoots(env, {
-      kind: 'staff',
-      role: 'retoucher',
-      id: 'demo-retoucher',
-      name: '보정가',
-    });
-    assert.ok(retoucher.shoots.length > 0);
-    assert.ok(
-      retoucher.shoots.every(
-        (shoot) => shoot.addons.length === 0 && shoot.phoneMasked === '' && shoot.totalAmount === 0,
-      ),
-    );
   } finally {
     database.close();
   }

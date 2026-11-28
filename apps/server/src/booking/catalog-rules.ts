@@ -75,14 +75,9 @@ export function addonRules(
   const quantityMode = value.quantityMode ?? defaults.quantityMode;
   if (
     typeof quantityMode !== 'string' ||
-    !['single', 'outfit', 'shopping', 'photo', 'count'].includes(quantityMode)
+    !['single', 'outfit', 'shopping', 'count'].includes(quantityMode)
   )
     throw new DomainError('INVALID_QUANTITY_MODE', '수량 단위를 확인해주세요.');
-  if (current.id === 'extra_retouch' && quantityMode !== 'photo')
-    throw new DomainError(
-      'INVALID_QUANTITY_MODE',
-      '추가 보정은 셀렉 · 후속 화면에서만 신청할 수 있습니다.',
-    );
   const limits =
     value.packageQuantityLimits === undefined
       ? defaults.packageQuantityLimits
