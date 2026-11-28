@@ -1,4 +1,4 @@
-/* 보드 원본의 지표 4개와 7열, 검색 칩과 촘촘한 고객 카드를 배치합니다. */
+/* 운영 지표와 필터, 여섯 단계의 고객 카드를 배치합니다. */
 .screen {
   display: grid;
   gap: 24px;
@@ -126,7 +126,7 @@
 }
 .kanban {
   display: grid;
-  grid-template-columns: repeat(7, minmax(176px, 1fr));
+  grid-template-columns: repeat(6, minmax(176px, 1fr));
   align-items: start;
   gap: 12px;
   overflow-x: auto;
@@ -146,9 +146,11 @@
   padding: 14px 14px;
   min-height: 54px;
 }
-.stage {
+.columnHeader .stage {
   font-size: var(--mp-type-caption-size);
   padding: 5px 9px;
+  white-space: pre-line;
+  word-break: keep-all;
 }
 .columnHeader > span:last-child {
   color: var(--mp-color-text-tertiary);
@@ -170,15 +172,22 @@
   align-items: center;
 }
 .card > div:first-child strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: var(--mp-type-label-s-size);
 }
 .card > div:first-child > span {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: var(--mp-type-overline-size);
   color: var(--mp-color-text-accent);
 }
 .card > div:nth-child(2) {
   font-size: var(--mp-type-caption-size);
   line-height: 20px;
+}
+.card > div:nth-child(2):empty {
+  display: none;
 }
 .card > div:nth-child(3) {
   gap: 6px;
@@ -189,11 +198,11 @@
   width: 11px;
   height: 11px;
 }
-.card > div:last-child {
-  font-size: var(--mp-type-overline-size);
-  line-height: 15px;
-  padding: 8px;
-  margin-top: 0;
+.complete {
+  color: color-mix(in srgb, var(--mp-color-status-success) 70%, var(--mp-color-text-secondary));
+}
+.incomplete {
+  color: color-mix(in srgb, var(--mp-color-status-danger) 70%, var(--mp-color-text-secondary));
 }
 .attention {
   border-color: var(--mp-color-status-danger);
@@ -258,7 +267,7 @@
     width: 100%;
   }
   .kanban {
-    grid-template-columns: repeat(7, 230px);
+    grid-template-columns: repeat(6, 230px);
   }
 }
 .form {

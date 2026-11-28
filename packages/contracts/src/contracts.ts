@@ -82,8 +82,12 @@ export interface ShootListPageDTO {
   shoots: ShootSummary[];
   nextCursor?: string;
 }
+export interface ShootBoardRowDTO extends ShootSummary {
+  boardStage: 1 | 2 | 3 | 4 | 5 | 6 | null;
+  profileSubmitted: boolean;
+}
 export interface ShootBoardDTO {
-  shoots: ShootSummary[];
+  shoots: ShootBoardRowDTO[];
   page: number;
   pageSize: number;
   totalMatches: number;

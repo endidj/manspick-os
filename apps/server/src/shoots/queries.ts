@@ -1,9 +1,16 @@
 // 촬영 목록과 상세 정보를 모으고 역할에 따라 개인정보와 업무 정보를 가립니다.
-import { datePlusDays, koreaDate, statusInfo, STATUSES } from '@manspick/domain';
+import {
+  BOARD_STAGE_LABELS,
+  datePlusDays,
+  koreaDate,
+  statusInfo,
+  STATUSES,
+} from '@manspick/domain';
 import type {
   Actor,
   PackageDTO,
   ShootBoardDTO,
+  ShootBoardRowDTO,
   ShootDetail,
   ShootSummary,
 } from '@manspick/contracts';
@@ -115,7 +122,27 @@ export async function listBoardShoots(
   operator(actor);
   const access = scope(actor);
   const includeCancelled = filters.get('includeCancelled') === 'true';
-  const accessible = `WITH accessible AS (${SHOOT_SELECT} WHERE ${access.sql}${includeCancelled ? '' : " AND s.status!='cancelled'"})`;
+  const scopedShoots = `${SHOOT_SELECT} WHERE ${access.sql}${includeCancelled ? '' : " AND s.status!='cancelled'"}`;
+  // 후보제 예약은 확정한 후보의 시각을, 이전 고정 일정 예약은 촬영에 저장된 시각을 사용합니다.
+  const accessible = `WITH scoped AS (${scopedShoots}), scheduled AS (
+    SELECT scoped.*, COALESCE(
+      (SELECT t.starts_at FROM booking_confirmations c JOIN booking_time_options t ON t.id=c.option_id
+       WHERE c.booking_id=scoped.id),
+      CASE WHEN NOT EXISTS(SELECT 1 FROM booking_time_options t WHERE t.booking_id=scoped.id)
+           THEN scoped.starts_at END
+    ) AS scheduled_at FROM scoped
+  ), accessible AS (
+    SELECT scheduled.*, CASE
+      WHEN status='cancelled' THEN NULL
+      WHEN status IN ('review_confirmed','originals_pending','originals_delivered','follow_up') THEN 6
+      WHEN status IN ('delivered','review_requested','review_pending') THEN 5
+      WHEN status IN ('shoot_complete','selection_pending','selection_complete','retouch_assigned','retouching') THEN 4
+      WHEN status IN ('shoot_day','arrived','addons_in_progress','outfit_checked','shooting','mid_check') THEN 3
+      WHEN payment_state!='confirmed' THEN NULL
+      WHEN scheduled_at IS NULL THEN 1
+      WHEN date(scheduled_at,'+09:00')=? THEN 3
+      ELSE 2 END AS board_stage FROM scheduled
+  )`;
   const packageName =
     "CASE WHEN json_valid(package_snapshot) THEN json_extract(package_snapshot,'$.name') END";
   const terms: string[] = [];
@@ -124,6 +151,7 @@ export async function listBoardShoots(
   const todayStart = `${today}T00:00:00+09:00`;
   const tomorrowStart = `${datePlusDays(today, 1)}T00:00:00+09:00`;
   const dateFilter = 'julianday(starts_at)>=julianday(?) AND julianday(starts_at)<julianday(?)';
+  if (filters.get('kanban') === 'true') terms.push('board_stage IS NOT NULL');
 
   for (const [field, column] of [
     ['packageId', 'package_id'],
@@ -169,12 +197,9 @@ export async function listBoardShoots(
   if (filters.get('pending') === 'true') terms.push('pending_notifications>0');
   if (filters.get('requests') === 'true') terms.push('pending_requests>0');
   const where = terms.join(' AND ') || '1=1';
-  const stageCounts = [1, 2, 3, 4, 5, 6, 7].map((stage) => {
-    const statuses = STATUSES.filter((item) => item.stage === stage)
-      .map((item) => `'${item.id}'`)
-      .join(',');
-    return `COUNT(*) FILTER(WHERE matches AND status IN (${statuses}))`;
-  });
+  const stageCounts = BOARD_STAGE_LABELS.map(
+    (_, index) => `COUNT(*) FILTER(WHERE matches AND board_stage=${index + 1})`,
+  );
 
   const [counts, facetRows] = await Promise.all([
     first<ShootBoardDTO['counts'] & { totalMatches: number; stageTotals: string }>(
@@ -190,6 +215,7 @@ export async function listBoardShoots(
         WHERE q.type='deposit' AND q.state IN ('new','processing')) AS depositRequests
       FROM matches`,
       ...access.values,
+      today,
       ...values,
       todayStart,
       tomorrowStart,
@@ -197,7 +223,7 @@ export async function listBoardShoots(
     ),
     rows<{ kind: keyof ShootBoardDTO['facets']; id: string; name: string }>(
       env,
-      `${accessible}
+      `WITH accessible AS (${scopedShoots})
       SELECT 'packages' AS kind,package_id AS id,COALESCE(MAX(${packageName}),package_id) AS name FROM accessible GROUP BY package_id
       UNION ALL SELECT 'addons',a.addon_id,MAX(a.name) FROM accessible s JOIN shoot_addons a ON a.shoot_id=s.id GROUP BY a.addon_id
       UNION ALL SELECT DISTINCT 'directors',director_name,director_name FROM accessible WHERE director_name IS NOT NULL
@@ -227,11 +253,17 @@ export async function listBoardShoots(
       Math.ceil(totalMatches / pageSize),
     ),
   );
-  const shoots = await rows<ShootRow>(
+  const shoots = await rows<
+    ShootRow & { board_stage: ShootBoardRowDTO['boardStage']; profile_submitted: number }
+  >(
     env,
-    `${accessible} SELECT * FROM accessible WHERE ${where}
+    `${accessible} SELECT accessible.*,
+      EXISTS(SELECT 1 FROM booking_surveys survey
+        WHERE survey.booking_id=accessible.id AND survey.submitted_at IS NOT NULL) AS profile_submitted
+    FROM accessible WHERE ${where}
     ORDER BY COALESCE(julianday(starts_at),julianday(created_at)) DESC,id DESC LIMIT ? OFFSET ?`,
     ...access.values,
+    today,
     ...values,
     pageSize,
     (page - 1) * pageSize,
@@ -247,7 +279,11 @@ export async function listBoardShoots(
     else facets[kind].push(name);
   }
   return {
-    shoots: shoots.map((shoot) => summary(shoot, actor)),
+    shoots: shoots.map((shoot) => ({
+      ...summary(shoot, actor),
+      boardStage: shoot.board_stage,
+      profileSubmitted: Boolean(shoot.profile_submitted),
+    })),
     page,
     pageSize,
     totalMatches,

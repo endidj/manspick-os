@@ -28,6 +28,7 @@ export function restoreBoardFilters(saved: string | null): BoardFilters {
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
       return { ...defaultBoardFilters };
     const values = parsed as Partial<BoardFilters>;
+    if (values.director === '데모 디렉터') values.director = '디렉터1';
     return Object.fromEntries(
       Object.entries(defaultBoardFilters).map(([name, fallback]) => [
         name,

@@ -1,6 +1,12 @@
 // 맨즈픽의 업무 규칙과 타입을 외부에 공개합니다.
 
-export { STATUS_DEFINITIONS, STATUSES, STAGE_LABELS, statusInfo } from './status.ts';
+export {
+  BOARD_STAGE_LABELS,
+  STATUS_DEFINITIONS,
+  STATUSES,
+  STAGE_LABELS,
+  statusInfo,
+} from './status.ts';
 export type { ShootStatus } from './status.ts';
 export { isStaffRole } from './staff.ts';
 export type { StaffRole } from './staff.ts';

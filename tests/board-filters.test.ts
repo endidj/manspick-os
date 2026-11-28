@@ -21,6 +21,10 @@ test('legacy saved filters retain existing values and default the new addon cond
   assert.equal(legacy.pending, true);
   assert.equal(legacy.addonId, '');
   assert.equal(legacy.packageId, 'all');
+  assert.equal(
+    restoreBoardFilters(JSON.stringify({ director: '데모 디렉터' })).director,
+    '디렉터1',
+  );
   assert.equal(restoreBoardFilters(JSON.stringify({ addonId: 'all' })).addonId, 'all');
   for (const saved of [null, '{', 'null', '[]', '42', '{"addonId":true,"requests":"yes"}'])
     assert.deepEqual(restoreBoardFilters(saved), defaultBoardFilters);
@@ -92,7 +96,7 @@ test('operator board paginates all shootings with independent counts and search 
     assert.ok(result.shoots.length < result.counts.total);
     assert.equal(result.counts.today, 1);
     assert.equal(result.counts.depositRequests, 1);
-    assert.equal(result.matchesByStage[6], 205);
+    assert.equal(result.matchesByStage[5], 205);
     const last = await listBoardShoots(env, operator, new URLSearchParams('page=9999'), now);
     assert.equal(last.page, Math.ceil(result.counts.total / result.pageSize));
     assert.ok(last.shoots.length > 0);
@@ -107,7 +111,7 @@ test('operator board paginates all shootings with independent counts and search 
         addonId: 'hair',
         search: '촬영 준비중 010-****-1002',
         packageId: 'hybrid',
-        director: '데모 디렉터',
+        director: '디렉터1',
         retoucher: '데모 보정가',
       }),
       now,
@@ -117,7 +121,7 @@ test('operator board paginates all shootings with independent counts and search 
       ['demo-preparation'],
     );
     assert.equal(filtered.totalMatches, 1);
-    assert.deepEqual(filtered.matchesByStage, [0, 0, 0, 1, 0, 0, 0]);
+    assert.deepEqual(filtered.matchesByStage, [0, 0, 1, 0, 0, 0]);
     assert.deepEqual(filtered.counts, result.counts);
     assert.deepEqual(filtered.facets, result.facets);
     assert.ok(
@@ -142,6 +146,92 @@ test('operator board paginates all shootings with independent counts and search 
   } finally {
     database.close();
   }
+});
+
+test('board reports profile completion from each booking survey submission', async (context) => {
+  const { database, env } = setup();
+  context.after(() => database.close());
+  database.exec(`
+    DELETE FROM booking_surveys WHERE booking_id='demo-selection';
+    UPDATE booking_surveys SET submitted_at=NULL WHERE booking_id='demo-preparation';
+  `);
+  const actor = { kind: 'staff', role: 'admin', id: 'demo-admin', name: '대표' } as const;
+  const { shoots } = await listBoardShoots(env, actor, new URLSearchParams());
+  const profile = (id: string) => shoots.find((shoot) => shoot.id === id)?.profileSubmitted;
+  assert.equal(profile('demo-selection'), false);
+  assert.equal(profile('demo-preparation'), false);
+  assert.equal(profile('demo-result'), true);
+});
+
+test('kanban stages follow payment, confirmed Seoul schedule, shoot, delivery and review milestones', async (context) => {
+  const { database, env } = setup();
+  context.after(() => database.close());
+  const operator = { kind: 'staff', role: 'admin', id: 'demo-admin', name: '대표' } as const;
+  const now = new Date('2026-11-05T15:00:00Z');
+  const board = () => listBoardShoots(env, operator, new URLSearchParams('kanban=true'), now);
+  const stageOf = async (id: string) => (await board()).shoots.find((s) => s.id === id)?.boardStage;
+  const updateStatus = database.prepare("UPDATE shoots SET status=? WHERE id='demo-result'");
+
+  database.exec(`
+    UPDATE shoots SET starts_at='2026-11-07T02:00:00Z' WHERE id='demo-preparation';
+    INSERT INTO booking_time_options(id,booking_id,starts_at)
+    VALUES('board-option','demo-preparation','2026-11-05T16:00:00Z');
+  `);
+  assert.equal(await stageOf('demo-payment'), undefined);
+  assert.equal(await stageOf('demo-preparation'), 1);
+  assert.equal(await stageOf('demo-selection'), 4);
+  assert.equal(await stageOf('demo-result'), 5);
+
+  database.exec(`
+    INSERT INTO booking_confirmations(booking_id,option_id,confirmed_by_staff_id,location,confirmed_at,occupancy_starts_at,occupancy_ends_at)
+    VALUES('demo-preparation','board-option','demo-director','스튜디오','2026-11-01T00:00:00Z','2026-11-05T16:00:00Z','2026-11-05T18:00:00Z');
+  `);
+  assert.equal(await stageOf('demo-preparation'), 3);
+  assert.equal(
+    (
+      await listBoardShoots(
+        env,
+        operator,
+        new URLSearchParams('kanban=true'),
+        new Date('2026-11-05T14:59:59Z'),
+      )
+    ).shoots.find((s) => s.id === 'demo-preparation')?.boardStage,
+    2,
+  );
+  for (const [status, stage] of [
+    ['shooting', 3],
+    ['shoot_complete', 4],
+    ['selection_pending', 4],
+    ['selection_complete', 4],
+    ['retouch_assigned', 4],
+    ['retouching', 4],
+    ['delivered', 5],
+    ['review_requested', 5],
+    ['review_pending', 5],
+    ['review_confirmed', 6],
+    ['originals_pending', 6],
+    ['follow_up', 6],
+  ] as const) {
+    updateStatus.run(status);
+    assert.equal(await stageOf('demo-result'), stage, status);
+  }
+  updateStatus.run('cancelled');
+  const result = await listBoardShoots(
+    env,
+    operator,
+    new URLSearchParams('kanban=true&includeCancelled=true'),
+    now,
+  );
+  assert.deepEqual(result.matchesByStage, [0, 0, 1, 1, 0, 0]);
+  assert.equal(result.totalMatches, 2);
+  const list = await listBoardShoots(
+    env,
+    operator,
+    new URLSearchParams('includeCancelled=true'),
+    now,
+  );
+  assert.equal(list.totalMatches, 4);
+  assert.equal(list.shoots.find((s) => s.id === 'demo-result')?.boardStage, null);
 });
 
 test('HTTP board requires an operator while the legacy list remains assigned to each role', async () => {

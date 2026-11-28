@@ -1102,7 +1102,7 @@ test('manual templates filter by persisted conditions and scope completion to as
   };
   assert.equal(data.data.templates.length, 1);
   assert.equal(data.data.templates[0]?.key, '06-preparation');
-  assert.ok(data.data.templates[0]?.renderedBody.includes('데모 고객 · 준비님'));
+  assert.ok(data.data.templates[0]?.renderedBody.includes('박test님'));
   assert.ok(data.data.templates[0]?.renderedBody.includes('의상 2벌'));
   const complete = () =>
     api(`${path}/06-preparation/complete`, { method: 'POST', cookie: director, body: {} });
@@ -1833,7 +1833,7 @@ test('retoucher DTO excludes identity, phone, internal notes and unrelated photo
   assert.equal(response.status, 200);
   const body = await response.text();
   assert.ok(!body.includes('01000001004'));
-  assert.ok(!body.includes('데모 고객 · 결과'));
+  assert.ok(!body.includes('최test'));
   const data = JSON.parse(body).data;
   assert.deepEqual(data.notes, []);
   assert.deepEqual(data.payments, []);

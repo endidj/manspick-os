@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { StaffRole } from '@manspick/domain';
 import type { ShootBoardDTO } from '@manspick/contracts';
 import { Button, Loading, Notice } from '@manspick/design-system/components';
+import { Icon } from '@manspick/design-system/icons';
 import { TextField } from '@manspick/design-system/patterns';
 import { api } from '@manspick/web/client';
 import { PageHeading } from '../workspace/page-heading';
@@ -41,6 +42,7 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
   }>();
   const [lastBoard, setLastBoard] = useState<ShootBoardDTO>();
   const query = new URLSearchParams({
+    kanban: String(view === 'board'),
     search: filters.search,
     packageId: filters.packageId,
     addonId: filters.addonId,
@@ -102,7 +104,10 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
       count: counts?.depositRequests,
       hint: '입금 확인 요청을 확인해주세요',
       tone: 'purple',
-      onClick: () => set('scope', 'deposit'),
+      onClick: () => {
+        set('scope', 'deposit');
+        if (view === 'board') onViewChange('list');
+      },
     },
   ];
 
@@ -248,13 +253,16 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
         >
           ● 요청 있음 {counts?.requests ?? '–'}
         </button>
-        <button
-          type="button"
-          className={styles.pill}
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={
+            <Icon name={view === 'list' ? 'board' : 'solar/hamburger-menu-linear'} size={16} />
+          }
           onClick={() => onViewChange(view === 'list' ? 'board' : 'list')}
         >
-          {view === 'list' ? '보드 보기' : '목록 보기'}
-        </button>
+          {view === 'list' ? '보드로 보기' : '리스트로 보기'}
+        </Button>
         {JSON.stringify(filters) !== JSON.stringify(defaultBoardFilters) && (
           <button
             type="button"
@@ -280,7 +288,7 @@ export function CustomerBoard({ view, role, actorId = 'staff', onViewChange }: P
       ) : (
         <>
           {view === 'board' ? (
-            <KanbanBoard shoots={board.shoots} role={role} matchesByStage={board.matchesByStage} />
+            <KanbanBoard shoots={board.shoots} matchesByStage={board.matchesByStage} />
           ) : (
             <ShootTable shoots={board.shoots} role={role} />
           )}

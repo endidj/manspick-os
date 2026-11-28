@@ -1,36 +1,29 @@
-// 촬영을 최신 업무 순서의 일곱 단계로 나누고 확인할 요청을 카드에 표시합니다.
-import { STAGE_LABELS, type StaffRole } from '@manspick/domain';
-import { KanbanCard, StageBadge, type StageBadgeTone } from '@manspick/design-system/components';
-import type { ShootSummary } from '@manspick/contracts';
+// 촬영을 여섯 단계로 나누고 고객별 내 정보 제출 여부를 표시합니다.
+import { BOARD_STAGE_LABELS } from '@manspick/domain';
+import { KanbanCard, StageBadge } from '@manspick/design-system/components';
+import type { ShootBoardDTO } from '@manspick/contracts';
 import { dateTime } from '@manspick/web/format';
 import styles from './customer-board.module.css';
 
-const tones: StageBadgeTone[] = ['neutral', 'purple', 'blue', 'cyan', 'amber', 'green', 'pink'];
-const nextActions = [
-  '옵션 정보 확인',
-  '예약·입금 확인',
-  '고객 설문 확인',
-  '촬영 준비 확인',
-  '현장 진행 확인',
-];
+const boardStages = [
+  { stage: 1, tone: 'neutral' },
+  { stage: 2, tone: 'blue' },
+  { stage: 3, tone: 'amber' },
+  { stage: 4, tone: 'purple' },
+  { stage: 5, tone: 'pink' },
+  { stage: 6, tone: 'green' },
+] as const;
 
 export function KanbanBoard({
   shoots,
-  role,
   matchesByStage,
-}: {
-  shoots: ShootSummary[];
-  role: StaffRole;
-  matchesByStage: number[];
-}) {
+}: Pick<ShootBoardDTO, 'shoots' | 'matchesByStage'>) {
   return (
-    <div className={styles.kanban} role="region" aria-label="5단계 촬영 보드" tabIndex={0}>
-      {STAGE_LABELS.slice(0, 5).map((label, index) => {
-        const items = shoots.filter((shoot) => Math.min(5, shoot.stage) === index + 1);
-        const count =
-          index === 4
-            ? matchesByStage.slice(4).reduce((total, value) => total + value, 0)
-            : (matchesByStage[index] ?? items.length);
+    <div className={styles.kanban} role="region" aria-label="6단계 촬영 보드" tabIndex={0}>
+      {boardStages.map(({ stage, tone }) => {
+        const label = BOARD_STAGE_LABELS[stage - 1];
+        const items = shoots.filter((shoot) => shoot.boardStage === stage);
+        const count = matchesByStage[stage - 1] ?? items.length;
         return (
           <section
             className={styles.column}
@@ -39,9 +32,9 @@ export function KanbanBoard({
           >
             <header className={styles.columnHeader}>
               <StageBadge
-                stage={(index + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7}
-                label={label}
-                tone={tones[index]}
+                stage={stage}
+                tone={tone}
+                label={label.replace(' (', '\n(')}
                 className={styles.stage}
               />
               <span>{count}</span>
@@ -53,21 +46,20 @@ export function KanbanBoard({
                   href={`/shoots/${encodeURIComponent(shoot.id)}`}
                   title={shoot.customerName}
                   packageLabel={shoot.packageName}
-                  status={shoot.stage > 5 ? '촬영 완료' : shoot.statusLabel}
+                  status={
+                    stage <= 3 && (
+                      <>
+                        내정보 입력{' '}
+                        <span
+                          className={shoot.profileSubmitted ? styles.complete : styles.incomplete}
+                        >
+                          {shoot.profileSubmitted ? '완료' : '미완료'}
+                        </span>
+                      </>
+                    )
+                  }
                   dateLabel={dateTime(shoot.startsAt, 'compact')}
-                  assignee={
-                    role === 'retoucher'
-                      ? (shoot.retoucherName ?? '배정 작업')
-                      : (shoot.directorName ?? '배정 대기')
-                  }
-                  nextAction={
-                    shoot.stage > 5
-                      ? '촬영 완료'
-                      : shoot.nextAction ||
-                        (shoot.pendingRequests > 0
-                          ? `요청 ${shoot.pendingRequests}건 확인`
-                          : nextActions[index])
-                  }
+                  assignee={shoot.directorName ?? '배정 대기'}
                   className={`${styles.card} ${shoot.pendingRequests > 0 ? styles.attention : ''}`}
                 />
               ))}

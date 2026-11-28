@@ -3,7 +3,7 @@ PRAGMA foreign_keys = ON;
 INSERT INTO staff(id,name,email,role) VALUES
  ('demo-admin','데모 대표','demo-admin@manspick.co.kr','admin'),
  ('demo-staff','데모 운영 담당','demo-staff@manspick.co.kr','staff'),
- ('demo-director','데모 디렉터','demo-director@manspick.co.kr','director'),
+ ('demo-director','디렉터1','demo-director@manspick.co.kr','director'),
  ('demo-retoucher','데모 보정가','demo-retoucher@manspick.co.kr','retoucher');
 UPDATE staff SET hired_on='2024-01-01' WHERE id='demo-director';
 INSERT INTO packages(id,name,price_krw,original_price_krw,shoot_duration_minutes,outfits,retouch_count,description) VALUES
@@ -21,10 +21,10 @@ INSERT INTO campaigns(id,name,amount) VALUES('review-demo','로컬 후기 확인
 INSERT INTO settings(key,value_json) VALUES('local_notice','"로컬 시연입니다. 실제 발송·송금·배포 없음"'),('timezone','"Asia/Seoul"');
 INSERT INTO neighborhoods(id,name,meeting_point) VALUES('demo-neighborhood','데모 촬영 동네','실제 장소가 아닌 시연 안내입니다.');
 INSERT INTO customers(id,name,phone) VALUES
- ('demo-customer-1','데모 고객 · 예약','01000001001'),
- ('demo-customer-2','데모 고객 · 준비','01000001002'),
- ('demo-customer-3','데모 고객 · 셀렉','01000001003'),
- ('demo-customer-4','데모 고객 · 결과','01000001004');
+ ('demo-customer-1','김test','01000001001'),
+ ('demo-customer-2','박test','01000001002'),
+ ('demo-customer-3','이test','01000001003'),
+ ('demo-customer-4','최test','01000001004');
 INSERT INTO shoots(id,customer_id,access_token_hash,status,package_id,package_snapshot,total_amount,director_id,retoucher_id,starts_at,ends_at,survey_due_at,outfit_due_at) VALUES
  ('demo-payment','demo-customer-1','b2f5dd3cfc19384b83bd56dd2852daa8ae625169ae7f5fae61f7fc94b661d362','payment_pending','one','{"id":"one","name":"원","price":95000,"originalPrice":135000,"duration":90,"outfits":1,"retouchCount":5,"description":"한 벌의 스타일과 자연스러운 첫인상"}',95000,'demo-director','demo-retoucher',strftime('%Y-%m-%dT04:00:00.000Z','now','+3 days'),strftime('%Y-%m-%dT05:30:00.000Z','now','+3 days'),strftime('%Y-%m-%dT11:00:00.000Z','now'),strftime('%Y-%m-%dT11:00:00.000Z','now','+1 day')),
  ('demo-preparation','demo-customer-2','2dd3de591dc4261d584ab0f0ee9422dfa837821ed0350322a2cbf68a4e3956d3','preparing','hybrid','{"id":"hybrid","name":"하이브리드","price":160000,"originalPrice":210000,"duration":120,"outfits":2,"retouchCount":7,"description":"두 가지 스타일의 이미지"}',185000,'demo-director','demo-retoucher',strftime('%Y-%m-%dT04:00:00.000Z','now','+5 days'),strftime('%Y-%m-%dT06:00:00.000Z','now','+5 days'),strftime('%Y-%m-%dT11:00:00.000Z','now','+2 days'),strftime('%Y-%m-%dT11:00:00.000Z','now','+3 days')),

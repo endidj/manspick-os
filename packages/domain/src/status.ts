@@ -52,6 +52,15 @@ export const STAGE_LABELS = [
   '후속 관리',
 ] as const;
 
+export const BOARD_STAGE_LABELS = [
+  '예약 및 결제 완료 (일정 대기)',
+  '촬영 준비중 (일정 확정)',
+  '촬영 당일',
+  '촬영 완료',
+  '보정 및 전달 완료 (14일 이내)',
+  '후기 및 설문 완료 (14일 이내)',
+] as const;
+
 export function statusInfo(status: string) {
   return (
     STATUSES.find((item) => item.id === status) ?? {
