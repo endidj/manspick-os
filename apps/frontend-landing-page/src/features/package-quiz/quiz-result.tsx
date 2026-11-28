@@ -16,7 +16,7 @@ type QuizResultProps = {
   quantities: Record<string, number>;
   headingRef: Ref<HTMLHeadingElement>;
   onSelectPackage: (id: string) => void;
-  onQuantitiesChange: (quantities: Record<string, number>) => void;
+  onQuantityChange: (id: string, quantity: number) => void;
 };
 function duration(minutes: number) {
   return `${Math.floor(minutes / 60) ? `${Math.floor(minutes / 60)}시간` : ''}${minutes % 60 ? `${minutes % 60}분` : ''}`;
@@ -29,7 +29,7 @@ export function QuizResult({
   quantities,
   headingRef,
   onSelectPackage,
-  onQuantitiesChange,
+  onQuantityChange,
 }: QuizResultProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [footerSpace, setFooterSpace] = useState(0);
@@ -54,13 +54,6 @@ export function QuizResult({
           `${marketingAddonSummary[item.id]}${item.quantityMode === 'outfit' ? ` ×${item.quantity}` : ''}`,
       ),
   ];
-
-  function changeQuantity(id: string, quantity: number) {
-    onQuantitiesChange({
-      ...Object.fromEntries(options.map((item) => [item.id, item.quantity])),
-      [id]: quantity,
-    });
-  }
 
   return (
     <>
@@ -159,7 +152,9 @@ export function QuizResult({
                         role="switch"
                         aria-label={`${item.name} 추가`}
                         checked={item.quantity > 0}
-                        onChange={(event) => changeQuantity(item.id, event.target.checked ? 1 : 0)}
+                        onChange={(event) =>
+                          onQuantityChange(item.id, event.target.checked ? 1 : 0)
+                        }
                       />
                       <span className={styles.addonCheck} aria-hidden="true">
                         <Icon name="solar/check-read-bold" size={14} />
@@ -177,7 +172,7 @@ export function QuizResult({
                           type="button"
                           aria-label={`${item.name} 수량 줄이기`}
                           disabled={item.quantity === 0}
-                          onClick={() => changeQuantity(item.id, item.quantity - 1)}
+                          onClick={() => onQuantityChange(item.id, item.quantity - 1)}
                         >
                           −
                         </button>
@@ -188,7 +183,7 @@ export function QuizResult({
                           type="button"
                           aria-label={`${item.name} 수량 늘리기`}
                           disabled={item.quantity >= item.maximum}
-                          onClick={() => changeQuantity(item.id, item.quantity + 1)}
+                          onClick={() => onQuantityChange(item.id, item.quantity + 1)}
                         >
                           +
                         </button>

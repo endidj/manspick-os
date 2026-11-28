@@ -169,10 +169,8 @@ export function marketingQuote(
     });
 }
 
-export function interestedAddonQuantities(interests: string[] = []) {
+export function interestedAddonQuantities(pack: PackageDTO, interests: string[] = []) {
   return Object.fromEntries(
-    interests
-      .flatMap((id) => (id === 'clothes' ? ['rental', 'outfit'] : [id]))
-      .map((id) => [id, 1]),
+    interests.map((id) => (id === 'clothes' ? ['rental', pack.outfits] : [id, 1])),
   );
 }

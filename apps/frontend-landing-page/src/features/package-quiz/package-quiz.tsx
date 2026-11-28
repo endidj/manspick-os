@@ -36,6 +36,7 @@ export function PackageQuiz({
   const [advancing, setAdvancing] = useState(false);
   const [restored, setRestored] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const previousAnswers = useRef<QuizAnswers | undefined>(undefined);
   const heading = useRef<HTMLHeadingElement>(null);
   const selected = available.find((pack) => pack.id === selectedId) ?? available[0];
   const question = quizQuestions[step];
@@ -66,7 +67,8 @@ export function PackageQuiz({
       setStep(saved?.step ?? 0);
       setResult(saved?.result ?? Boolean(initialPackage));
       if (saved) {
-        setAnswers(saved.answers);
+        setAnswers(previousAnswers.current ?? saved.answers);
+        previousAnswers.current = undefined;
         setSelectedId(saved.selectedId);
         setQuantities(saved.quantities);
       }
@@ -113,7 +115,6 @@ export function PackageQuiz({
   }
 
   function choose(value: string, checked: boolean) {
-    if (advancing) return;
     setAnswers((current) => {
       const previous = current[question.id] ?? [];
       return {
@@ -126,6 +127,7 @@ export function PackageQuiz({
       };
     });
     if (!question.multiple) {
+      clearTimeout(timer.current);
       setAdvancing(true);
       timer.current = setTimeout(() => move(step + 1), 300);
     }
@@ -136,7 +138,7 @@ export function PackageQuiz({
     if (step < quizQuestions.length - 1) move(step + 1);
     else {
       setSelectedId(recommendedPackage(answers, available)?.id ?? available[0].id);
-      setQuantities(interestedAddonQuantities(answers.addons));
+      setQuantities({});
       navigate(step, true);
       setResult(true);
       setRevision((value) => value + 1);
@@ -159,9 +161,11 @@ export function PackageQuiz({
     const pack = available.find((item) => item.id === id);
     if (!pack) return;
     setSelectedId(id);
-    setQuantities(
+    setQuantities((current) =>
       Object.fromEntries(
-        marketingQuote(pack, addons, quantities).map((item) => [item.id, item.quantity]),
+        marketingQuote(pack, addons, current)
+          .filter((item) => Object.hasOwn(current, item.id))
+          .map((item) => [item.id, item.quantity]),
       ),
     );
   }
@@ -184,8 +188,10 @@ export function PackageQuiz({
         }
         onBack={() => {
           clearTimeout(timer.current);
-          if (step > 0) window.history.back();
-          else router.push('/', { scroll: true });
+          if (step > 0) {
+            previousAnswers.current = answers;
+            window.history.back();
+          } else router.push('/', { scroll: true });
         }}
       />
       {result ? (
@@ -193,10 +199,12 @@ export function PackageQuiz({
           packages={available}
           addons={addons}
           selected={selected}
-          quantities={quantities}
+          quantities={{ ...interestedAddonQuantities(selected, answers.addons), ...quantities }}
           headingRef={heading}
           onSelectPackage={selectPackage}
-          onQuantitiesChange={setQuantities}
+          onQuantityChange={(id, quantity) =>
+            setQuantities((current) => ({ ...current, [id]: quantity }))
+          }
         />
       ) : (
         <>
@@ -253,12 +261,8 @@ export function PackageQuiz({
                 disabled={!canContinue || advancing}
                 onClick={next}
               >
-                {step === quizQuestions.length - 1 ? '내 맞춤 패키지 확인하기' : '다음으로'}{' '}
-                <Icon
-                  name="solar/arrow-right-linear"
-                  size={question.id === 'addons' ? 18 : 16}
-                  style={{ verticalAlign: 'baseline' }}
-                />
+                {step === quizQuestions.length - 1 ? '내 맞춤 패키지 확인하기' : '다음으로'}
+                <Icon name="solar/arrow-right-linear" size={question.id === 'addons' ? 18 : 16} />
               </button>
             )}
           </section>

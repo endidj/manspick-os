@@ -9,14 +9,14 @@ export function SourceHero() {
     <>
       <section
         id="hero"
-        className="relative lg:min-h-[100dvh] mesh-bg overflow-hidden pt-28 sm:pt-32 pb-16 sm:pb-20"
+        className="relative min-h-[100dvh] flex flex-col justify-center mesh-bg overflow-hidden pt-28 sm:pt-32 pb-20"
       >
         {'\n    '}
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
           <div className="flex flex-col items-center text-center">
             {'\n\n        '}
-            <div className="reveal inline-flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs text-zinc-300 mb-6 sm:mb-7 max-w-[92vw]">
+            <div className="reveal inline-flex items-center gap-2 glass rounded-full px-3 sm:px-4 py-1.5 text-xs text-zinc-300 mb-6 sm:mb-7 max-w-[92vw]">
               {'\n          '}
               <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shrink-0"></span>
               {'\n          '}
@@ -52,7 +52,8 @@ export function SourceHero() {
             >
               {'\n          '}
               <span className="text-white font-medium">
-                {'7명의 전문가가 패션·헤어·보정까지 알아서 다 해드립니다.'}
+                7명의 전문가가 패션·헤어·보정까지
+                <br className="sm:hidden" /> 알아서 다 해드립니다.
               </span>
               <br />
               {'\n          '}
@@ -166,7 +167,7 @@ export function SourceHero() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <p className="text-[10px] sm:text-xs text-zinc-500 break-keep">
+                <p className="text-xs text-zinc-500 break-keep">
                   {'평범남 1,127명+ 호감형으로 바뀌었습니다'}
                 </p>
                 {'\n          '}
@@ -178,7 +179,7 @@ export function SourceHero() {
           {'\n    '}
         </div>
         {'\n\n    '}
-        <div className="mt-10 sm:mt-12 lg:mt-0 lg:absolute lg:bottom-8 lg:left-1/2 lg:-translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 text-xs">
+        <div className="absolute bottom-5 lg:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 text-xs">
           {'\n      '}
           <span className="uppercase tracking-widest">{'scroll'}</span>
           {'\n      '}
@@ -191,7 +192,7 @@ export function SourceHero() {
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
-          <p className="text-center text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
+          <p className="text-center text-xs text-zinc-500 uppercase tracking-widest mb-6 md:mb-10">
             {'\n        FEATURED IN · 누가 맨즈픽을 찾아오나요?\n      '}
           </p>
           {'\n      '}

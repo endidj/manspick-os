@@ -4,6 +4,80 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const appUrl = process.env.LANDING_APP_URL;
+
+test('화면 높이에 맞춘 첫 화면과 모바일 보조 문구·섹션을 표시한다', { skip: !appUrl }, async () => {
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
+    new URL('../.local/playwright', import.meta.url),
+  );
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+    for (const viewport of [
+      { width: 390, height: 844 },
+      { width: 1440, height: 1000 },
+      { width: 320, height: 568 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
+      await page.evaluate(() => document.fonts.ready);
+      const hero = page.locator('#hero');
+      const bounds = await hero.boundingBox();
+      const content = await hero.locator(':scope > div').first().boundingBox();
+      const cue = await hero.getByText('scroll', { exact: true }).locator('..').boundingBox();
+      const [paddingTop, paddingBottom] = await hero.evaluate((element) => {
+        const css = getComputedStyle(element);
+        return [parseFloat(css.paddingTop), parseFloat(css.paddingBottom)];
+      });
+      const spaceAbove = content.y - bounds.y - paddingTop;
+      const spaceBelow = bounds.y + bounds.height - paddingBottom - content.y - content.height;
+      assert.ok(bounds.height >= viewport.height - 1, `${viewport.width}px hero height`);
+      assert.ok(Math.abs(spaceAbove - spaceBelow) < 2, `${viewport.width}px centered content`);
+      assert.ok(
+        cue.y >= content.y + content.height,
+        `${viewport.width}px scroll cue overlaps copy`,
+      );
+      assert.ok(
+        Math.abs(cue.x + cue.width / 2 - viewport.width / 2) < 2,
+        `${viewport.width}px scroll cue alignment`,
+      );
+      if (viewport.height >= 844) {
+        assert.ok(
+          cue.y + cue.height <= viewport.height,
+          `${viewport.width}px scroll cue below fold`,
+        );
+      }
+      if (viewport.width === 390) {
+        for (const selector of ['#hero .truncate', '#hero .text-left p', '#hero + section p']) {
+          const size = await page
+            .locator(selector)
+            .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+          assert.ok(size >= 12, `${selector} rendered at ${size}px`);
+        }
+        assert.equal(
+          await hero.locator('.text-left p').evaluate((el) => getComputedStyle(el).color),
+          'rgb(133, 133, 142)',
+        );
+        for (const id of ['before-after', 'how', 'reviews', 'pricing']) {
+          const band = await page.locator('#' + id).evaluate((section) => {
+            const css = getComputedStyle(section);
+            return [
+              css.backgroundColor,
+              css.borderTopWidth,
+              css.borderBottomWidth,
+              css.paddingBlockStart,
+            ];
+          });
+          assert.notEqual(band[0], 'rgba(0, 0, 0, 0)', id);
+          assert.deepEqual(band.slice(1), ['1px', '1px', '64px'], id);
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test('후기 두 줄의 원본과 애니메이션용 복사본을 구분한다', { skip: !appUrl }, async () => {
   process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(
     new URL('../.local/playwright', import.meta.url),
@@ -78,7 +152,7 @@ test(
       const page = await context.newPage();
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      await page.goto(appUrl, { waitUntil: 'networkidle' });
+      await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('[data-motion-ready="true"]');
       const glow = page.locator('#cursor-glow');
       assert.equal(await glow.evaluate((element) => getComputedStyle(element).opacity), '0');
@@ -227,7 +301,7 @@ test(
         reducedMotion: 'reduce',
       });
       const reducedPage = await reduced.newPage();
-      await reducedPage.goto(appUrl, { waitUntil: 'networkidle' });
+      await reducedPage.goto(appUrl, { waitUntil: 'domcontentloaded' });
       await reducedPage.waitForSelector('[data-motion-ready="true"]');
       await reducedPage.mouse.move(200, 300);
       assert.equal(
@@ -242,7 +316,7 @@ test(
         hasTouch: true,
       });
       const touchPage = await touch.newPage();
-      await touchPage.goto(appUrl, { waitUntil: 'networkidle' });
+      await touchPage.goto(appUrl, { waitUntil: 'domcontentloaded' });
       await touchPage.waitForSelector('[data-motion-ready="true"]');
       await touchPage.touchscreen.tap(200, 300);
       assert.equal(

@@ -131,7 +131,7 @@ function ReviewRow({ reviews, reverse = false }: { reviews: Review[]; reverse?: 
 export function SourceReviews() {
   return (
     <>
-      <section id="reviews" className="py-20 md:py-24 lg:py-32">
+      <section id="reviews" className="section-band py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -202,7 +202,7 @@ export function SourceReviews() {
             {'\n      '}
           </Link>
           {'\n      '}
-          <p className="reveal text-xs text-zinc-600 mt-3" style={{ transitionDelay: '280ms' }}>
+          <p className="reveal text-xs text-zinc-500 mt-3" style={{ transitionDelay: '280ms' }}>
             {'30초면 끝나요!'}
           </p>
           {'\n      '}

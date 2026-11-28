@@ -94,7 +94,7 @@ export function SourceNavigation() {
         className="fixed top-0 left-0 right-0 z-50 bg-accent-500 text-white text-center py-1.5 md:py-2 -translate-y-full transition-transform duration-300 ease-out"
       >
         {'\n    '}
-        <div className="flex items-center justify-center gap-1.5 md:gap-2 text-[11px] md:text-xs font-semibold tracking-wide">
+        <div className="flex items-center justify-center gap-1.5 md:gap-2 text-xs font-semibold tracking-wide">
           {'\n      '}
           <span className="inline-block w-1 h-1 rounded-full bg-white/60 animate-pulse"></span>
           {'\n      '}
@@ -359,7 +359,7 @@ export function SourceOverlays() {
                   {'\n              '}
                   <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-end">
                     {'\n                '}
-                    <p className="text-accent-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-1">
+                    <p className="text-accent-400 text-xs font-bold uppercase tracking-[0.2em] mb-1">
                       {'MANSPICK EXCLUSIVE'}
                     </p>
                     {'\n                '}
@@ -377,9 +377,7 @@ export function SourceOverlays() {
                 {'\n            '}
                 <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-accent-500 text-white flex flex-col items-center justify-center rotate-[14deg] shadow-xl ring-2 ring-zinc-950">
                   {'\n              '}
-                  <span className="text-[7px] uppercase tracking-widest opacity-90">
-                    {'Limited'}
-                  </span>
+                  <span className="text-xs uppercase">{'Limited'}</span>
                   {'\n              '}
                   <span className="font-display text-sm font-black leading-none">{'FREE'}</span>
                   {'\n            '}
@@ -389,7 +387,7 @@ export function SourceOverlays() {
               {'\n          '}
               <div className="min-w-0 pt-1">
                 {'\n            '}
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold bg-red-500/10 border border-red-500/20 text-red-400 mb-3">
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400 mb-3">
                   {'\n              '}
                   <SourceIcon name="solar/fire-bold" />
                   {'\n              잔여 '}
@@ -424,7 +422,7 @@ export function SourceOverlays() {
                 {'\n            '}
                 <div>
                   {'\n              '}
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
+                  <p className="text-xs text-zinc-500 uppercase tracking-widest">
                     {'SPECIAL GIFT'}
                   </p>
                   {'\n              '}
@@ -444,9 +442,7 @@ export function SourceOverlays() {
                 {'\n            '}
                 <div>
                   {'\n              '}
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
-                    {'CONSULTING'}
-                  </p>
+                  <p className="text-xs text-zinc-500 uppercase tracking-widest">{'CONSULTING'}</p>
                   {'\n              '}
                   <p className="text-white font-bold text-sm">{'전문가 1:1 맞춤 진단'}</p>
                   {'\n            '}
@@ -490,7 +486,7 @@ export function SourceOverlays() {
               {'\n          '}
               <p
                 id="lead-recent"
-                className="mt-2 text-[11px] text-zinc-500 flex items-center gap-1.5 transition-opacity duration-500"
+                className="mt-2 text-xs text-zinc-500 flex items-center gap-1.5 transition-opacity duration-500"
               >
                 {'\n            '}
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0"></span>
@@ -515,7 +511,7 @@ export function SourceOverlays() {
                     id="lead-name"
                     name="entry.779413363"
                     placeholder="홍길동"
-                    className="w-full bg-zinc-900/80 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-600 focus:outline-none focus:border-accent-400 transition"
+                    className="w-full bg-zinc-900/80 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-accent-400 transition"
                   />
                   {'\n            '}
                 </label>
@@ -531,7 +527,7 @@ export function SourceOverlays() {
                     placeholder="010-0000-0000"
                     inputMode="numeric"
                     maxLength={13}
-                    className="w-full bg-zinc-900/80 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-600 focus:outline-none focus:border-accent-400 transition"
+                    className="w-full bg-zinc-900/80 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-accent-400 transition"
                   />
                   {'\n            '}
                 </label>
@@ -553,7 +549,7 @@ export function SourceOverlays() {
                     defaultValue=""
                   >
                     {'\n                '}
-                    <option value="" className="text-zinc-600">
+                    <option value="" className="text-zinc-500">
                       {'선택해주세요'}
                     </option>
                     {'\n                '}
@@ -582,7 +578,7 @@ export function SourceOverlays() {
                     defaultValue=""
                   >
                     {'\n                '}
-                    <option value="" className="text-zinc-600">
+                    <option value="" className="text-zinc-500">
                       {'선택해주세요'}
                     </option>
                     {'\n                '}
@@ -611,7 +607,7 @@ export function SourceOverlays() {
                     defaultValue=""
                   >
                     {'\n                '}
-                    <option value="" className="text-zinc-600">
+                    <option value="" className="text-zinc-500">
                       {'선택해주세요'}
                     </option>
                     {'\n                '}
@@ -716,7 +712,7 @@ export function SourceOverlays() {
       </div>
       <div
         id="live-viewers-badge"
-        className="fixed left-3 md:left-6 bottom-[5.5rem] md:bottom-28 z-40 glass-strong rounded-full pl-2.5 md:pl-3 pr-3 md:pr-4 py-1.5 md:py-2 flex items-center gap-1.5 md:gap-2 text-[11px] md:text-xs font-semibold shadow-2xl opacity-0 translate-y-2 transition-all duration-500 pointer-events-none"
+        className="fixed left-3 md:left-6 bottom-[5.5rem] md:bottom-28 z-40 glass-strong rounded-full pl-2.5 md:pl-3 pr-3 md:pr-4 py-1.5 md:py-2 flex items-center gap-1.5 md:gap-2 text-xs font-semibold shadow-2xl opacity-0 translate-y-2 transition-all duration-500 pointer-events-none"
       >
         {'\n    '}
         <span className="relative flex w-2 h-2">
@@ -816,7 +812,7 @@ export function SourceOverlays() {
           {'\n\n      '}
           <div className="relative flex items-center gap-2 md:gap-3 min-w-0 flex-1">
             {'\n        '}
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] md:text-[11px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 md:px-2.5 py-1 shrink-0 uppercase tracking-wider">
+            <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 md:px-2.5 py-1 shrink-0 uppercase tracking-wider">
               {'\n          '}
               <SourceIcon name="solar/fire-bold" className="text-xs" />
               {'\n          이달 마감 임박\n        '}
@@ -960,7 +956,7 @@ export function SourceFooter() {
             {'\n        '}
             <div>
               {'\n          '}
-              <p className="text-xs uppercase tracking-widest text-zinc-600 mb-4">{'서비스'}</p>
+              <p className="text-xs uppercase tracking-widest text-zinc-500 mb-4">{'서비스'}</p>
               {'\n          '}
               <ul className="space-y-2 text-sm text-zinc-400">
                 {'\n            '}
@@ -1018,7 +1014,7 @@ export function SourceFooter() {
             {'\n        '}
             <div>
               {'\n          '}
-              <p className="text-xs uppercase tracking-widest text-zinc-600 mb-4">{'연락'}</p>
+              <p className="text-xs uppercase tracking-widest text-zinc-500 mb-4">{'연락'}</p>
               {'\n          '}
               <ul className="space-y-2 text-sm text-zinc-400">
                 {'\n            '}
@@ -1109,11 +1105,9 @@ export function SourceFooter() {
               {'\n          '}
               <div className="flex-1 min-w-0">
                 {'\n            '}
-                <p className="text-[10px] uppercase tracking-widest text-zinc-600 mb-2.5">
-                  {'서비스'}
-                </p>
+                <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2.5">{'서비스'}</p>
                 {'\n            '}
-                <ul className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+                <ul className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-zinc-500">
                   {'\n              '}
                   <li>
                     <a href="#before-after" className="hover:text-white transition">
@@ -1169,11 +1163,9 @@ export function SourceFooter() {
               {'\n          '}
               <div className="flex-shrink-0">
                 {'\n            '}
-                <p className="text-[10px] uppercase tracking-widest text-zinc-600 mb-2.5">
-                  {'연락'}
-                </p>
+                <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2.5">{'연락'}</p>
                 {'\n            '}
-                <ul className="space-y-1 text-[11px] text-zinc-500">
+                <ul className="space-y-1 text-xs text-zinc-500">
                   {'\n              '}
                   <li>{'강서구 양천로 94, G85호'}</li>
                   {'\n              '}
@@ -1193,7 +1185,7 @@ export function SourceFooter() {
             {'\n      '}
           </div>
           {'\n      '}
-          <div className="mt-12 pt-6 border-t border-white/5 text-[11px] text-zinc-600 leading-relaxed space-y-1">
+          <div className="mt-12 pt-6 border-t border-white/5 text-xs text-zinc-500 leading-relaxed space-y-1">
             {'\n        '}
             <p className="flex flex-wrap gap-x-1">
               {'\n          '}
@@ -1242,7 +1234,7 @@ export function SourceFooter() {
             {'\n      '}
           </div>
           {'\n      '}
-          <div className="mt-6 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
+          <div className="mt-6 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-zinc-500">
             {'\n        '}
             <p>{'© 2026 MANSPICK. All rights reserved.'}</p>
             {'\n        '}
@@ -1260,7 +1252,7 @@ export function SourceFooter() {
             {'\n      '}
           </div>
           {'\n      '}
-          <p className="mt-4 text-[10px] text-zinc-700 leading-relaxed text-center break-keep">
+          <p className="mt-4 text-xs text-zinc-500 leading-relaxed text-center break-keep">
             {
               '\n        본 웹사이트의 모든 콘텐츠(텍스트, 이미지, 디자인, 코드, 구조 등)는 맨즈픽(MANSPICK)의 자산으로 저작권법에 의해 보호됩니다.\n        AI 크롤링·스크래핑 등을 포함한 무단 복제·모방·재배포 시 사전 경고 없이 민·형사상 법적 조치를 취합니다.\n      '
             }

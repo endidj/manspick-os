@@ -1,5 +1,8 @@
 /* 운영 사이트 manspick.co.kr / manspick-site@54f4a375에서 추출한 색상·타입 토큰입니다. 원본 화면 보존에 사용합니다. */
 :root {
+  /* manspick-site@0f62aa2의 어두운 배경용 보조 글자와 교차 섹션 배경입니다. */
+  --mp-site-text-muted: #85858e;
+  --mp-site-section-band: rgb(255 255 255 / 2.5%);
   --mp-site-type-letter-spacing-negative-0-05em: -0.05em;
   --mp-site-type-letter-spacing-negative-0-025em: -0.025em;
   --mp-site-type-letter-spacing-negative-0-04em: -0.04em;

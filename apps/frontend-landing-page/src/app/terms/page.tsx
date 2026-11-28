@@ -294,7 +294,7 @@ export default function Page() {
           {'\n\n    '}
         </div>
         {'\n\n    '}
-        <div className="mt-16 pt-8 border-t border-white/5 text-xs text-zinc-600">
+        <div className="mt-16 pt-8 border-t border-white/5 text-xs text-zinc-500">
           {'\n      '}
           <p>{'© 2026 MANSPICK. All rights reserved.'}</p>
           {'\n    '}

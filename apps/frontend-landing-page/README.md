@@ -1,6 +1,6 @@
 # 맨즈픽 랜딩 앱
 
-서비스 소개, 촬영 패키지 추천, 상담을 제공하는 공개 사이트입니다. 루트에서 `yarn dev`를 실행하고 [localhost:3000](http://localhost:3000)을 엽니다. 화면 문구·사진·연출의 기준은 [원본 사이트 소스](https://github.com/JeongWhale/manspick-site/tree/54f4a375b5c3babe9f9bb82ac423c4be6686fb60)입니다.
+서비스 소개, 촬영 패키지 추천, 상담을 제공하는 공개 사이트입니다. 루트에서 `yarn dev`를 실행하고 [localhost:3000](http://localhost:3000)을 엽니다. 화면 문구·사진·연출의 기준은 [원본 사이트 소스](https://github.com/JeongWhale/manspick-site/tree/0f62aa2ee68722b19c0b7547c6dfb7501cdbdd10)입니다.
 
 ## 화면과 데이터
 

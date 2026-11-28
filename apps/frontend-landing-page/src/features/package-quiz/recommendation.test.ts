@@ -124,9 +124,15 @@ test('source rental and styling limits are independent and clamp after a package
   );
 });
 
-test('clothing interest has visible quantities and is charged only once', () => {
-  const quantities = interestedAddonQuantities(['clothes', 'hair']);
-  assert.deepEqual(quantities, { rental: 1, outfit: 1, hair: 1 });
-  const quote = marketingQuote(marketingPackages[1], marketingAddons, quantities);
-  assert.equal(160000 + quote.reduce((sum, a) => sum + a.price * a.quantity, 0), 305000);
+test('clothing interest adds only rentals for the selected package outfit count', () => {
+  for (const pack of marketingPackages) {
+    const quantities = interestedAddonQuantities(pack, ['clothes', 'hair']);
+    assert.deepEqual(quantities, { rental: pack.outfits, hair: 1 });
+    const quote = marketingQuote(pack, marketingAddons, quantities);
+    assert.equal(
+      quote.reduce((sum, a) => sum + a.price * a.quantity, 0),
+      25000 * pack.outfits + 70000,
+    );
+    assert.deepEqual(interestedAddonQuantities(pack), {});
+  }
 });

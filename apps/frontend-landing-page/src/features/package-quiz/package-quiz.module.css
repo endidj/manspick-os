@@ -23,9 +23,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
-  color: #71717a;
+  color: var(--mp-site-text-muted);
   margin-bottom: 8px;
 }
 .progressTrack {
@@ -44,7 +44,7 @@
 }
 .eyebrow {
   color: #2d76f6;
-  font-size: 12px;
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -64,7 +64,7 @@
   margin: 0 0 8px;
 }
 .questionHeading > p:last-child {
-  color: #71717a;
+  color: var(--mp-site-text-muted);
   font-size: 14px;
   line-height: 20px;
   margin: 0 0 32px;
@@ -112,13 +112,13 @@
   color: white;
 }
 .choices .choice > span:last-child > span:last-child:not(:first-child) {
-  font-size: 12px;
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
-  color: #71717a;
+  color: var(--mp-site-text-muted);
 }
 .next {
   margin-top: 24px;
-  display: inline-block;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   gap: 4px;
@@ -133,16 +133,12 @@
   line-height: 20px;
   transition: all 0.2s;
 }
-.next:not(.submit) > span {
-  margin-left: 4px;
-}
 .next:disabled {
   background: rgb(255 255 255 / 5%);
   color: #a1a1aa;
   opacity: 0.3;
 }
 .next.submit {
-  display: inline-flex;
   margin-top: 32px;
   padding: 16px 0;
   gap: 8px;
@@ -219,8 +215,8 @@
   background: rgb(45 118 246 / 10%);
 }
 .packageFacts {
-  color: #71717a;
-  font-size: 12px;
+  color: var(--mp-site-text-muted);
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
   margin-bottom: 4px;
 }
@@ -238,8 +234,8 @@
   margin-top: 4px;
 }
 .packagePrice small {
-  color: #71717a;
-  font-size: 12px;
+  color: var(--mp-site-text-muted);
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
   font-weight: 400;
 }
@@ -287,7 +283,7 @@
 .optionCopy > span {
   flex-shrink: 0;
   margin-top: 2px;
-  color: #71717a;
+  color: var(--mp-site-text-muted);
 }
 .optionCopy > div {
   min-width: 0;
@@ -315,7 +311,7 @@
   font-weight: 600;
 }
 .optionTitle > span {
-  color: #52525b;
+  color: var(--mp-site-text-muted);
   flex-shrink: 0;
   transition: transform 0.2s;
 }
@@ -323,15 +319,15 @@
   transform: rotate(180deg);
 }
 .optionDescription {
-  font-size: 12px;
+  font-size: var(--mp-type-caption-size);
   line-height: 19.5px;
-  color: #71717a;
+  color: var(--mp-site-text-muted);
   margin-top: 4px;
 }
 .limit {
-  font-size: 10px;
-  line-height: 15px;
-  color: #52525b;
+  font-size: var(--mp-type-caption-size);
+  line-height: 16px;
+  color: var(--mp-site-text-muted);
   margin-top: 4px;
 }
 .quantity {
@@ -342,7 +338,7 @@
   margin-top: 2px;
 }
 .subtotal {
-  color: #71717a;
+  color: var(--mp-site-text-muted);
   font-size: 14px;
   line-height: 20px;
   font-weight: 600;
@@ -437,8 +433,8 @@
   outline-offset: 4px;
 }
 .note {
-  color: #71717a;
-  font-size: 12px;
+  color: var(--mp-site-text-muted);
+  font-size: var(--mp-type-caption-size);
   line-height: 18px;
 }
 .resultAction {
@@ -472,8 +468,8 @@
   gap: 16px;
 }
 .total p {
-  color: #71717a;
-  font-size: 12px;
+  color: var(--mp-site-text-muted);
+  font-size: var(--mp-type-caption-size);
   line-height: 16px;
 }
 .total strong {
@@ -487,7 +483,7 @@
 }
 .total small {
   margin-left: 2px;
-  color: #71717a;
+  color: var(--mp-site-text-muted);
   font-size: 14px;
   line-height: 20px;
   font-weight: 400;
@@ -517,9 +513,9 @@
   align-items: center;
   gap: 4px;
   margin-top: 8px;
-  color: #71717a;
-  font-size: 11px;
-  line-height: 16.5px;
+  color: var(--mp-site-text-muted);
+  font-size: var(--mp-type-caption-size);
+  line-height: 16px;
 }
 .captureHint > span {
   flex-shrink: 0;
@@ -536,8 +532,8 @@
   overflow: auto;
 }
 .summaryList > span {
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--mp-type-caption-size);
+  line-height: 16px;
   color: #a1a1aa;
   background: rgb(255 255 255 / 5%);
   border-radius: 9999px;
@@ -587,7 +583,7 @@
     gap: 4px;
   }
   .subtotal {
-    font-size: 12px;
+    font-size: var(--mp-type-caption-size);
   }
   .bookingLink {
     padding-inline: 16px;

@@ -9,7 +9,7 @@ export function SourceProof() {
     <>
       <section
         id="why"
-        className="relative lg:min-h-[100dvh] lg:flex lg:items-center py-20 md:py-24 lg:py-16"
+        className="relative lg:min-h-[100dvh] lg:flex lg:items-center py-16 md:py-24 lg:py-16"
       >
         {'\n    '}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,7 +63,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="selfcheck">
                 {'\n            '}
-                <p className="text-[11px] text-zinc-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
+                <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
                   {'\n              '}
                   <SourceIcon
                     name="solar/checklist-minimalistic-bold"
@@ -113,7 +113,7 @@ export function SourceProof() {
               {'\n          '}
               <div className="relative glass-strong rounded-3xl p-5 md:p-7 border border-white/10">
                 {'\n            '}
-                <div className="absolute -top-3 right-5 md:right-7 bg-accent-500 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-lg">
+                <div className="absolute -top-3 right-5 md:right-7 bg-accent-500 text-white text-xs font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-lg">
                   {'\n              전문가 직접 분석\n            '}
                 </div>
                 {'\n            '}
@@ -121,7 +121,7 @@ export function SourceProof() {
                   {'\n              맨즈픽 촬영 디렉팅 진단\n            '}
                 </p>
                 {'\n            '}
-                <p className="text-[11px] md:text-xs text-zinc-500 text-center mb-3">
+                <p className="text-xs text-zinc-500 text-center mb-3">
                   {'\n              일반 셀카 대비 맨즈픽 디렉팅 후 완성도 비교\n            '}
                 </p>
                 {'\n            '}
@@ -150,7 +150,7 @@ export function SourceProof() {
                     {'\n                '}
                     <p className="text-white font-bold text-xs md:text-sm">{'앵글 진단'}</p>
                     {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
+                    <p className="text-xs text-zinc-500 leading-snug mt-0.5 break-keep">
                       {'얼굴형·체형별'}
                       <br />
                       {'최적 각도'}
@@ -168,7 +168,7 @@ export function SourceProof() {
                     {'\n                '}
                     <p className="text-white font-bold text-xs md:text-sm">{'의상·톤 매칭'}</p>
                     {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
+                    <p className="text-xs text-zinc-500 leading-snug mt-0.5 break-keep">
                       {'피부톤에 맞는'}
                       <br />
                       {'컬러 디렉팅'}
@@ -186,7 +186,7 @@ export function SourceProof() {
                     {'\n                '}
                     <p className="text-white font-bold text-xs md:text-sm">{'포즈 디렉팅'}</p>
                     {'\n                '}
-                    <p className="text-[10px] md:text-[11px] text-zinc-500 leading-snug mt-0.5 break-keep">
+                    <p className="text-xs text-zinc-500 leading-snug mt-0.5 break-keep">
                       {'표정·시선·손'}
                       <br />
                       {'현장 가이드'}
@@ -205,7 +205,7 @@ export function SourceProof() {
         </div>
         {'\n  '}
       </section>
-      <section id="before-after" className="relative py-20 md:py-24 lg:py-32">
+      <section id="before-after" className="section-band relative py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -641,7 +641,7 @@ export function SourceProof() {
         </div>
         {'\n  '}
       </section>
-      <section className="relative py-20 md:py-24 lg:py-32 overflow-hidden">
+      <section className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
         {'\n    '}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -722,7 +722,7 @@ export function SourceProof() {
                       {'\n                  '}
                       <span className="text-white text-xs font-bold">{'소개팅 앱'}</span>
                       {'\n                  '}
-                      <span className="text-zinc-600 text-[10px]">{'지금'}</span>
+                      <span className="text-zinc-500 text-xs">{'지금'}</span>
                       {'\n                '}
                     </div>
                     {'\n                '}
@@ -748,7 +748,7 @@ export function SourceProof() {
                       {'\n                  '}
                       <span className="text-white text-xs font-bold">{'결혼정보회사'}</span>
                       {'\n                  '}
-                      <span className="text-zinc-600 text-[10px]">{'3분 전'}</span>
+                      <span className="text-zinc-500 text-xs">{'3분 전'}</span>
                       {'\n                '}
                     </div>
                     {'\n                '}
@@ -774,7 +774,7 @@ export function SourceProof() {
                       {'\n                  '}
                       <span className="text-white text-xs font-bold">{'카카오톡'}</span>
                       {'\n                  '}
-                      <span className="text-zinc-600 text-[10px]">{'15분 전'}</span>
+                      <span className="text-zinc-500 text-xs">{'15분 전'}</span>
                       {'\n                '}
                     </div>
                     {'\n                '}
@@ -800,7 +800,7 @@ export function SourceProof() {
                       {'\n                  '}
                       <span className="text-white text-xs font-bold">{'Instagram'}</span>
                       {'\n                  '}
-                      <span className="text-zinc-600 text-[10px]">{'1시간 전'}</span>
+                      <span className="text-zinc-500 text-xs">{'1시간 전'}</span>
                       {'\n                '}
                     </div>
                     {'\n                '}
@@ -829,7 +829,7 @@ export function SourceProof() {
                       {'\n                  '}
                       <span className="text-white text-xs font-bold">{'LinkedIn'}</span>
                       {'\n                  '}
-                      <span className="text-zinc-600 text-[10px]">{'2시간 전'}</span>
+                      <span className="text-zinc-500 text-xs">{'2시간 전'}</span>
                       {'\n                '}
                     </div>
                     {'\n                '}

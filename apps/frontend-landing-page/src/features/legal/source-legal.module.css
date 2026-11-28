@@ -492,7 +492,7 @@
 }
 .root :global(.text-zinc-500) {
   --tw-text-opacity: 1;
-  color: rgb(var(--mp-site-color-rgb-113-113-122) / var(--tw-text-opacity, 1));
+  color: var(--mp-site-text-muted);
 }
 .root :global(.text-zinc-200) {
   --tw-text-opacity: 1;

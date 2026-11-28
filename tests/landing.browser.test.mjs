@@ -108,6 +108,30 @@ test(
           assert.equal(new URL(await consultation.getAttribute('href')).hostname, 'pf.kakao.com');
           assert.equal(await page.getByRole('button', { name: '접기', exact: true }).count(), 0);
           await page.getByText('프리미엄 보정 5장', { exact: true }).waitFor();
+          await page.getByRole('button', { name: '뒤로가기', exact: true }).click();
+          await page.getByText('의류 스타일링 · 대여', { exact: true }).click();
+          await page.getByRole('button', { name: '내 맞춤 패키지 확인하기' }).click();
+          const rental = page.getByRole('status', { name: '인플루언서 의류 대여 수량' });
+          const brand = page.getByRole('status', { name: '브랜드 의류 1코디 제작 수량' });
+          for (const [id, quantity, total] of [
+            ['one', '1', 110000],
+            ['hybrid', '2', 210000],
+            ['allday', '4', 600000],
+          ]) {
+            await packageRadio(page, id).locator('..').click();
+            await expectTotal(page, total);
+            assert.equal(await rental.textContent(), quantity);
+            assert.equal(await brand.textContent(), '0');
+          }
+          await page.getByRole('button', { name: '인플루언서 의류 대여 수량 줄이기' }).click();
+          await expectTotal(page, 575000);
+          await page.reload();
+          await page.locator('[aria-busy="false"]').waitFor();
+          await expectTotal(page, 575000);
+          await packageRadio(page, 'one').locator('..').click();
+          await expectTotal(page, 110000);
+          await packageRadio(page, 'allday').locator('..').click();
+          await expectTotal(page, 525000);
           await page.getByRole('button', { name: '다시 해보기' }).click();
           await page.getByRole('heading', { name: '촬영 목적이 무엇인가요?' }).waitFor();
           assert.equal(
@@ -123,13 +147,14 @@ test(
         },
       );
       await scenario('logo returns to the top of the landing page', async (page) => {
+        await page.route('**/api/analytics/events', (route) => route.fulfill({ status: 204 }));
         await page.goto(appUrl);
         await page.evaluate(() => window.scrollTo(0, 1800));
         await openRecommendation(page, '?pkg=hybrid');
         const restart = page.getByRole('button', { name: '다시 해보기', exact: true });
         assert.equal(await restart.isVisible(), true);
         await page.getByRole('link', { name: 'MANSPICK 홈', exact: true }).click();
-        await page.waitForURL((url) => url.pathname === '/');
+        await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'commit' });
         await page.waitForFunction(() => window.scrollY === 0);
       });
       await scenario(
@@ -273,6 +298,25 @@ test(
           );
           assert.equal(motion.duration, '0.4s');
           assert.equal(motion.focused, true);
+          await page.emulateMedia({ reducedMotion: 'reduce' });
+          await page.getByRole('button', { name: '뒤로가기' }).click();
+          await page.getByRole('heading', { name: '원하는 촬영 규모는?' }).waitFor();
+          await page.locator('input[name=scale]').evaluateAll((choices) => {
+            choices[1].click();
+            choices[2].click();
+          });
+          await page.getByRole('heading', { name: '예산은 어느 정도 생각하세요?' }).waitFor();
+          await page
+            .getByRole('radio', { name: /^10만원 이하/ })
+            .locator('..')
+            .click();
+          await page.getByRole('button', { name: '뒤로가기' }).click();
+          await page.getByRole('heading', { name: '원하는 촬영 규모는?' }).waitFor();
+          await page.waitForTimeout(350);
+          assert.equal(new URL(page.url()).pathname, '/recommend/3');
+          assert.equal(await page.getByRole('radio', { name: /^하루 종일/ }).isChecked(), true);
+          await page.getByRole('button', { name: '다음으로' }).click();
+          assert.equal(await page.getByRole('radio', { name: /^10만원 이하/ }).isChecked(), true);
         },
       );
     } finally {

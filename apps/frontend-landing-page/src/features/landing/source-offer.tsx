@@ -6,7 +6,7 @@ import { SourceIcon } from './source-icon';
 export function SourceOffer() {
   return (
     <>
-      <section id="process" className="relative py-20 md:py-24 lg:py-32 border-t border-white/5">
+      <section id="process" className="relative py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -196,7 +196,7 @@ export function SourceOffer() {
         </div>
         {'\n  '}
       </section>
-      <section id="pricing" className="relative py-20 md:py-24 lg:py-32">
+      <section id="pricing" className="section-band relative py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -231,7 +231,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <h3 className="font-display text-2xl font-bold text-white">{'ONE 패키지'}</h3>
                 {'\n            '}
-                <span className="text-[11px] text-zinc-400 font-semibold bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
+                <span className="text-xs text-zinc-400 font-semibold bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
                   {'1벌 · 스팟7'}
                 </span>
                 {'\n          '}
@@ -241,7 +241,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <p className="text-zinc-500 text-base line-through">{'120,000원'}</p>
                 {'\n            '}
-                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 py-0.5">
+                <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 py-0.5">
                   {'-29%'}
                 </span>
                 {'\n          '}
@@ -254,13 +254,13 @@ export function SourceOffer() {
               {'\n          '}
               <div className="slot-info mt-5" data-package="one">
                 {'\n            '}
-                <div className="flex items-center justify-between text-[11px] mb-2">
+                <div className="flex items-center justify-between text-xs mb-2">
                   {'\n              '}
                   <span className="text-zinc-500 uppercase tracking-widest">{'이번 달 잔여'}</span>
                   {'\n              '}
                   <span className="text-white font-semibold">
                     <span className="slot-remaining text-accent-400">{'6'}</span>
-                    <span className="text-zinc-600">
+                    <span className="text-zinc-500">
                       {'/'}
                       <span className="slot-total">{'14'}</span>
                       {'석'}
@@ -280,7 +280,7 @@ export function SourceOffer() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <p className="slot-urgent hidden mt-2 text-[11px] text-red-400 font-semibold items-center gap-1">
+                <p className="slot-urgent hidden mt-2 text-xs text-red-400 font-semibold items-center gap-1">
                   {'\n              '}
                   <SourceIcon name="solar/fire-bold" />
                   {' 마감 임박\n            '}
@@ -290,7 +290,7 @@ export function SourceOffer() {
               {'\n          '}
               <ul className="mt-7 space-y-2.5 text-sm text-zinc-300 flex-1">
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">
                   {'촬영 전'}
                 </li>
                 {'\n            '}
@@ -310,7 +310,7 @@ export function SourceOffer() {
                   {' 의상 가이드 + 12종 코디북'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 당일'}
                 </li>
                 {'\n            '}
@@ -338,7 +338,7 @@ export function SourceOffer() {
                   {' 원본 300장+ 전량 제공'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 후'}
                 </li>
                 {'\n            '}
@@ -386,7 +386,7 @@ export function SourceOffer() {
               style={{ transitionDelay: '100ms' } as CSSProperties}
             >
               {'\n          '}
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-gradient-to-r from-accent-500 to-accent-400 text-white text-[11px] font-black uppercase tracking-wider px-4 py-1.5 rounded-full shadow-[0_8px_24px_-6px_rgba(45,118,246,0.8)] whitespace-nowrap">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-gradient-to-r from-accent-500 to-accent-400 text-white text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full shadow-[0_8px_24px_-6px_rgba(45,118,246,0.8)] whitespace-nowrap">
                 {'\n            '}
                 <SourceIcon name="solar/crown-bold" className="text-sm" />
                 {'\n            BEST · 78%가 선택\n          '}
@@ -400,7 +400,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <h3 className="font-display text-2xl font-bold text-white">{'HYBRID 패키지'}</h3>
                 {'\n            '}
-                <span className="text-[11px] text-accent-400 font-semibold bg-accent-500/10 border border-accent-500/20 rounded-full px-2.5 py-0.5">
+                <span className="text-xs text-accent-400 font-semibold bg-accent-500/10 border border-accent-500/20 rounded-full px-2.5 py-0.5">
                   {'2벌 · 스팟14'}
                 </span>
                 {'\n          '}
@@ -410,7 +410,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <p className="text-zinc-400 text-base line-through">{'210,000원'}</p>
                 {'\n            '}
-                <span className="text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/30 rounded-full px-2 py-0.5">
+                <span className="text-xs font-bold text-red-400 bg-red-500/15 border border-red-500/30 rounded-full px-2 py-0.5">
                   {'-24%'}
                 </span>
                 {'\n          '}
@@ -423,7 +423,7 @@ export function SourceOffer() {
               {'\n          '}
               <div className="slot-info mt-5" data-package="hybrid">
                 {'\n            '}
-                <div className="flex items-center justify-between text-[11px] mb-2">
+                <div className="flex items-center justify-between text-xs mb-2">
                   {'\n              '}
                   <span className="text-zinc-400 uppercase tracking-widest">{'이번 달 잔여'}</span>
                   {'\n              '}
@@ -449,7 +449,7 @@ export function SourceOffer() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <p className="slot-urgent hidden mt-2 text-[11px] text-red-400 font-semibold items-center gap-1">
+                <p className="slot-urgent hidden mt-2 text-xs text-red-400 font-semibold items-center gap-1">
                   {'\n              '}
                   <SourceIcon name="solar/fire-bold" />
                   {' 마감 임박\n            '}
@@ -459,7 +459,7 @@ export function SourceOffer() {
               {'\n          '}
               <ul className="mt-7 space-y-2.5 text-sm text-zinc-200 flex-1">
                 {'\n            '}
-                <li className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold">
+                <li className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">
                   {'촬영 전'}
                 </li>
                 {'\n            '}
@@ -487,7 +487,7 @@ export function SourceOffer() {
                   {' 그루밍 노션 (피부·헤어 관리법)'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-400 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 당일'}
                 </li>
                 {'\n            '}
@@ -515,7 +515,7 @@ export function SourceOffer() {
                   {' 원본 500장+ 전량 제공'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-400 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 후'}
                 </li>
                 {'\n            '}
@@ -573,7 +573,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <h3 className="font-display text-2xl font-bold text-white">{'ALL DAY 패키지'}</h3>
                 {'\n            '}
-                <span className="text-[11px] text-zinc-400 font-semibold bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
+                <span className="text-xs text-zinc-400 font-semibold bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
                   {'4벌 · N장소'}
                 </span>
                 {'\n          '}
@@ -583,7 +583,7 @@ export function SourceOffer() {
                 {'\n            '}
                 <p className="text-zinc-500 text-base line-through">{'890,000원'}</p>
                 {'\n            '}
-                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 py-0.5">
+                <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 py-0.5">
                   {'-44%'}
                 </span>
                 {'\n          '}
@@ -596,13 +596,13 @@ export function SourceOffer() {
               {'\n          '}
               <div className="slot-info mt-5" data-package="allday">
                 {'\n            '}
-                <div className="flex items-center justify-between text-[11px] mb-2">
+                <div className="flex items-center justify-between text-xs mb-2">
                   {'\n              '}
                   <span className="text-zinc-500 uppercase tracking-widest">{'이번 달 잔여'}</span>
                   {'\n              '}
                   <span className="text-white font-semibold">
                     <span className="slot-remaining text-accent-400">{'2'}</span>
-                    <span className="text-zinc-600">
+                    <span className="text-zinc-500">
                       {'/'}
                       <span className="slot-total">{'6'}</span>
                       {'석'}
@@ -622,7 +622,7 @@ export function SourceOffer() {
                   {'\n            '}
                 </div>
                 {'\n            '}
-                <p className="slot-urgent hidden mt-2 text-[11px] text-red-400 font-semibold items-center gap-1">
+                <p className="slot-urgent hidden mt-2 text-xs text-red-400 font-semibold items-center gap-1">
                   {'\n              '}
                   <SourceIcon name="solar/fire-bold" />
                   {' 마감 임박\n            '}
@@ -632,7 +632,7 @@ export function SourceOffer() {
               {'\n          '}
               <ul className="mt-7 space-y-2.5 text-sm text-zinc-300 flex-1">
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">
                   {'촬영 전'}
                 </li>
                 {'\n            '}
@@ -660,7 +660,7 @@ export function SourceOffer() {
                   {' 그루밍 노션 (피부·헤어 관리법)'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 당일'}
                 </li>
                 {'\n            '}
@@ -696,7 +696,7 @@ export function SourceOffer() {
                   {' 원본 700장+ 전량 제공'}
                 </li>
                 {'\n            '}
-                <li className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold pt-2">
+                <li className="text-xs text-zinc-500 uppercase tracking-widest font-semibold pt-2">
                   {'촬영 후'}
                 </li>
                 {'\n            '}
@@ -757,7 +757,7 @@ export function SourceOffer() {
                   {'\n              '}
                   <div className="text-left">
                     {'\n                '}
-                    <p className="text-[10px] text-accent-400 font-bold uppercase tracking-widest">
+                    <p className="text-xs text-accent-400 font-bold uppercase tracking-widest">
                       {'MANSPICK Guarantee'}
                     </p>
                     {'\n                '}
@@ -829,7 +829,7 @@ export function SourceOffer() {
         </div>
         {'\n  '}
       </section>
-      <section id="faq" className="py-20 md:py-24 lg:py-32">
+      <section id="faq" className="py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -1184,7 +1184,7 @@ export function SourceOffer() {
               {'\n        '}
             </a>
             {'\n        '}
-            <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 flex items-center gap-2 break-keep">
+            <p className="text-xs md:text-sm text-zinc-500 flex items-center gap-2 break-keep">
               {'\n          '}
               <span className="relative flex w-2 h-2 shrink-0">
                 {'\n            '}
@@ -1211,7 +1211,7 @@ export function SourceOffer() {
           </div>
           {'\n\n      '}
           <div
-            className="reveal grid grid-cols-3 sm:flex sm:flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-3 mt-10 text-[11px] sm:text-xs text-zinc-500"
+            className="reveal grid grid-cols-3 sm:flex sm:flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-3 mt-10 text-xs text-zinc-500"
             style={{ transitionDelay: '360ms' } as CSSProperties}
           >
             {'\n        '}

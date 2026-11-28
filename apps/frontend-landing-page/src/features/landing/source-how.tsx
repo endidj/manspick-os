@@ -7,7 +7,7 @@ import { SourceIcon } from './source-icon';
 export function SourceHow() {
   return (
     <>
-      <section id="how" className="py-20 md:py-24 lg:py-32 relative">
+      <section id="how" className="section-band py-16 md:py-24 lg:py-32 relative">
         {'\n    '}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
@@ -464,7 +464,7 @@ export function SourceHow() {
                       {'\n                  20대 여성 보정가 교차검증\n                '}
                     </p>
                     {'\n                '}
-                    <p className="text-[11px] text-zinc-400 mt-1">
+                    <p className="text-xs text-zinc-400 mt-1">
                       {'남녀 모두에게 호감인 컷만 드립니다'}
                     </p>
                     {'\n              '}
@@ -533,7 +533,7 @@ export function SourceHow() {
                 }
               </p>
               {'\n          '}
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                 {'\n            '}
                 <span className="flex items-center gap-1.5 glass rounded-full px-3 py-1.5">
                   {'\n              '}
@@ -644,7 +644,7 @@ export function SourceHow() {
         </div>
         {'\n  '}
       </section>
-      <section id="team" className="relative py-20 md:py-24 lg:py-32">
+      <section id="team" className="relative py-16 md:py-24 lg:py-32">
         {'\n    '}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {'\n      '}
